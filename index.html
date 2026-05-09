@@ -16,9 +16,7 @@
         body { font-family: -apple-system, sans-serif; background: #eef2f7; padding: 10px; margin: 0; padding-bottom: 110px; }
         .header-box { background: white; padding: 15px; border-radius: 12px; margin-bottom: 15px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); border-top: 5px solid var(--gold); text-align: center; }
         select.pizzeria-select { width: 100%; padding: 12px; border-radius: 8px; border: 2px solid var(--gold); font-size: 18px; font-weight: bold; background: #fffcf5; margin-top: 10px; color: var(--dark); }
-        
         .categoria-header { color: black; padding: 8px 12px; margin-top: 20px; border-radius: 8px 8px 0 0; font-size: 0.9em; font-weight: bold; text-transform: uppercase; text-align: center; border: 1px solid #999; }
-        
         .item { background: white; padding: 10px 12px; display: flex; justify-content: space-between; align-items: center; border: 1px solid #ccc; border-top: none; position: relative; }
         .item:last-child { border-radius: 0 0 10px 10px; }
         
@@ -26,22 +24,19 @@
         .urgente { background: #ffcccc !important; border-left: 8px solid var(--red) !important; }
         .ok { background: #e2f0d9 !important; border-left: 8px solid var(--green) !important; }
         .vuoto { background: #fff9db !important; border-left: 8px solid var(--gold) !important; }
-        .errore-testo { background: #f8d7da !important; border-left: 8px solid #721c24 !important; }
+        .errore-testo { background: #6c757d !important; border-left: 8px solid black !important; color: white !important; }
+        .errore-testo .nome-ingrediente, .errore-testo .soglia-info { color: white !important; }
         
         .nome-ingrediente { font-weight: 500; color: #333; font-size: 0.9em; }
         .soglia-info { font-size: 0.65em; color: #888; }
-        
         .input-container { position: relative; display: flex; align-items: center; }
-        input.qty-input { width: 70px; height: 32px; border-radius: 4px; border: 1px solid #999; font-size: 16px; text-align: center; background: white; }
-        
+        input.qty-input { width: 90px; height: 32px; border-radius: 4px; border: 1px solid #999; font-size: 14px; text-align: center; background: white; }
         .warning-icon { color: var(--gold); font-weight: bold; font-size: 20px; margin-right: 8px; display: none; }
         .vuoto .warning-icon { display: block; }
-        
         .btn-wa { position: fixed; bottom: 20px; left: 10px; right: 10px; background: #25D366; color: white; border: none; padding: 18px; border-radius: 15px; font-size: 1.1em; font-weight: bold; box-shadow: 0 5px 15px rgba(0,0,0,0.3); z-index: 999; }
     </style>
 </head>
 <body>
-
     <div class="header-box">
         <div id="info-giorno" style="font-size: 0.9em; color: #666;"></div>
         <select id="pizzeria" class="pizzeria-select">
@@ -51,7 +46,6 @@
             <option value="BIBAN">BIBAN</option>
         </select>
     </div>
-
     <div id="contenitore-lista"></div>
     <button class="btn-wa" onclick="inviaWhatsApp()">📤 INVIA REPORT MANCANTI</button>
 
@@ -131,7 +125,7 @@
         { cat: "IMPASTI", color: "var(--cat-impasti)", nome: "Canapa", fer: 1, we: 2 },
         { cat: "IMPASTI", color: "var(--cat-impasti)", nome: "Semola", fer: 1, we: 2 },
         { cat: "IMPASTI", color: "var(--cat-impasti)", nome: "Lievito", fer: 1, we: 2 },
-        { cat: "COMBUSTIBILE", color: "var(--cat-combustibile)", nome: "Legna", fer: 5, we: 15 },
+        { cat: "COMBUSTIBILE", color: "var(--cat-combustibile)", nome: "Legna", fer: 1, we: 2 },
         { cat: "MONETE", color: "var(--cat-monete)", nome: "Rotoli 0,50 €", fer: 1, we: 1 },
         { cat: "MONETE", color: "var(--cat-monete)", nome: "Rotoli 1 €", fer: 1, we: 1 },
         { cat: "MONETE", color: "var(--cat-monete)", nome: "Rotoli 2 €", fer: 1, we: 1 },
@@ -160,17 +154,24 @@
         { cat: "VARIO", color: "var(--cat-vario)", nome: "Sacc. umi. picc", fer: 1, we: 1 }
     ];
 
-    function parseInput(valore) {
-        if (valore === "" || valore === null) return null;
-        valore = valore.replace(',', '.');
-        if (valore.includes('/')) {
-            const parti = valore.split('/');
-            if(parti.length !== 2) return NaN;
+    // Funzione che controlla se c'è almeno un numero nel testo
+    function contieneNumeri(testo) {
+        return /\d/.test(testo);
+    }
+
+    // Estrae il primo numero trovato per il calcolo della soglia
+    function estraiNumero(testo) {
+        testo = testo.trim().replace(',', '.');
+        
+        // Se è una frazione semplice (es. 1/2)
+        if (/^\d+\/\d+$/.test(testo)) {
+            const parti = testo.split('/');
             return parseFloat(parti[0]) / parseFloat(parti[1]);
         }
-        // Controlla se il valore finale è un numero valido
-        const num = parseFloat(valore);
-        return isNaN(num) ? NaN : num;
+        
+        // Estrae il primo numero (anche decimale) trovato nel testo
+        const match = testo.match(/(\d+(\.\d+)?)/);
+        return match ? parseFloat(match[0]) : NaN;
     }
 
     const oggi = new Date().getDay();
@@ -198,23 +199,23 @@
                     </div>
                     <div class="input-container">
                         <span class="warning-icon">!</span>
-                        <input type="text" class="qty-input" id="sel-${i}" placeholder="-" oninput="valuta(${i}, ${soglia})">
+                        <input type="text" class="qty-input" id="sel-${i}" placeholder="Quantità" oninput="valuta(${i}, ${soglia})">
                     </div>
                 </div>`;
         });
     }
 
     function valuta(i, soglia) {
-        const testoScritto = document.getElementById(`sel-${i}`).value.trim();
-        const valoreNumerico = parseInput(testoScritto);
+        const testo = document.getElementById(`sel-${i}`).value;
         const box = document.getElementById(`box-${i}`);
 
-        if (testoScritto === "") {
+        if (testo.trim() === "") {
             box.className = "item vuoto";
-        } else if (isNaN(valoreNumerico)) {
+        } else if (!contieneNumeri(testo)) {
             box.className = "item errore-testo";
         } else {
-            box.className = (valoreNumerico < soglia) ? "item urgente" : "item ok";
+            const valore = estraiNumero(testo);
+            box.className = (valore < soglia) ? "item urgente" : "item ok";
         }
     }
 
@@ -223,36 +224,38 @@
         if (!pizzo) { alert("⚠️ SELEZIONA LA PIZZERIA!"); return; }
 
         let msg = `🏪 *INV. ${pizzo}* - ${giornoNome.toUpperCase()}\n\n`;
-        let trovati = false;
-        let mancantiCompilazione = [];
-        let erroriTesto = [];
+        let trovatiMancanti = false;
+        let listaVuoti = [];
+        let listaErrori = [];
 
         ingredienti.forEach((ing, i) => {
-            const testoScritto = document.getElementById(`sel-${i}`).value.trim();
-            const valoreNumerico = parseInput(testoScritto);
+            const testo = document.getElementById(`sel-${i}`).value.trim();
             const soglia = isWeekend ? ing.we : ing.fer;
 
-            if (testoScritto === "") {
-                mancantiCompilazione.push(ing.nome);
-            } else if (isNaN(valoreNumerico)) {
-                erroriTesto.push(ing.nome);
-            } else if (valoreNumerico < soglia) {
-                msg += `• *${ing.nome}*: ${testoScritto} (Soglia: ${soglia})\n`;
-                trovati = true;
+            if (testo === "") {
+                listaVuoti.push(ing.nome);
+            } else if (!contieneNumeri(testo)) {
+                listaErrori.push(ing.nome);
+            } else {
+                const valore = estraiNumero(testo);
+                if (valore < soglia) {
+                    msg += `• *${ing.nome}*: ${testo} (Soglia: ${soglia})\n`;
+                    trovatiMancanti = true;
+                }
             }
         });
 
-        if (mancantiCompilazione.length > 0) {
-            alert("⚠️ ATTENZIONE! Non hai compilato questi prodotti:\n\n- " + mancantiCompilazione.join("\n- "));
-            return; 
-        }
-
-        if (erroriTesto.length > 0) {
-            alert("⚠️ ERRORE! Inserisci solo numeri per questi prodotti:\n\n- " + erroriTesto.join("\n- "));
+        if (listaVuoti.length > 0) {
+            alert("⚠️ COMPILA TUTTO! Mancano:\n- " + listaVuoti.join("\n- "));
             return;
         }
 
-        if (!trovati) msg += "✅ Scorte OK!";
+        if (listaErrori.length > 0) {
+            alert("⚠️ ERRORE! Devi inserire almeno un numero per:\n- " + listaErrori.join("\n- "));
+            return;
+        }
+
+        if (!trovatiMancanti) msg += "✅ Scorte OK!";
         window.location.href = "whatsapp://send?text=" + encodeURIComponent(msg);
     }
 
