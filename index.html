@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<!-- saved from url=(0057)file:///C:/Users/HP%20PC/OneDrive/Desktop/inventario.html -->
-<html lang="it"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-    
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Inventario Pizzerie Ordinato</title>
+    <title>Inventario Pizzerie</title>
     <style>
         :root { 
             --red: #ff4d4d; --green: #4caf50; --gold: #f39c12; --dark: #2c3e50;
@@ -19,14 +19,23 @@
         
         .categoria-header { color: black; padding: 8px 12px; margin-top: 20px; border-radius: 8px 8px 0 0; font-size: 0.9em; font-weight: bold; text-transform: uppercase; text-align: center; border: 1px solid #999; }
         
-        .item { background: white; padding: 10px 12px; display: flex; justify-content: space-between; align-items: center; border: 1px solid #ccc; border-top: none; }
+        .item { background: white; padding: 10px 12px; display: flex; justify-content: space-between; align-items: center; border: 1px solid #ccc; border-top: none; position: relative; }
         .item:last-child { border-radius: 0 0 10px 10px; }
-        .urgente { background: #ffcccc !important; }
-        .ok { background: #e2f0d9 !important; }
+        
+        /* STATI CASSELLE */
+        .urgente { background: #ffcccc !important; border-left: 8px solid var(--red) !important; }
+        .ok { background: #e2f0d9 !important; border-left: 8px solid var(--green) !important; }
+        .vuoto { background: #fff9db !important; border-left: 8px solid var(--gold) !important; }
         
         .nome-ingrediente { font-weight: 500; color: #333; font-size: 0.9em; }
         .soglia-info { font-size: 0.65em; color: #888; }
+        
+        .input-container { position: relative; display: flex; align-items: center; }
         input.qty-input { width: 70px; height: 32px; border-radius: 4px; border: 1px solid #999; font-size: 16px; text-align: center; background: white; }
+        
+        /* Simbolo Punto Esclamativo */
+        .warning-icon { color: var(--gold); font-weight: bold; font-size: 20px; margin-right: 8px; display: none; }
+        .vuoto .warning-icon { display: block; }
         
         .btn-wa { position: fixed; bottom: 20px; left: 10px; right: 10px; background: #25D366; color: white; border: none; padding: 18px; border-radius: 15px; font-size: 1.1em; font-weight: bold; box-shadow: 0 5px 15px rgba(0,0,0,0.3); z-index: 999; }
     </style>
@@ -34,7 +43,7 @@
 <body>
 
     <div class="header-box">
-        <div id="info-giorno" style="font-size: 0.9em; color: #666;">📅 <b>Sabato</b> - Soglie Weekend 🚀</div>
+        <div id="info-giorno" style="font-size: 0.9em; color: #666;"></div>
         <select id="pizzeria" class="pizzeria-select">
             <option value="">📍 SELEZIONA PIZZERIA</option>
             <option value="CASTA">CASTA</option>
@@ -43,830 +52,96 @@
         </select>
     </div>
 
-    <div id="contenitore-lista"><div class="categoria-header" style="background-color: var(--cat-pasta)">PASTA</div>
-                <div class="item" id="box-0">
-                    <div>
-                        <div class="nome-ingrediente">Palline norm</div>
-                        <div class="soglia-info">Min: 300</div>
-                    </div>
-                    <input type="text" class="qty-input" id="sel-0" placeholder="0" oninput="valuta(0, 300)">
-                </div>
-                <div class="item" id="box-1">
-                    <div>
-                        <div class="nome-ingrediente">Palline canapa</div>
-                        <div class="soglia-info">Min: 30</div>
-                    </div>
-                    <input type="text" class="qty-input" id="sel-1" placeholder="0" oninput="valuta(1, 30)">
-                </div>
-                <div class="item" id="box-2">
-                    <div>
-                        <div class="nome-ingrediente">Mezzi</div>
-                        <div class="soglia-info">Min: 10</div>
-                    </div>
-                    <input type="text" class="qty-input" id="sel-2" placeholder="0" oninput="valuta(2, 10)">
-                </div><div class="categoria-header" style="background-color: var(--cat-vaschette)">VASCHETTE</div>
-                <div class="item" id="box-3">
-                    <div>
-                        <div class="nome-ingrediente">Melanzane</div>
-                        <div class="soglia-info">Min: 2</div>
-                    </div>
-                    <input type="text" class="qty-input" id="sel-3" placeholder="0" oninput="valuta(3, 2)">
-                </div>
-                <div class="item" id="box-4">
-                    <div>
-                        <div class="nome-ingrediente">Zucchine</div>
-                        <div class="soglia-info">Min: 2</div>
-                    </div>
-                    <input type="text" class="qty-input" id="sel-4" placeholder="0" oninput="valuta(4, 2)">
-                </div>
-                <div class="item" id="box-5">
-                    <div>
-                        <div class="nome-ingrediente">Peperoni</div>
-                        <div class="soglia-info">Min: 2</div>
-                    </div>
-                    <input type="text" class="qty-input" id="sel-5" placeholder="0" oninput="valuta(5, 2)">
-                </div>
-                <div class="item" id="box-6">
-                    <div>
-                        <div class="nome-ingrediente">Funghi</div>
-                        <div class="soglia-info">Min: 2</div>
-                    </div>
-                    <input type="text" class="qty-input" id="sel-6" placeholder="0" oninput="valuta(6, 2)">
-                </div>
-                <div class="item" id="box-7">
-                    <div>
-                        <div class="nome-ingrediente">Forno</div>
-                        <div class="soglia-info">Min: 2</div>
-                    </div>
-                    <input type="text" class="qty-input" id="sel-7" placeholder="0" oninput="valuta(7, 2)">
-                </div>
-                <div class="item" id="box-8">
-                    <div>
-                        <div class="nome-ingrediente">Fritte</div>
-                        <div class="soglia-info">Min: 2</div>
-                    </div>
-                    <input type="text" class="qty-input" id="sel-8" placeholder="0" oninput="valuta(8, 2)">
-                </div>
-                <div class="item" id="box-9">
-                    <div>
-                        <div class="nome-ingrediente">Salsa</div>
-                        <div class="soglia-info">Min: 3</div>
-                    </div>
-                    <input type="text" class="qty-input" id="sel-9" placeholder="0" oninput="valuta(9, 3)">
-                </div>
-                <div class="item" id="box-10">
-                    <div>
-                        <div class="nome-ingrediente">Asparagi</div>
-                        <div class="soglia-info">Min: 2</div>
-                    </div>
-                    <input type="text" class="qty-input" id="sel-10" placeholder="0" oninput="valuta(10, 2)">
-                </div><div class="categoria-header" style="background-color: var(--cat-formaggi)">FORMAGGI</div>
-                <div class="item" id="box-11">
-                    <div>
-                        <div class="nome-ingrediente">Mozza kg</div>
-                        <div class="soglia-info">Min: 30</div>
-                    </div>
-                    <input type="text" class="qty-input" id="sel-11" placeholder="0" oninput="valuta(11, 30)">
-                </div>
-                <div class="item" id="box-12">
-                    <div>
-                        <div class="nome-ingrediente">Bufala</div>
-                        <div class="soglia-info">Min: 15</div>
-                    </div>
-                    <input type="text" class="qty-input" id="sel-12" placeholder="0" oninput="valuta(12, 15)">
-                </div>
-                <div class="item" id="box-13">
-                    <div>
-                        <div class="nome-ingrediente">Provola</div>
-                        <div class="soglia-info">Min: 4</div>
-                    </div>
-                    <input type="text" class="qty-input" id="sel-13" placeholder="0" oninput="valuta(13, 4)">
-                </div>
-                <div class="item" id="box-14">
-                    <div>
-                        <div class="nome-ingrediente">Burrata</div>
-                        <div class="soglia-info">Min: 20</div>
-                    </div>
-                    <input type="text" class="qty-input" id="sel-14" placeholder="0" oninput="valuta(14, 20)">
-                </div>
-                <div class="item" id="box-15">
-                    <div>
-                        <div class="nome-ingrediente">Casatella</div>
-                        <div class="soglia-info">Min: 3</div>
-                    </div>
-                    <input type="text" class="qty-input" id="sel-15" placeholder="0" oninput="valuta(15, 3)">
-                </div>
-                <div class="item" id="box-16">
-                    <div>
-                        <div class="nome-ingrediente">Ricotta</div>
-                        <div class="soglia-info">Min: 2</div>
-                    </div>
-                    <input type="text" class="qty-input" id="sel-16" placeholder="0" oninput="valuta(16, 2)">
-                </div>
-                <div class="item" id="box-17">
-                    <div>
-                        <div class="nome-ingrediente">NO lattosio</div>
-                        <div class="soglia-info">Min: 2</div>
-                    </div>
-                    <input type="text" class="qty-input" id="sel-17" placeholder="0" oninput="valuta(17, 2)">
-                </div>
-                <div class="item" id="box-18">
-                    <div>
-                        <div class="nome-ingrediente">Parmigiano</div>
-                        <div class="soglia-info">Min: 1</div>
-                    </div>
-                    <input type="text" class="qty-input" id="sel-18" placeholder="0" oninput="valuta(18, 1)">
-                </div>
-                <div class="item" id="box-19">
-                    <div>
-                        <div class="nome-ingrediente">Brie</div>
-                        <div class="soglia-info">Min: 2</div>
-                    </div>
-                    <input type="text" class="qty-input" id="sel-19" placeholder="0" oninput="valuta(19, 2)">
-                </div>
-                <div class="item" id="box-20">
-                    <div>
-                        <div class="nome-ingrediente">Gorgonzola</div>
-                        <div class="soglia-info">Min: 1</div>
-                    </div>
-                    <input type="text" class="qty-input" id="sel-20" placeholder="0" oninput="valuta(20, 1)">
-                </div>
-                <div class="item" id="box-21">
-                    <div>
-                        <div class="nome-ingrediente">Asiago</div>
-                        <div class="soglia-info">Min: 0.5</div>
-                    </div>
-                    <input type="text" class="qty-input" id="sel-21" placeholder="0" oninput="valuta(21, 0.5)">
-                </div>
-                <div class="item" id="box-22">
-                    <div>
-                        <div class="nome-ingrediente">Pecorino</div>
-                        <div class="soglia-info">Min: 1</div>
-                    </div>
-                    <input type="text" class="qty-input" id="sel-22" placeholder="0" oninput="valuta(22, 1)">
-                </div><div class="categoria-header" style="background-color: var(--cat-salumi)">SALUMI</div>
-                <div class="item" id="box-23">
-                    <div>
-                        <div class="nome-ingrediente">Salsiccia</div>
-                        <div class="soglia-info">Min: 5</div>
-                    </div>
-                    <input type="text" class="qty-input" id="sel-23" placeholder="0" oninput="valuta(23, 5)">
-                </div>
-                <div class="item" id="box-24">
-                    <div>
-                        <div class="nome-ingrediente">Pancetta</div>
-                        <div class="soglia-info">Min: 1</div>
-                    </div>
-                    <input type="text" class="qty-input" id="sel-24" placeholder="0" oninput="valuta(24, 1)">
-                </div>
-                <div class="item" id="box-25">
-                    <div>
-                        <div class="nome-ingrediente">Salamino num</div>
-                        <div class="soglia-info">Min: 1</div>
-                    </div>
-                    <input type="text" class="qty-input" id="sel-25" placeholder="0" oninput="valuta(25, 1)">
-                </div>
-                <div class="item" id="box-26">
-                    <div>
-                        <div class="nome-ingrediente">Porchetta</div>
-                        <div class="soglia-info">Min: 1</div>
-                    </div>
-                    <input type="text" class="qty-input" id="sel-26" placeholder="0" oninput="valuta(26, 1)">
-                </div>
-                <div class="item" id="box-27">
-                    <div>
-                        <div class="nome-ingrediente">Roastbeef</div>
-                        <div class="soglia-info">Min: 1</div>
-                    </div>
-                    <input type="text" class="qty-input" id="sel-27" placeholder="0" oninput="valuta(27, 1)">
-                </div>
-                <div class="item" id="box-28">
-                    <div>
-                        <div class="nome-ingrediente">P.cotto</div>
-                        <div class="soglia-info">Min: 1</div>
-                    </div>
-                    <input type="text" class="qty-input" id="sel-28" placeholder="0" oninput="valuta(28, 1)">
-                </div>
-                <div class="item" id="box-29">
-                    <div>
-                        <div class="nome-ingrediente">Sopressa</div>
-                        <div class="soglia-info">Min: 1</div>
-                    </div>
-                    <input type="text" class="qty-input" id="sel-29" placeholder="0" oninput="valuta(29, 1)">
-                </div>
-                <div class="item" id="box-30">
-                    <div>
-                        <div class="nome-ingrediente">Speck</div>
-                        <div class="soglia-info">Min: 1</div>
-                    </div>
-                    <input type="text" class="qty-input" id="sel-30" placeholder="0" oninput="valuta(30, 1)">
-                </div>
-                <div class="item" id="box-31">
-                    <div>
-                        <div class="nome-ingrediente">Mortadella</div>
-                        <div class="soglia-info">Min: 1</div>
-                    </div>
-                    <input type="text" class="qty-input" id="sel-31" placeholder="0" oninput="valuta(31, 1)">
-                </div>
-                <div class="item" id="box-32">
-                    <div>
-                        <div class="nome-ingrediente">P. Crudo</div>
-                        <div class="soglia-info">Min: 1</div>
-                    </div>
-                    <input type="text" class="qty-input" id="sel-32" placeholder="0" oninput="valuta(32, 1)">
-                </div>
-                <div class="item" id="box-33">
-                    <div>
-                        <div class="nome-ingrediente">Wurstel</div>
-                        <div class="soglia-info">Min: 5</div>
-                    </div>
-                    <input type="text" class="qty-input" id="sel-33" placeholder="0" oninput="valuta(33, 5)">
-                </div>
-                <div class="item" id="box-34">
-                    <div>
-                        <div class="nome-ingrediente">Bresaola</div>
-                        <div class="soglia-info">Min: 1</div>
-                    </div>
-                    <input type="text" class="qty-input" id="sel-34" placeholder="0" oninput="valuta(34, 1)">
-                </div><div class="categoria-header" style="background-color: var(--cat-scaffaleria)">SCAFFALERIA</div>
-                <div class="item" id="box-35">
-                    <div>
-                        <div class="nome-ingrediente">Uova</div>
-                        <div class="soglia-info">Min: 10</div>
-                    </div>
-                    <input type="text" class="qty-input" id="sel-35" placeholder="0" oninput="valuta(35, 10)">
-                </div>
-                <div class="item" id="box-36">
-                    <div>
-                        <div class="nome-ingrediente">Pesto</div>
-                        <div class="soglia-info">Min: 1</div>
-                    </div>
-                    <input type="text" class="qty-input" id="sel-36" placeholder="0" oninput="valuta(36, 1)">
-                </div>
-                <div class="item" id="box-37">
-                    <div>
-                        <div class="nome-ingrediente">Pistacchio</div>
-                        <div class="soglia-info">Min: 1</div>
-                    </div>
-                    <input type="text" class="qty-input" id="sel-37" placeholder="0" oninput="valuta(37, 1)">
-                </div>
-                <div class="item" id="box-38">
-                    <div>
-                        <div class="nome-ingrediente">Noci</div>
-                        <div class="soglia-info">Min: 1</div>
-                    </div>
-                    <input type="text" class="qty-input" id="sel-38" placeholder="0" oninput="valuta(38, 1)">
-                </div>
-                <div class="item" id="box-39">
-                    <div>
-                        <div class="nome-ingrediente">s.Papavero</div>
-                        <div class="soglia-info">Min: 1</div>
-                    </div>
-                    <input type="text" class="qty-input" id="sel-39" placeholder="0" oninput="valuta(39, 1)">
-                </div>
-                <div class="item" id="box-40">
-                    <div>
-                        <div class="nome-ingrediente">PomSecchi</div>
-                        <div class="soglia-info">Min: 1</div>
-                    </div>
-                    <input type="text" class="qty-input" id="sel-40" placeholder="0" oninput="valuta(40, 1)">
-                </div>
-                <div class="item" id="box-41">
-                    <div>
-                        <div class="nome-ingrediente">Carciofi</div>
-                        <div class="soglia-info">Min: 2</div>
-                    </div>
-                    <input type="text" class="qty-input" id="sel-41" placeholder="0" oninput="valuta(41, 2)">
-                </div>
-                <div class="item" id="box-42">
-                    <div>
-                        <div class="nome-ingrediente">Olive</div>
-                        <div class="soglia-info">Min: 1</div>
-                    </div>
-                    <input type="text" class="qty-input" id="sel-42" placeholder="0" oninput="valuta(42, 1)">
-                </div>
-                <div class="item" id="box-43">
-                    <div>
-                        <div class="nome-ingrediente">Capperi</div>
-                        <div class="soglia-info">Min: 1</div>
-                    </div>
-                    <input type="text" class="qty-input" id="sel-43" placeholder="0" oninput="valuta(43, 1)">
-                </div>
-                <div class="item" id="box-44">
-                    <div>
-                        <div class="nome-ingrediente">Mais</div>
-                        <div class="soglia-info">Min: 0</div>
-                    </div>
-                    <input type="text" class="qty-input" id="sel-44" placeholder="0" oninput="valuta(44, 0)">
-                </div>
-                <div class="item" id="box-45">
-                    <div>
-                        <div class="nome-ingrediente">Miele</div>
-                        <div class="soglia-info">Min: 1</div>
-                    </div>
-                    <input type="text" class="qty-input" id="sel-45" placeholder="0" oninput="valuta(45, 1)">
-                </div>
-                <div class="item" id="box-46">
-                    <div>
-                        <div class="nome-ingrediente">Pel.Salsa</div>
-                        <div class="soglia-info">Min: 1</div>
-                    </div>
-                    <input type="text" class="qty-input" id="sel-46" placeholder="0" oninput="valuta(46, 1)">
-                </div><div class="categoria-header" style="background-color: var(--cat-fresco)">FRESCO</div>
-                <div class="item" id="box-47">
-                    <div>
-                        <div class="nome-ingrediente">Datterino</div>
-                        <div class="soglia-info">Min: 2</div>
-                    </div>
-                    <input type="text" class="qty-input" id="sel-47" placeholder="0" oninput="valuta(47, 2)">
-                </div>
-                <div class="item" id="box-48">
-                    <div>
-                        <div class="nome-ingrediente">Datt giallo</div>
-                        <div class="soglia-info">Min: 1</div>
-                    </div>
-                    <input type="text" class="qty-input" id="sel-48" placeholder="0" oninput="valuta(48, 1)">
-                </div>
-                <div class="item" id="box-49">
-                    <div>
-                        <div class="nome-ingrediente">Cipolla</div>
-                        <div class="soglia-info">Min: 1</div>
-                    </div>
-                    <input type="text" class="qty-input" id="sel-49" placeholder="0" oninput="valuta(49, 1)">
-                </div>
-                <div class="item" id="box-50">
-                    <div>
-                        <div class="nome-ingrediente">Rucola</div>
-                        <div class="soglia-info">Min: 1</div>
-                    </div>
-                    <input type="text" class="qty-input" id="sel-50" placeholder="0" oninput="valuta(50, 1)">
-                </div>
-                <div class="item" id="box-51">
-                    <div>
-                        <div class="nome-ingrediente">cass. Datt.</div>
-                        <div class="soglia-info">Min: 1</div>
-                    </div>
-                    <input type="text" class="qty-input" id="sel-51" placeholder="0" oninput="valuta(51, 1)">
-                </div>
-                <div class="item" id="box-52">
-                    <div>
-                        <div class="nome-ingrediente">casse D. Giallo</div>
-                        <div class="soglia-info">Min: 0.5</div>
-                    </div>
-                    <input type="text" class="qty-input" id="sel-52" placeholder="0" oninput="valuta(52, 0.5)">
-                </div>
-                <div class="item" id="box-53">
-                    <div>
-                        <div class="nome-ingrediente">cass.Cipolla</div>
-                        <div class="soglia-info">Min: 0.5</div>
-                    </div>
-                    <input type="text" class="qty-input" id="sel-53" placeholder="0" oninput="valuta(53, 0.5)">
-                </div>
-                <div class="item" id="box-54">
-                    <div>
-                        <div class="nome-ingrediente">Basilico</div>
-                        <div class="soglia-info">Min: 1</div>
-                    </div>
-                    <input type="text" class="qty-input" id="sel-54" placeholder="0" oninput="valuta(54, 1)">
-                </div>
-                <div class="item" id="box-55">
-                    <div>
-                        <div class="nome-ingrediente">Menta</div>
-                        <div class="soglia-info">Min: 1</div>
-                    </div>
-                    <input type="text" class="qty-input" id="sel-55" placeholder="0" oninput="valuta(55, 1)">
-                </div>
-                <div class="item" id="box-56">
-                    <div>
-                        <div class="nome-ingrediente">Pere</div>
-                        <div class="soglia-info">Min: 2</div>
-                    </div>
-                    <input type="text" class="qty-input" id="sel-56" placeholder="0" oninput="valuta(56, 2)">
-                </div><div class="categoria-header" style="background-color: var(--cat-pesce)">PESCE</div>
-                <div class="item" id="box-57">
-                    <div>
-                        <div class="nome-ingrediente">Acciughe</div>
-                        <div class="soglia-info">Min: 2</div>
-                    </div>
-                    <input type="text" class="qty-input" id="sel-57" placeholder="0" oninput="valuta(57, 2)">
-                </div>
-                <div class="item" id="box-58">
-                    <div>
-                        <div class="nome-ingrediente">Tonno (latte)</div>
-                        <div class="soglia-info">Min: 1</div>
-                    </div>
-                    <input type="text" class="qty-input" id="sel-58" placeholder="0" oninput="valuta(58, 1)">
-                </div>
-                <div class="item" id="box-59">
-                    <div>
-                        <div class="nome-ingrediente">Salmone</div>
-                        <div class="soglia-info">Min: 6</div>
-                    </div>
-                    <input type="text" class="qty-input" id="sel-59" placeholder="0" oninput="valuta(59, 6)">
-                </div>
-                <div class="item" id="box-60">
-                    <div>
-                        <div class="nome-ingrediente">Baccalà</div>
-                        <div class="soglia-info">Min: 1</div>
-                    </div>
-                    <input type="text" class="qty-input" id="sel-60" placeholder="0" oninput="valuta(60, 1)">
-                </div><div class="categoria-header" style="background-color: var(--cat-condimenti)">CONDIMENTI</div>
-                <div class="item" id="box-61">
-                    <div>
-                        <div class="nome-ingrediente">Aceto</div>
-                        <div class="soglia-info">Min: 1</div>
-                    </div>
-                    <input type="text" class="qty-input" id="sel-61" placeholder="0" oninput="valuta(61, 1)">
-                </div>
-                <div class="item" id="box-62">
-                    <div>
-                        <div class="nome-ingrediente">Origano</div>
-                        <div class="soglia-info">Min: 1</div>
-                    </div>
-                    <input type="text" class="qty-input" id="sel-62" placeholder="0" oninput="valuta(62, 1)">
-                </div>
-                <div class="item" id="box-63">
-                    <div>
-                        <div class="nome-ingrediente">Sale</div>
-                        <div class="soglia-info">Min: 1</div>
-                    </div>
-                    <input type="text" class="qty-input" id="sel-63" placeholder="0" oninput="valuta(63, 1)">
-                </div>
-                <div class="item" id="box-64">
-                    <div>
-                        <div class="nome-ingrediente">Olio EVO</div>
-                        <div class="soglia-info">Min: 4</div>
-                    </div>
-                    <input type="text" class="qty-input" id="sel-64" placeholder="0" oninput="valuta(64, 4)">
-                </div>
-                <div class="item" id="box-65">
-                    <div>
-                        <div class="nome-ingrediente">Olio Aglio</div>
-                        <div class="soglia-info">Min: 1</div>
-                    </div>
-                    <input type="text" class="qty-input" id="sel-65" placeholder="0" oninput="valuta(65, 1)">
-                </div>
-                <div class="item" id="box-66">
-                    <div>
-                        <div class="nome-ingrediente">Olio Piccante</div>
-                        <div class="soglia-info">Min: 1</div>
-                    </div>
-                    <input type="text" class="qty-input" id="sel-66" placeholder="0" oninput="valuta(66, 1)">
-                </div>
-                <div class="item" id="box-67">
-                    <div>
-                        <div class="nome-ingrediente">Olio Fritte</div>
-                        <div class="soglia-info">Min: 1</div>
-                    </div>
-                    <input type="text" class="qty-input" id="sel-67" placeholder="0" oninput="valuta(67, 1)">
-                </div><div class="categoria-header" style="background-color: var(--cat-freezer)">FREEZER</div>
-                <div class="item" id="box-68">
-                    <div>
-                        <div class="nome-ingrediente">Fritte</div>
-                        <div class="soglia-info">Min: 0</div>
-                    </div>
-                    <input type="text" class="qty-input" id="sel-68" placeholder="0" oninput="valuta(68, 0)">
-                </div>
-                <div class="item" id="box-69">
-                    <div>
-                        <div class="nome-ingrediente">Forno</div>
-                        <div class="soglia-info">Min: 0</div>
-                    </div>
-                    <input type="text" class="qty-input" id="sel-69" placeholder="0" oninput="valuta(69, 0)">
-                </div>
-                <div class="item" id="box-70">
-                    <div>
-                        <div class="nome-ingrediente">Ghiaccio</div>
-                        <div class="soglia-info">Min: 5</div>
-                    </div>
-                    <input type="text" class="qty-input" id="sel-70" placeholder="0" oninput="valuta(70, 5)">
-                </div><div class="categoria-header" style="background-color: var(--cat-impasti)">IMPASTI</div>
-                <div class="item" id="box-71">
-                    <div>
-                        <div class="nome-ingrediente">Canapa</div>
-                        <div class="soglia-info">Min: 2</div>
-                    </div>
-                    <input type="text" class="qty-input" id="sel-71" placeholder="0" oninput="valuta(71, 2)">
-                </div>
-                <div class="item" id="box-72">
-                    <div>
-                        <div class="nome-ingrediente">Semola</div>
-                        <div class="soglia-info">Min: 1</div>
-                    </div>
-                    <input type="text" class="qty-input" id="sel-72" placeholder="0" oninput="valuta(72, 1)">
-                </div>
-                <div class="item" id="box-73">
-                    <div>
-                        <div class="nome-ingrediente">Lievito</div>
-                        <div class="soglia-info">Min: 1</div>
-                    </div>
-                    <input type="text" class="qty-input" id="sel-73" placeholder="0" oninput="valuta(73, 1)">
-                </div><div class="categoria-header" style="background-color: var(--cat-combustibile)">COMBUSTIBILE</div>
-                <div class="item" id="box-74">
-                    <div>
-                        <div class="nome-ingrediente">Legna</div>
-                        <div class="soglia-info">Min: 2</div>
-                    </div>
-                    <input type="text" class="qty-input" id="sel-74" placeholder="0" oninput="valuta(74, 2)">
-                </div><div class="categoria-header" style="background-color: var(--cat-monete)">MONETE</div>
-                <div class="item" id="box-75">
-                    <div>
-                        <div class="nome-ingrediente">Rotoli 0,50 €</div>
-                        <div class="soglia-info">Min: 1</div>
-                    </div>
-                    <input type="text" class="qty-input" id="sel-75" placeholder="0" oninput="valuta(75, 1)">
-                </div>
-                <div class="item" id="box-76">
-                    <div>
-                        <div class="nome-ingrediente">Rotoli 1 €</div>
-                        <div class="soglia-info">Min: 1</div>
-                    </div>
-                    <input type="text" class="qty-input" id="sel-76" placeholder="0" oninput="valuta(76, 1)">
-                </div>
-                <div class="item" id="box-77">
-                    <div>
-                        <div class="nome-ingrediente">Rotoli 2 €</div>
-                        <div class="soglia-info">Min: 1</div>
-                    </div>
-                    <input type="text" class="qty-input" id="sel-77" placeholder="0" oninput="valuta(77, 1)">
-                </div>
-                <div class="item" id="box-78">
-                    <div>
-                        <div class="nome-ingrediente">Banc. 5 €</div>
-                        <div class="soglia-info">Min: 1</div>
-                    </div>
-                    <input type="text" class="qty-input" id="sel-78" placeholder="0" oninput="valuta(78, 1)">
-                </div>
-                <div class="item" id="box-79">
-                    <div>
-                        <div class="nome-ingrediente">Banc. 10 €</div>
-                        <div class="soglia-info">Min: 1</div>
-                    </div>
-                    <input type="text" class="qty-input" id="sel-79" placeholder="0" oninput="valuta(79, 1)">
-                </div><div class="categoria-header" style="background-color: var(--cat-imballaggi)">IMBALLAGGI</div>
-                <div class="item" id="box-80">
-                    <div>
-                        <div class="nome-ingrediente">Pellicola</div>
-                        <div class="soglia-info">Min: 1</div>
-                    </div>
-                    <input type="text" class="qty-input" id="sel-80" placeholder="0" oninput="valuta(80, 1)">
-                </div>
-                <div class="item" id="box-81">
-                    <div>
-                        <div class="nome-ingrediente">Carta mani</div>
-                        <div class="soglia-info">Min: 4</div>
-                    </div>
-                    <input type="text" class="qty-input" id="sel-81" placeholder="0" oninput="valuta(81, 4)">
-                </div>
-                <div class="item" id="box-82">
-                    <div>
-                        <div class="nome-ingrediente">Cart.med</div>
-                        <div class="soglia-info">Min: 2</div>
-                    </div>
-                    <input type="text" class="qty-input" id="sel-82" placeholder="0" oninput="valuta(82, 2)">
-                </div>
-                <div class="item" id="box-83">
-                    <div>
-                        <div class="nome-ingrediente">Cart.mezzi</div>
-                        <div class="soglia-info">Min: 30</div>
-                    </div>
-                    <input type="text" class="qty-input" id="sel-83" placeholder="0" oninput="valuta(83, 30)">
-                </div>
-                <div class="item" id="box-84">
-                    <div>
-                        <div class="nome-ingrediente">Cart.pers.</div>
-                        <div class="soglia-info">Min: 0</div>
-                    </div>
-                    <input type="text" class="qty-input" id="sel-84" placeholder="0" oninput="valuta(84, 0)">
-                </div><div class="categoria-header" style="background-color: var(--cat-detersivi)">DETERSIVI</div>
-                <div class="item" id="box-85">
-                    <div>
-                        <div class="nome-ingrediente">Detergente</div>
-                        <div class="soglia-info">Min: 1</div>
-                    </div>
-                    <input type="text" class="qty-input" id="sel-85" placeholder="0" oninput="valuta(85, 1)">
-                </div>
-                <div class="item" id="box-86">
-                    <div>
-                        <div class="nome-ingrediente">Napisan</div>
-                        <div class="soglia-info">Min: 1</div>
-                    </div>
-                    <input type="text" class="qty-input" id="sel-86" placeholder="0" oninput="valuta(86, 1)">
-                </div>
-                <div class="item" id="box-87">
-                    <div>
-                        <div class="nome-ingrediente">Det. piatti</div>
-                        <div class="soglia-info">Min: 1</div>
-                    </div>
-                    <input type="text" class="qty-input" id="sel-87" placeholder="0" oninput="valuta(87, 1)">
-                </div>
-                <div class="item" id="box-88">
-                    <div>
-                        <div class="nome-ingrediente">Sapone mani</div>
-                        <div class="soglia-info">Min: 1</div>
-                    </div>
-                    <input type="text" class="qty-input" id="sel-88" placeholder="0" oninput="valuta(88, 1)">
-                </div>
-                <div class="item" id="box-89">
-                    <div>
-                        <div class="nome-ingrediente">Ric. scopa</div>
-                        <div class="soglia-info">Min: 1</div>
-                    </div>
-                    <input type="text" class="qty-input" id="sel-89" placeholder="0" oninput="valuta(89, 1)">
-                </div>
-                <div class="item" id="box-90">
-                    <div>
-                        <div class="nome-ingrediente">Stracci</div>
-                        <div class="soglia-info">Min: 1</div>
-                    </div>
-                    <input type="text" class="qty-input" id="sel-90" placeholder="0" oninput="valuta(90, 1)">
-                </div>
-                <div class="item" id="box-91">
-                    <div>
-                        <div class="nome-ingrediente">Spugne</div>
-                        <div class="soglia-info">Min: 1</div>
-                    </div>
-                    <input type="text" class="qty-input" id="sel-91" placeholder="0" oninput="valuta(91, 1)">
-                </div>
-                <div class="item" id="box-92">
-                    <div>
-                        <div class="nome-ingrediente">Spugne ferro</div>
-                        <div class="soglia-info">Min: 1</div>
-                    </div>
-                    <input type="text" class="qty-input" id="sel-92" placeholder="0" oninput="valuta(92, 1)">
-                </div><div class="categoria-header" style="background-color: var(--cat-vario)">VARIO</div>
-                <div class="item" id="box-93">
-                    <div>
-                        <div class="nome-ingrediente">Rot. comande</div>
-                        <div class="soglia-info">Min: 2</div>
-                    </div>
-                    <input type="text" class="qty-input" id="sel-93" placeholder="0" oninput="valuta(93, 2)">
-                </div>
-                <div class="item" id="box-94">
-                    <div>
-                        <div class="nome-ingrediente">Rotoli pos</div>
-                        <div class="soglia-info">Min: 5</div>
-                    </div>
-                    <input type="text" class="qty-input" id="sel-94" placeholder="0" oninput="valuta(94, 5)">
-                </div>
-                <div class="item" id="box-95">
-                    <div>
-                        <div class="nome-ingrediente">Rotoli scontrini</div>
-                        <div class="soglia-info">Min: 5</div>
-                    </div>
-                    <input type="text" class="qty-input" id="sel-95" placeholder="0" oninput="valuta(95, 5)">
-                </div>
-                <div class="item" id="box-96">
-                    <div>
-                        <div class="nome-ingrediente">Spazzolaforno</div>
-                        <div class="soglia-info">Min: 1</div>
-                    </div>
-                    <input type="text" class="qty-input" id="sel-96" placeholder="0" oninput="valuta(96, 1)">
-                </div>
-                <div class="item" id="box-97">
-                    <div>
-                        <div class="nome-ingrediente">Sacchi plastica</div>
-                        <div class="soglia-info">Min: 2</div>
-                    </div>
-                    <input type="text" class="qty-input" id="sel-97" placeholder="0" oninput="valuta(97, 2)">
-                </div>
-                <div class="item" id="box-98">
-                    <div>
-                        <div class="nome-ingrediente">Sacc. plas picc</div>
-                        <div class="soglia-info">Min: 1</div>
-                    </div>
-                    <input type="text" class="qty-input" id="sel-98" placeholder="0" oninput="valuta(98, 1)">
-                </div>
-                <div class="item" id="box-99">
-                    <div>
-                        <div class="nome-ingrediente">Sacchi umido</div>
-                        <div class="soglia-info">Min: 2</div>
-                    </div>
-                    <input type="text" class="qty-input" id="sel-99" placeholder="0" oninput="valuta(99, 2)">
-                </div>
-                <div class="item" id="box-100">
-                    <div>
-                        <div class="nome-ingrediente">Sacc. umi. picc</div>
-                        <div class="soglia-info">Min: 1</div>
-                    </div>
-                    <input type="text" class="qty-input" id="sel-100" placeholder="0" oninput="valuta(100, 1)">
-                </div></div>
+    <div id="contenitore-lista"></div>
     <button class="btn-wa" onclick="inviaWhatsApp()">📤 INVIA REPORT MANCANTI</button>
 
 <script>
     const ingredienti = [
-        // PASTA
-        { cat: "PASTA", color: "var(--cat-pasta)", nome: "Palline norm", fer: 100, we: 300 },
-        { cat: "PASTA", color: "var(--cat-pasta)", nome: "Palline canapa", fer: 25, we: 30 },
+        { cat: "PASTA", color: "var(--cat-pasta)", nome: "Palline norm", fer: 200, we: 300 },
+        { cat: "PASTA", color: "var(--cat-pasta)", nome: "Palline canapa", fer: 20, we: 30 },
         { cat: "PASTA", color: "var(--cat-pasta)", nome: "Mezzi", fer: 2, we: 10 },
-        
-        // VASCHETTE
-        { cat: "VASCHETTE", color: "var(--cat-vaschette)", nome: "Melanzane", fer: 1, we: 2 },
-        { cat: "VASCHETTE", color: "var(--cat-vaschette)", nome: "Zucchine", fer: 1, we: 2 },
-        { cat: "VASCHETTE", color: "var(--cat-vaschette)", nome: "Peperoni", fer: 1, we: 2 },
+        { cat: "VASCHETTE", color: "var(--cat-vaschette)", nome: "Melanzane", fer: 2, we: 4 },
+        { cat: "VASCHETTE", color: "var(--cat-vaschette)", nome: "Zucchine", fer: 2, we: 4 },
+        { cat: "VASCHETTE", color: "var(--cat-vaschette)", nome: "Peperoni", fer: 2, we: 4 },
         { cat: "VASCHETTE", color: "var(--cat-vaschette)", nome: "Funghi", fer: 1, we: 2 },
-        { cat: "VASCHETTE", color: "var(--cat-vaschette)", nome: "Forno", fer: 0.5, we: 2 },
+        { cat: "VASCHETTE", color: "var(--cat-vaschette)", nome: "Forno", fer: 1, we: 2 },
         { cat: "VASCHETTE", color: "var(--cat-vaschette)", nome: "Fritte", fer: 1, we: 2 },
-        { cat: "VASCHETTE", color: "var(--cat-vaschette)", nome: "Salsa", fer: 1, we: 3 },
+        { cat: "VASCHETTE", color: "var(--cat-vaschette)", nome: "Salsa", fer: 1, we: 2 },
         { cat: "VASCHETTE", color: "var(--cat-vaschette)", nome: "Asparagi", fer: 1, we: 2 },
-
-        // FORMAGGI
-        { cat: "FORMAGGI", color: "var(--cat-formaggi)", nome: "Mozza kg", fer: 15, we: 30 },
+        { cat: "FORMAGGI", color: "var(--cat-formaggi)", nome: "Mozza kg", fer: 15, we: 40 },
         { cat: "FORMAGGI", color: "var(--cat-formaggi)", nome: "Bufala", fer: 5, we: 15 },
-        { cat: "FORMAGGI", color: "var(--cat-formaggi)", nome: "Provola", fer: 1, we: 4 },
-        { cat: "FORMAGGI", color: "var(--cat-formaggi)", nome: "Burrata", fer: 5, we: 20 },
+        { cat: "FORMAGGI", color: "var(--cat-formaggi)", nome: "Provola", fer: 2, we: 5 },
+        { cat: "FORMAGGI", color: "var(--cat-formaggi)", nome: "Burrata", fer: 5, we: 10 },
         { cat: "FORMAGGI", color: "var(--cat-formaggi)", nome: "Casatella", fer: 1, we: 3 },
         { cat: "FORMAGGI", color: "var(--cat-formaggi)", nome: "Ricotta", fer: 1, we: 2 },
         { cat: "FORMAGGI", color: "var(--cat-formaggi)", nome: "NO lattosio", fer: 1, we: 2 },
-        { cat: "FORMAGGI", color: "var(--cat-formaggi)", nome: "Parmigiano", fer: 1, we: 1 },
+        { cat: "FORMAGGI", color: "var(--cat-formaggi)", nome: "Parmigiano", fer: 2, we: 5 },
         { cat: "FORMAGGI", color: "var(--cat-formaggi)", nome: "Brie", fer: 1, we: 2 },
-        { cat: "FORMAGGI", color: "var(--cat-formaggi)", nome: "Gorgonzola", fer: 1, we: 1 },
-        { cat: "FORMAGGI", color: "var(--cat-formaggi)", nome: "Asiago", fer: 0.5, we: 1/2 },
-        { cat: "FORMAGGI", color: "var(--cat-formaggi)", nome: "Pecorino", fer: 1, we: 1 },
-
-        // SALUMI
-        { cat: "SALUMI", color: "var(--cat-salumi)", nome: "Salsiccia", fer: 2, we: 5 },
-        { cat: "SALUMI", color: "var(--cat-salumi)", nome: "Pancetta", fer: 0.5, we: 1 },
-        { cat: "SALUMI", color: "var(--cat-salumi)", nome: "Salamino num", fer: 1, we: 1 },
-        { cat: "SALUMI", color: "var(--cat-salumi)", nome: "Porchetta", fer: 0.5, we: 1 },
-        { cat: "SALUMI", color: "var(--cat-salumi)", nome: "Roastbeef", fer: 0.5, we: 1 },
-        { cat: "SALUMI", color: "var(--cat-salumi)", nome: "P.cotto", fer: 1, we: 1 },
-        { cat: "SALUMI", color: "var(--cat-salumi)", nome: "Sopressa", fer: 1, we: 1 },
-        { cat: "SALUMI", color: "var(--cat-salumi)", nome: "Speck", fer: 1, we: 1 },
-        { cat: "SALUMI", color: "var(--cat-salumi)", nome: "Mortadella", fer: 1, we: 1 },
-        { cat: "SALUMI", color: "var(--cat-salumi)", nome: "P. Crudo", fer: 1, we: 1 },
+        { cat: "FORMAGGI", color: "var(--cat-formaggi)", nome: "Gorgonzola", fer: 1, we: 2 },
+        { cat: "FORMAGGI", color: "var(--cat-formaggi)", nome: "Asiago", fer: 1, we: 2 },
+        { cat: "FORMAGGI", color: "var(--cat-formaggi)", nome: "Pecorino", fer: 1, we: 2 },
+        { cat: "SALUMI", color: "var(--cat-salumi)", nome: "Salsiccia", fer: 5, we: 10 },
+        { cat: "SALUMI", color: "var(--cat-salumi)", nome: "Pancetta", fer: 2, we: 4 },
+        { cat: "SALUMI", color: "var(--cat-salumi)", nome: "Salamino num", fer: 2, we: 5 },
+        { cat: "SALUMI", color: "var(--cat-salumi)", nome: "Porchetta", fer: 1, we: 3 },
+        { cat: "SALUMI", color: "var(--cat-salumi)", nome: "Roastbeef", fer: 1, we: 2 },
+        { cat: "SALUMI", color: "var(--cat-salumi)", nome: "P.cotto", fer: 3, we: 6 },
+        { cat: "SALUMI", color: "var(--cat-salumi)", nome: "Sopressa", fer: 1, we: 2 },
+        { cat: "SALUMI", color: "var(--cat-salumi)", nome: "Speck", fer: 2, we: 4 },
+        { cat: "SALUMI", color: "var(--cat-salumi)", nome: "Mortadella", fer: 1, we: 2 },
+        { cat: "SALUMI", color: "var(--cat-salumi)", nome: "P. Crudo", fer: 2, we: 5 },
         { cat: "SALUMI", color: "var(--cat-salumi)", nome: "Wurstel", fer: 2, we: 5 },
-        { cat: "SALUMI", color: "var(--cat-salumi)", nome: "Bresaola", fer: 1, we: 1 },
-
-        // SCAFFALERIA
-        { cat: "SCAFFALERIA", color: "var(--cat-scaffaleria)", nome: "Uova", fer: 6, we: 10 },
-        { cat: "SCAFFALERIA", color: "var(--cat-scaffaleria)", nome: "Pesto", fer: 1, we: 1 },
-        { cat: "SCAFFALERIA", color: "var(--cat-scaffaleria)", nome: "Pistacchio", fer: 1, we: 1 },
-        { cat: "SCAFFALERIA", color: "var(--cat-scaffaleria)", nome: "Noci", fer: 1, we: 1 },
+        { cat: "SALUMI", color: "var(--cat-salumi)", nome: "Bresaola", fer: 1, we: 2 },
+        { cat: "SCAFFALERIA", color: "var(--cat-scaffaleria)", nome: "Uova", fer: 1, we: 2 },
+        { cat: "SCAFFALERIA", color: "var(--cat-scaffaleria)", nome: "Pesto", fer: 1, we: 2 },
+        { cat: "SCAFFALERIA", color: "var(--cat-scaffaleria)", nome: "Pistacchio", fer: 1, we: 2 },
+        { cat: "SCAFFALERIA", color: "var(--cat-scaffaleria)", nome: "Noci", fer: 1, we: 2 },
         { cat: "SCAFFALERIA", color: "var(--cat-scaffaleria)", nome: "s.Papavero", fer: 1, we: 1 },
-        { cat: "SCAFFALERIA", color: "var(--cat-scaffaleria)", nome: "PomSecchi", fer: 1, we: 1 },
-        { cat: "SCAFFALERIA", color: "var(--cat-scaffaleria)", nome: "Carciofi", fer: 2, we: 2 },
-        { cat: "SCAFFALERIA", color: "var(--cat-scaffaleria)", nome: "Olive", fer: 1, we: 1 },
+        { cat: "SCAFFALERIA", color: "var(--cat-scaffaleria)", nome: "PomSecchi", fer: 1, we: 2 },
+        { cat: "SCAFFALERIA", color: "var(--cat-scaffaleria)", nome: "Carciofi", fer: 2, we: 4 },
+        { cat: "SCAFFALERIA", color: "var(--cat-scaffaleria)", nome: "Olive", fer: 2, we: 4 },
         { cat: "SCAFFALERIA", color: "var(--cat-scaffaleria)", nome: "Capperi", fer: 1, we: 1 },
-        { cat: "SCAFFALERIA", color: "var(--cat-scaffaleria)", nome: "Mais", fer: 0, we: 0 },
+        { cat: "SCAFFALERIA", color: "var(--cat-scaffaleria)", nome: "Mais", fer: 1, we: 2 },
         { cat: "SCAFFALERIA", color: "var(--cat-scaffaleria)", nome: "Miele", fer: 1, we: 1 },
-        { cat: "SCAFFALERIA", color: "var(--cat-scaffaleria)", nome: "Pel.Salsa", fer: 1, we: 1 },
-
-        // FRESCO
+        { cat: "SCAFFALERIA", color: "var(--cat-scaffaleria)", nome: "Pel.Salsa", fer: 5, we: 10 },
         { cat: "FRESCO", color: "var(--cat-fresco)", nome: "Datterino", fer: 1, we: 2 },
-        { cat: "FRESCO", color: "var(--cat-fresco)", nome: "Datt giallo", fer: 1, we: 1 },
-        { cat: "FRESCO", color: "var(--cat-fresco)", nome: "Cipolla", fer: 1, we: 1 },
-        { cat: "FRESCO", color: "var(--cat-fresco)", nome: "Rucola", fer: 1, we: 1 },
+        { cat: "FRESCO", color: "var(--cat-fresco)", nome: "Datt giallo", fer: 1, we: 2 },
+        { cat: "FRESCO", color: "var(--cat-fresco)", nome: "Cipolla", fer: 1, we: 2 },
+        { cat: "FRESCO", color: "var(--cat-fresco)", nome: "Rucola", fer: 2, we: 5 },
         { cat: "FRESCO", color: "var(--cat-fresco)", nome: "cass. Datt.", fer: 0.5, we: 1 },
         { cat: "FRESCO", color: "var(--cat-fresco)", nome: "casse D. Giallo", fer: 0.25, we: 0.5 },
         { cat: "FRESCO", color: "var(--cat-fresco)", nome: "cass.Cipolla", fer: 0.25, we: 0.5 },
-        { cat: "FRESCO", color: "var(--cat-fresco)", nome: "Basilico", fer: 1, we: 1 },
+        { cat: "FRESCO", color: "var(--cat-fresco)", nome: "Basilico", fer: 1, we: 2 },
         { cat: "FRESCO", color: "var(--cat-fresco)", nome: "Menta", fer: 1, we: 1 },
         { cat: "FRESCO", color: "var(--cat-fresco)", nome: "Pere", fer: 1, we: 2 },
-
-        // PESCE
         { cat: "PESCE", color: "var(--cat-pesce)", nome: "Acciughe", fer: 1, we: 2 },
-        { cat: "PESCE", color: "var(--cat-pesce)", nome: "Tonno (latte)", fer: 1, we: 1 },
-        { cat: "PESCE", color: "var(--cat-pesce)", nome: "Salmone", fer: 3, we: 6 },
-        { cat: "PESCE", color: "var(--cat-pesce)", nome: "Baccalà", fer: 1, we: 1 },
-
-        // CONDIMENTI
+        { cat: "PESCE", color: "var(--cat-pesce)", nome: "Tonno (latte)", fer: 1, we: 3 },
+        { cat: "PESCE", color: "var(--cat-pesce)", nome: "Salmone", fer: 1, we: 2 },
+        { cat: "PESCE", color: "var(--cat-pesce)", nome: "Baccalà", fer: 1, we: 2 },
         { cat: "CONDIMENTI", color: "var(--cat-condimenti)", nome: "Aceto", fer: 1, we: 1 },
         { cat: "CONDIMENTI", color: "var(--cat-condimenti)", nome: "Origano", fer: 1, we: 1 },
         { cat: "CONDIMENTI", color: "var(--cat-condimenti)", nome: "Sale", fer: 1, we: 1 },
-        { cat: "CONDIMENTI", color: "var(--cat-condimenti)", nome: "Olio EVO", fer: 1, we: 4 },
+        { cat: "CONDIMENTI", color: "var(--cat-condimenti)", nome: "Olio EVO", fer: 2, we: 4 },
         { cat: "CONDIMENTI", color: "var(--cat-condimenti)", nome: "Olio Aglio", fer: 1, we: 1 },
         { cat: "CONDIMENTI", color: "var(--cat-condimenti)", nome: "Olio Piccante", fer: 1, we: 1 },
-        { cat: "CONDIMENTI", color: "var(--cat-condimenti)", nome: "Olio Fritte", fer: 1, we: 1 },
-
-        // FREEZER
-        { cat: "FREEZER", color: "var(--cat-freezer)", nome: "Fritte", fer: 0, we: 0 },
-        { cat: "FREEZER", color: "var(--cat-freezer)", nome: "Forno", fer: 0, we: 0 },
+        { cat: "CONDIMENTI", color: "var(--cat-condimenti)", nome: "Olio Fritte", fer: 1, we: 2 },
+        { cat: "FREEZER", color: "var(--cat-freezer)", nome: "Fritte", fer: 2, we: 5 },
+        { cat: "FREEZER", color: "var(--cat-freezer)", nome: "Forno", fer: 1, we: 3 },
         { cat: "FREEZER", color: "var(--cat-freezer)", nome: "Ghiaccio", fer: 2, we: 5 },
-
-        // IMPASTI
         { cat: "IMPASTI", color: "var(--cat-impasti)", nome: "Canapa", fer: 1, we: 2 },
-        { cat: "IMPASTI", color: "var(--cat-impasti)", nome: "Semola", fer: 1, we: 1 },
-        { cat: "IMPASTI", color: "var(--cat-impasti)", nome: "Lievito", fer: 1, we: 1 },
-
-        // COMBUSTIBILE
-        { cat: "COMBUSTIBILE", color: "var(--cat-combustibile)", nome: "Legna", fer: 1, we: 2 },
-
-        // MONETE
+        { cat: "IMPASTI", color: "var(--cat-impasti)", nome: "Semola", fer: 1, we: 2 },
+        { cat: "IMPASTI", color: "var(--cat-impasti)", nome: "Lievito", fer: 1, we: 2 },
+        { cat: "COMBUSTIBILE", color: "var(--cat-combustibile)", nome: "Legna", fer: 5, we: 15 },
         { cat: "MONETE", color: "var(--cat-monete)", nome: "Rotoli 0,50 €", fer: 1, we: 1 },
         { cat: "MONETE", color: "var(--cat-monete)", nome: "Rotoli 1 €", fer: 1, we: 1 },
         { cat: "MONETE", color: "var(--cat-monete)", nome: "Rotoli 2 €", fer: 1, we: 1 },
         { cat: "MONETE", color: "var(--cat-monete)", nome: "Banc. 5 €", fer: 1, we: 1 },
         { cat: "MONETE", color: "var(--cat-monete)", nome: "Banc. 10 €", fer: 1, we: 1 },
-
-        // IMBALLAGGI
         { cat: "IMBALLAGGI", color: "var(--cat-imballaggi)", nome: "Pellicola", fer: 1, we: 1 },
         { cat: "IMBALLAGGI", color: "var(--cat-imballaggi)", nome: "Carta mani", fer: 2, we: 4 },
-        { cat: "IMBALLAGGI", color: "var(--cat-imballaggi)", nome: "Cart.med", fer: 1, we: 2 },
-        { cat: "IMBALLAGGI", color: "var(--cat-imballaggi)", nome: "Cart.mezzi", fer: 20, we: 30 },
-        { cat: "IMBALLAGGI", color: "var(--cat-imballaggi)", nome: "Cart.pers.", fer: 0, we: 0 },
-
-        // DETERSIVI
+        { cat: "IMBALLAGGI", color: "var(--cat-imballaggi)", nome: "Cart.med", fer: 50, we: 100 },
+        { cat: "IMBALLAGGI", color: "var(--cat-imballaggi)", nome: "Cart.mezzi", fer: 20, we: 50 },
+        { cat: "IMBALLAGGI", color: "var(--cat-imballaggi)", nome: "Cart.pers.", fer: 20, we: 50 },
         { cat: "DETERSIVI", color: "var(--cat-detersivi)", nome: "Detergente", fer: 1, we: 1 },
         { cat: "DETERSIVI", color: "var(--cat-detersivi)", nome: "Napisan", fer: 1, we: 1 },
         { cat: "DETERSIVI", color: "var(--cat-detersivi)", nome: "Det. piatti", fer: 1, we: 1 },
@@ -875,9 +150,7 @@
         { cat: "DETERSIVI", color: "var(--cat-detersivi)", nome: "Stracci", fer: 1, we: 1 },
         { cat: "DETERSIVI", color: "var(--cat-detersivi)", nome: "Spugne", fer: 1, we: 1 },
         { cat: "DETERSIVI", color: "var(--cat-detersivi)", nome: "Spugne ferro", fer: 1, we: 1 },
-
-        // VARIO
-        { cat: "VARIO", color: "var(--cat-vario)", nome: "Rot. comande", fer: 2, we: 2 },
+        { cat: "VARIO", color: "var(--cat-vario)", nome: "Rot. comande", fer: 5, we: 10 },
         { cat: "VARIO", color: "var(--cat-vario)", nome: "Rotoli pos", fer: 2, we: 5 },
         { cat: "VARIO", color: "var(--cat-vario)", nome: "Rotoli scontrini", fer: 2, we: 5 },
         { cat: "VARIO", color: "var(--cat-vario)", nome: "Spazzolaforno", fer: 1, we: 1 },
@@ -888,7 +161,7 @@
     ];
 
     function parseInput(valore) {
-        if (!valore) return null;
+        if (valore === "" || valore === null) return null;
         valore = valore.replace(',', '.');
         if (valore.includes('/')) {
             const parti = valore.split('/');
@@ -915,12 +188,15 @@
             const soglia = isWeekend ? ing.we : ing.fer;
             
             cont.innerHTML += `
-                <div class="item" id="box-${i}">
+                <div class="item vuoto" id="box-${i}">
                     <div>
                         <div class="nome-ingrediente">${ing.nome}</div>
                         <div class="soglia-info">Min: ${soglia}</div>
                     </div>
-                    <input type="text" class="qty-input" id="sel-${i}" placeholder="0" oninput="valuta(${i}, ${soglia})">
+                    <div class="input-container">
+                        <span class="warning-icon">!</span>
+                        <input type="text" class="qty-input" id="sel-${i}" placeholder="-" oninput="valuta(${i}, ${soglia})">
+                    </div>
                 </div>`;
         });
     }
@@ -929,8 +205,14 @@
         const testoScritto = document.getElementById(`sel-${i}`).value;
         const valoreNumerico = parseInput(testoScritto);
         const box = document.getElementById(`box-${i}`);
-        if (testoScritto === "" || isNaN(valoreNumerico)) { box.className = "item"; return; }
-        box.className = (valoreNumerico < soglia) ? "item urgente" : "item ok";
+
+        if (testoScritto.trim() === "") {
+            box.className = "item vuoto";
+        } else if (isNaN(valoreNumerico)) {
+            box.className = "item";
+        } else {
+            box.className = (valoreNumerico < soglia) ? "item urgente" : "item ok";
+        }
     }
 
     function inviaWhatsApp() {
@@ -939,17 +221,26 @@
 
         let msg = `🏪 *INV. ${pizzo}* - ${giornoNome.toUpperCase()}\n\n`;
         let trovati = false;
+        let mancantiCompilazione = [];
 
         ingredienti.forEach((ing, i) => {
-            const testoScritto = document.getElementById(`sel-${i}`).value;
+            const testoScritto = document.getElementById(`sel-${i}`).value.trim();
             const valoreNumerico = parseInput(testoScritto);
             const soglia = isWeekend ? ing.we : ing.fer;
 
-            if (testoScritto !== "" && !isNaN(valoreNumerico) && valoreNumerico < soglia) {
+            if (testoScritto === "") {
+                mancantiCompilazione.push(ing.nome);
+            } else if (!isNaN(valoreNumerico) && valoreNumerico < soglia) {
                 msg += `• *${ing.nome}*: ${testoScritto} (Soglia: ${soglia})\n`;
                 trovati = true;
             }
         });
+
+        // Se ci sono caselle vuote, blocca l'invio e avvisa
+        if (mancantiCompilazione.length > 0) {
+            alert("⚠️ ATTENZIONE! Non hai compilato questi prodotti:\n\n- " + mancantiCompilazione.join("\n- "));
+            return; 
+        }
 
         if (!trovati) msg += "✅ Scorte OK!";
         window.location.href = "whatsapp://send?text=" + encodeURIComponent(msg);
@@ -957,5 +248,5 @@
 
     creaLista();
 </script>
-
-</body></html>
+</body>
+</html>
