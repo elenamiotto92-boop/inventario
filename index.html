@@ -26,6 +26,7 @@
         .urgente { background: #ffcccc !important; border-left: 8px solid var(--red) !important; }
         .ok { background: #e2f0d9 !important; border-left: 8px solid var(--green) !important; }
         .vuoto { background: #fff9db !important; border-left: 8px solid var(--gold) !important; }
+        .errore-testo { background: #f8d7da !important; border-left: 8px solid #721c24 !important; }
         
         .nome-ingrediente { font-weight: 500; color: #333; font-size: 0.9em; }
         .soglia-info { font-size: 0.65em; color: #888; }
@@ -33,7 +34,6 @@
         .input-container { position: relative; display: flex; align-items: center; }
         input.qty-input { width: 70px; height: 32px; border-radius: 4px; border: 1px solid #999; font-size: 16px; text-align: center; background: white; }
         
-        /* Simbolo Punto Esclamativo */
         .warning-icon { color: var(--gold); font-weight: bold; font-size: 20px; margin-right: 8px; display: none; }
         .vuoto .warning-icon { display: block; }
         
@@ -165,9 +165,12 @@
         valore = valore.replace(',', '.');
         if (valore.includes('/')) {
             const parti = valore.split('/');
+            if(parti.length !== 2) return NaN;
             return parseFloat(parti[0]) / parseFloat(parti[1]);
         }
-        return parseFloat(valore);
+        // Controlla se il valore finale è un numero valido
+        const num = parseFloat(valore);
+        return isNaN(num) ? NaN : num;
     }
 
     const oggi = new Date().getDay();
@@ -202,14 +205,14 @@
     }
 
     function valuta(i, soglia) {
-        const testoScritto = document.getElementById(`sel-${i}`).value;
+        const testoScritto = document.getElementById(`sel-${i}`).value.trim();
         const valoreNumerico = parseInput(testoScritto);
         const box = document.getElementById(`box-${i}`);
 
-        if (testoScritto.trim() === "") {
+        if (testoScritto === "") {
             box.className = "item vuoto";
         } else if (isNaN(valoreNumerico)) {
-            box.className = "item";
+            box.className = "item errore-testo";
         } else {
             box.className = (valoreNumerico < soglia) ? "item urgente" : "item ok";
         }
@@ -222,6 +225,7 @@
         let msg = `🏪 *INV. ${pizzo}* - ${giornoNome.toUpperCase()}\n\n`;
         let trovati = false;
         let mancantiCompilazione = [];
+        let erroriTesto = [];
 
         ingredienti.forEach((ing, i) => {
             const testoScritto = document.getElementById(`sel-${i}`).value.trim();
@@ -230,16 +234,22 @@
 
             if (testoScritto === "") {
                 mancantiCompilazione.push(ing.nome);
-            } else if (!isNaN(valoreNumerico) && valoreNumerico < soglia) {
+            } else if (isNaN(valoreNumerico)) {
+                erroriTesto.push(ing.nome);
+            } else if (valoreNumerico < soglia) {
                 msg += `• *${ing.nome}*: ${testoScritto} (Soglia: ${soglia})\n`;
                 trovati = true;
             }
         });
 
-        // Se ci sono caselle vuote, blocca l'invio e avvisa
         if (mancantiCompilazione.length > 0) {
             alert("⚠️ ATTENZIONE! Non hai compilato questi prodotti:\n\n- " + mancantiCompilazione.join("\n- "));
             return; 
+        }
+
+        if (erroriTesto.length > 0) {
+            alert("⚠️ ERRORE! Inserisci solo numeri per questi prodotti:\n\n- " + erroriTesto.join("\n- "));
+            return;
         }
 
         if (!trovati) msg += "✅ Scorte OK!";
