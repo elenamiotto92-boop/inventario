@@ -43,7 +43,6 @@
         .btn-wa { background: #25D366; color: white; border: none; padding: 15px; border-radius: 12px; font-size: 1.1em; font-weight: bold; cursor: pointer; flex: 1; }
         .btn-save { background: #3498db; color: white; border: none; padding: 15px; border-radius: 12px; font-size: 1.1em; font-weight: bold; cursor: pointer; flex: 1; }
         
-        /* Stile specifico per archivio */
         .archivio-header { background: var(--dark); color: white; padding: 10px; border-radius: 8px; margin-top: 15px; font-size: 0.9em; }
     </style>
 </head>
@@ -61,9 +60,9 @@
         <div id="search-box" class="search-container">
             <input type="text" id="searchInput" class="search-input" placeholder="🔍 Cerca..." oninput="filtraLista()">
         </div>
-        
+
         <div id="date-picker-container" style="display: none; margin-top:10px;">
-            <label style="font-size: 0.8em; font-weight: bold;">SCEGLI DATA DA CONSULTARE:</label>
+            <label style="font-size: 0.8em; font-weight: bold;">CONSULTA DATA:</label>
             <input type="date" id="archiveDate" class="date-input" onchange="generaVistaArchivio()">
         </div>
 
@@ -192,6 +191,8 @@
 
     const listaBarbazza = ["brie", "gorgonzola", "asiago", "acciughe", "tonno (latte)", "salmone", "bresaola", "carciofi", "olive", "capperi", "semola", "carta mani", "pel.salsa", "cart.med", "cart.mezzi", "lievito"];
 
+    function contieneNumeri(testo) { return /\d/.test(testo); }
+
     function estraiNumeroIntelligente(testo, nomeIngrediente = "") {
         if (!testo) return NaN;
         testo = testo.toString().toLowerCase().trim().replace(',', '.');
@@ -242,7 +243,9 @@
             };
             if(ing.cat !== currentCat) {
                 if(currentCat !== "") html += `</tbody></table></div>`;
-                html += `<div class="categoria-header" style="background-color: ${ing.color}">${ing.cat}</div><div class="tabella-globale cat-group"><table><thead><tr><th>INGREDIENTE</th><th>Casta</th><th>Silea</th><th>Biban</th></tr></thead><tbody>`;
+                html += `<div class="categoria-header" style="background-color: ${ing.color}">${ing.cat}</div>
+                        <div class="tabella-globale cat-group">
+                        <table><thead><tr><th>INGREDIENTE</th><th>Casta</th><th>Silea</th><th>Biban</th></tr></thead><tbody>`;
                 currentCat = ing.cat;
             }
             let valCasta = datiCasta[ing.nome] || "-";
@@ -259,14 +262,14 @@
         const dataScelta = document.getElementById('archiveDate').value;
         if (!dataScelta) return;
         const cont = document.getElementById('contenitore-lista');
-        cont.innerHTML = `<div class="archivio-header">📅 Consultazione dati del: <b>${dataScelta}</b></div>`;
+        cont.innerHTML = `<div class="archivio-header">📅 Archivio del: <b>${dataScelta}</b></div>`;
         
         const datiCasta = JSON.parse(localStorage.getItem(`archive_CASTA_${dataScelta}`)) || null;
         const datiSilea = JSON.parse(localStorage.getItem(`archive_SILEA_${dataScelta}`)) || null;
         const datiBiban = JSON.parse(localStorage.getItem(`archive_BIBAN_${dataScelta}`)) || null;
 
         if (!datiCasta && !datiSilea && !datiBiban) {
-            cont.innerHTML += `<div style="padding:20px; text-align:center; color:red;">NESSUN DATO SALVATO PER QUESTA DATA.</div>`;
+            cont.innerHTML += `<div style="padding:20px; text-align:center; color:red;">NESSUN DATO TROVATO.</div>`;
             return;
         }
 
@@ -345,7 +348,7 @@
         const box = document.getElementById(`box-${i}`);
         const facoltativo = ingredienti.find(ing => ing.nome === nomeIngrediente).noObbligo;
         if (testo.trim() === "") box.className = facoltativo ? "item no-obbligo ing-item" : "item vuoto ing-item";
-        else if (!/\d/.test(testo) && !facoltativo) box.className = "item errore-testo ing-item";
+        else if (!contieneNumeri(testo) && !facoltativo) box.className = "item errore-testo ing-item";
         else if (facoltativo) box.className = "item no-obbligo ing-item";
         else {
             const valore = estraiNumeroIntelligente(testo, nomeIngrediente);
@@ -362,9 +365,9 @@
             if (input) datiDaSalvare[ing.nome] = input.value;
         });
         localStorage.setItem('inventario_dati_' + pizzo, JSON.stringify(datiDaSalvare));
-        localStorage.setItem(`archive_${pizzo}_${oggiString}`, JSON.stringify(datiDaSalvare)); // Salva in archivio con data odierna
+        localStorage.setItem(`archive_${pizzo}_${oggiString}`, JSON.stringify(datiDaSalvare));
         localStorage.setItem('ultima_pizzeria', pizzo);
-        alert("✅ Dati salvati correttamente anche in ARCHIVIO per " + pizzo);
+        alert("✅ Salvato (anche in Archivio) per " + pizzo);
     }
 
     function generaTabellaRiepilogoBiban() {
@@ -388,16 +391,17 @@
         const tabelle = document.querySelectorAll('.cat-group');
         items.forEach(item => {
             const nome = item.getAttribute('data-nome');
-            item.style.display = nome.includes(query) ? (item.tagName === 'TR' ? 'table-row' : 'flex') : "none";
+            if (query === "barbazza") item.style.display = listaBarbazza.includes(nome) ? (item.tagName === 'TR' ? 'table-row' : 'flex') : "none";
+            else item.style.display = nome.includes(query) ? (item.tagName === 'TR' ? 'table-row' : 'flex') : "none";
         });
         headers.forEach(h => h.style.display = (query === "") ? "block" : "none");
         tabelle.forEach(t => t.style.display = (query === "") ? "block" : "none");
     }
 
     function azzeraLista() {
-        if (confirm("⚠️ Vuoi cancellare i dati correnti? L'archivio storico rimarrà comunque salvato.")) {
+        if (confirm("⚠️ Vuoi cancellare i dati inseriti per questa pizzeria?")) {
             const pizzo = document.getElementById('pizzeria').value;
-            if (pizzo) localStorage.removeItem('inventario_dati_' + pizzo);
+            if (pizzo && pizzo !== "TUTTE") localStorage.removeItem('inventario_dati_' + pizzo);
             creaLista();
         }
     }
@@ -414,12 +418,14 @@
         let msg = `🏪 *INV. ${pizzo}* - PER ${nomiGiorni[domaniIdx].toUpperCase()}\n\n`;
         let trovatiMancanti = false;
         let listaVuoti = [];
+        let crudeMsg = "";
         ingredienti.forEach((ing, i) => {
             const input = document.getElementById(`sel-${i}`);
             if (!input) return; 
             const testo = input.value.trim();
             const soglia = isWeekendDomani ? ing.we : ing.fer;
-            if (!ing.noObbligo) {
+            if (ing.noObbligo) { if (testo !== "" && isDomenicaOggi && pizzo === "CASTA") crudeMsg += `• ${ing.nome}: ${testo}\n`; }
+            else {
                 if (testo === "") listaVuoti.push(ing.nome);
                 else {
                     const valore = estraiNumeroIntelligente(testo, ing.nome);
@@ -429,6 +435,7 @@
         });
         if (listaVuoti.length > 0) { alert("⚠️ COMPILA TUTTO! Mancano:\n- " + listaVuoti.join("\n- ")); return; }
         if (!trovatiMancanti) msg += "✅ Scorte OK!";
+        if (crudeMsg !== "") msg += `\n🥗 *VERDURE CRUDE*:\n${crudeMsg}`;
         window.location.href = "whatsapp://send?text=" + encodeURIComponent(msg);
     }
 </script>
