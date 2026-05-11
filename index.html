@@ -20,7 +20,7 @@
         .search-container { margin-top: 10px; display: none; }
         .search-input { width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #ccc; font-size: 16px; box-sizing: border-box; }
         .btn-reset { display: none; background: var(--red); color: white; border: none; padding: 8px 15px; border-radius: 8px; font-size: 0.8em; font-weight: bold; margin-top: 10px; width: 100%; cursor: pointer; }
-        .tabella-globale, .riepilogo-biban { background: white; border-radius: 10px; border: 2px solid #ccc; margin-bottom: 20px; overflow: hidden; font-size: 0.85em; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        .riepilogo-biban, .tabella-globale { background: white; border-radius: 10px; border: 2px solid #ccc; margin-bottom: 20px; overflow: hidden; font-size: 0.85em; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
         .tabella-globale { border: 2px solid var(--dark); }
         table { width: 100%; border-collapse: collapse; table-layout: fixed; }
         th { background: #f2f2f2; padding: 10px 5px; text-align: center; border-bottom: 2px solid #ddd; }
@@ -182,6 +182,8 @@
 
     const listaBarbazza = ["brie", "gorgonzola", "asiago", "acciughe", "tonno (latte)", "salmone", "bresaola", "carciofi", "olive", "capperi", "semola", "carta mani", "pel.salsa", "cart.med", "cart.mezzi", "lievito"];
 
+    function contieneNumeri(testo) { return /\d/.test(testo); }
+
     function estraiNumeroIntelligente(testo, nomeIngrediente = "") {
         if (!testo) return NaN;
         testo = testo.toString().toLowerCase().trim().replace(',', '.');
@@ -197,8 +199,8 @@
             valore = match ? parseFloat(match[0]) : NaN;
         }
 
-        // NUOVA LOGICA: Se è cipolla e contiene la parola "cip", allora dividi per 20.
-        // Altrimenti (se scrivi solo "1", "0.5", "1/4") conta come valore pieno (cassa).
+        // LOGICA CIPOLLA: Se scrivi la parola "cip", divide per 20. 
+        // Se scrivi solo un numero (es. 1), lo considera 1 cassa (valore pieno).
         if (nomeIngrediente.includes("Cipolla") && !isNaN(valore) && contieneCip) {
             valore = valore / 20;
         }
@@ -302,7 +304,7 @@
         const facoltativo = ingredienti.find(ing => ing.nome === nomeIngrediente).noObbligo;
 
         if (testo.trim() === "") box.className = facoltativo ? "item no-obbligo ing-item" : "item vuoto ing-item";
-        else if (!/\d/.test(testo) && !facoltativo) box.className = "item errore-testo ing-item";
+        else if (!contieneNumeri(testo) && !facoltativo) box.className = "item errore-testo ing-item";
         else if (facoltativo) box.className = "item no-obbligo ing-item";
         else {
             const valore = estraiNumeroIntelligente(testo, nomeIngrediente);
@@ -382,7 +384,7 @@
             if (ing.noObbligo) { if (testo !== "" && isDomenicaOggi && pizzo === "CASTA") crudeMsg += `• ${ing.nome}: ${testo}\n`; }
             else {
                 if (testo === "") listaVuoti.push(ing.nome);
-                else if (!/\d/.test(testo)) listaErrori.push(ing.nome);
+                else if (!contieneNumeri(testo)) listaErrori.push(ing.nome);
                 else {
                     const valore = estraiNumeroIntelligente(testo, ing.nome);
                     if (valore < soglia) { msg += `• *${ing.nome}*: ${testo} (Soglia: ${ing.nome.includes("Cipolla") ? "1/4" : soglia})\n`; trovatiMancanti = true; }
