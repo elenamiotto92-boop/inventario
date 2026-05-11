@@ -20,7 +20,6 @@
         .item { background: white; padding: 10px 12px; display: flex; justify-content: space-between; align-items: center; border: 1px solid #ccc; border-top: none; position: relative; }
         .item:last-child { border-radius: 0 0 10px 10px; }
         
-        /* STATI CASSELLE */
         .urgente { background: #ffcccc !important; border-left: 8px solid var(--red) !important; }
         .ok { background: #e2f0d9 !important; border-left: 8px solid var(--green) !important; }
         .vuoto { background: #fff9db !important; border-left: 8px solid var(--gold) !important; }
@@ -154,31 +153,35 @@
         { cat: "VARIO", color: "var(--cat-vario)", nome: "Sacc. umi. picc", fer: 1, we: 1 }
     ];
 
-    // Funzione che controlla se c'è almeno un numero nel testo
     function contieneNumeri(testo) {
         return /\d/.test(testo);
     }
 
-    // Estrae il primo numero trovato per il calcolo della soglia
     function estraiNumero(testo) {
         testo = testo.trim().replace(',', '.');
-        
-        // Se è una frazione semplice (es. 1/2)
         if (/^\d+\/\d+$/.test(testo)) {
             const parti = testo.split('/');
             return parseFloat(parti[0]) / parseFloat(parti[1]);
         }
-        
-        // Estrae il primo numero (anche decimale) trovato nel testo
         const match = testo.match(/(\d+(\.\d+)?)/);
         return match ? parseFloat(match[0]) : NaN;
     }
 
-    const oggi = new Date().getDay();
-    const isWeekend = (oggi === 0 || oggi === 5 || oggi === 6);
-    const giornoNome = ["Domenica", "Lunedì", "Martedì", "Mercoledì", "Giovedì", "Venerdì", "Sabato"][oggi];
+    // GESTIONE DATE
+    const nomiGiorni = ["Domenica", "Lunedì", "Martedì", "Mercoledì", "Giovedì", "Venerdì", "Sabato"];
+    const oraAttuale = new Date();
+    const oggiIdx = oraAttuale.getDay();
+    
+    // Calcolo domani
+    const domaniIdx = (oggiIdx + 1) % 7;
+    
+    // Una soglia è Weekend se il giorno per cui si fa l'inventario è Venerdì (5), Sabato (6) o Domenica (0)
+    const isWeekendDomani = (domaniIdx === 0 || domaniIdx === 5 || domaniIdx === 6);
 
-    document.getElementById('info-giorno').innerHTML = `📅 <b>${giornoNome}</b> - Soglie ${isWeekend ? 'Weekend 🚀' : 'Feriali 🛡️'}`;
+    document.getElementById('info-giorno').innerHTML = `
+        <div style="color: #333; font-size: 1.1em;">Oggi è <b>${nomiGiorni[oggiIdx]}</b></div>
+        <div style="margin-top: 5px;">Inventario per: <b>${nomiGiorni[domaniIdx]}</b> (${isWeekendDomani ? 'Weekend 🚀' : 'Feriale 🛡️'})</div>
+    `;
 
     function creaLista() {
         const cont = document.getElementById('contenitore-lista');
@@ -189,17 +192,17 @@
                 cont.innerHTML += `<div class="categoria-header" style="background-color: ${ing.color}">${ing.cat}</div>`;
                 currentCat = ing.cat;
             }
-            const soglia = isWeekend ? ing.we : ing.fer;
+            const soglia = isWeekendDomani ? ing.we : ing.fer;
             
             cont.innerHTML += `
                 <div class="item vuoto" id="box-${i}">
                     <div>
                         <div class="nome-ingrediente">${ing.nome}</div>
-                        <div class="soglia-info">Min: ${soglia}</div>
+                        <div class="soglia-info">Min domani: ${soglia}</div>
                     </div>
                     <div class="input-container">
                         <span class="warning-icon">!</span>
-                        <input type="text" class="qty-input" id="sel-${i}" placeholder="Quantità" oninput="valuta(${i}, ${soglia})">
+                        <input type="text" class="qty-input" id="sel-${i}" placeholder="Qtà" oninput="valuta(${i}, ${soglia})">
                     </div>
                 </div>`;
         });
@@ -223,14 +226,14 @@
         const pizzo = document.getElementById('pizzeria').value;
         if (!pizzo) { alert("⚠️ SELEZIONA LA PIZZERIA!"); return; }
 
-        let msg = `🏪 *INV. ${pizzo}* - ${giornoNome.toUpperCase()}\n\n`;
+        let msg = `🏪 *INV. ${pizzo}* - PER ${nomiGiorni[domaniIdx].toUpperCase()}\n\n`;
         let trovatiMancanti = false;
         let listaVuoti = [];
         let listaErrori = [];
 
         ingredienti.forEach((ing, i) => {
             const testo = document.getElementById(`sel-${i}`).value.trim();
-            const soglia = isWeekend ? ing.we : ing.fer;
+            const soglia = isWeekendDomani ? ing.we : ing.fer;
 
             if (testo === "") {
                 listaVuoti.push(ing.nome);
