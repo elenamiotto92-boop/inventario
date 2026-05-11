@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="it">
 <head>
@@ -181,22 +182,31 @@
     function creaLista() {
         const cont = document.getElementById('contenitore-lista');
         const pizzo = document.getElementById('pizzeria').value;
-        cont.innerHTML = ""; // Pulisce la lista ogni volta
+        cont.innerHTML = ""; 
         
-        if (!pizzo) return; // Se non c'è pizzeria, non mostrare nulla
+        if (!pizzo) return; 
 
         let currentCat = "";
         
         ingredienti.forEach((ing, i) => {
-            // LOGICA FILTRI SEDI
             let daMostrare = true;
 
-            // Filtro Categoria Freezer
+            // --- REGOLE DI FILTRO ---
+            
+            // 1. Categoria Freezer: Solo a Biban
             if (ing.cat === "FREEZER" && pizzo !== "BIBAN") daMostrare = false;
-            // Filtro Lievito e Canapa
+            
+            // 2. Lievito e Canapa: Solo a Biban
             if ((ing.nome === "Lievito" || ing.nome === "Canapa") && pizzo !== "BIBAN") daMostrare = false;
-            // Filtro Sale e Olio Fritte (Solo per Casta e Biban, Silea esclusa)
-            if ((ing.nome === "Sale" || ing.nome === "Olio Fritte") && pizzo === "SILEA") daMostrare = false;
+            
+            // 3. Sale: Nascondi solo a Silea
+            if (ing.nome === "Sale" && pizzo === "SILEA") daMostrare = false;
+
+            // 4. Olio Fritte: Solo a Casta (Nascondi a Silea e Biban)
+            if (ing.nome === "Olio Fritte" && (pizzo === "SILEA" || pizzo === "BIBAN")) daMostrare = false;
+
+            // 5. Pel.Salsa: Solo a Casta (Nascondi a Silea e Biban)
+            if (ing.nome === "Pel.Salsa" && (pizzo === "SILEA" || pizzo === "BIBAN")) daMostrare = false;
 
             if (daMostrare) {
                 if(ing.cat !== currentCat) {
@@ -243,10 +253,9 @@
         let listaVuoti = [];
         let listaErrori = [];
 
-        // Dobbiamo scorrere solo gli ingredienti visibili
         ingredienti.forEach((ing, i) => {
             const input = document.getElementById(`sel-${i}`);
-            if (!input) return; // Salta gli ingredienti filtrati (non presenti nel DOM)
+            if (!input) return; 
 
             const testo = input.value.trim();
             const soglia = isWeekendDomani ? ing.we : ing.fer;
@@ -277,8 +286,6 @@
         if (!trovatiMancanti) msg += "✅ Scorte OK!";
         window.location.href = "whatsapp://send?text=" + encodeURIComponent(msg);
     }
-
-    // Nota: creaLista ora viene chiamata dall'onchange del menu pizzeria
 </script>
 </body>
 </html>
