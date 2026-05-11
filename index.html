@@ -25,6 +25,13 @@
 
         .btn-reset { display: none; background: var(--red); color: white; border: none; padding: 8px 15px; border-radius: 8px; font-size: 0.8em; font-weight: bold; margin-top: 10px; width: 100%; cursor: pointer; }
 
+        /* Stile tabella riepilogo Biban */
+        .riepilogo-biban { background: white; border-radius: 10px; border: 2px solid var(--cat-pasta); margin-bottom: 20px; overflow: hidden; font-size: 0.85em; }
+        .riepilogo-biban table { width: 100%; border-collapse: collapse; }
+        .riepilogo-biban th { background: var(--cat-pasta); padding: 8px; text-align: left; }
+        .riepilogo-biban td { padding: 8px; border-bottom: 1px solid #eee; text-align: center; }
+        .riepilogo-biban td:first-child { text-align: left; font-weight: bold; }
+
         .categoria-header { color: black; padding: 8px 12px; margin-top: 20px; border-radius: 8px 8px 0 0; font-size: 0.9em; font-weight: bold; text-transform: uppercase; text-align: center; border: 1px solid #999; }
         
         .item { background: white; padding: 10px 12px; display: flex; justify-content: space-between; align-items: center; border: 1px solid #ccc; border-top: none; position: relative; }
@@ -69,6 +76,8 @@
 
         <button id="btn-azzera" class="btn-reset" onclick="azzeraLista()">🗑️ AZZERA LISTA</button>
     </div>
+
+    <div id="riepilogo-globale"></div>
 
     <div id="contenitore-lista"></div>
 
@@ -180,7 +189,6 @@
         { cat: "VARIO", color: "var(--cat-vario)", nome: "Sacc. plas picc", fer: 1, we: 1 },
         { cat: "VARIO", color: "var(--cat-vario)", nome: "Sacchi umido", fer: 1, we: 2 },
         { cat: "VARIO", color: "var(--cat-vario)", nome: "Sacc. umi. picc", fer: 1, we: 1 },
-        // --- CATEGORIA SPECIALE CASTA (SOLO DOMENICA) ---
         { cat: "VERDURE CRUDE", color: "var(--cat-crude)", nome: "Melanzane crude", fer: 0, we: 0, noObbligo: true },
         { cat: "VERDURE CRUDE", color: "var(--cat-crude)", nome: "Zucchine crude", fer: 0, we: 0, noObbligo: true },
         { cat: "VERDURE CRUDE", color: "var(--cat-crude)", nome: "Peperoni crudi", fer: 0, we: 0, noObbligo: true },
@@ -211,12 +219,56 @@
     const oggiIdx = oraAttuale.getDay();
     const domaniIdx = (oggiIdx + 1) % 7;
     const isWeekendDomani = (domaniIdx === 0 || domaniIdx === 5 || domaniIdx === 6);
-    const isDomenicaOggi = (oggiIdx === 0); // Controllo se oggi è domenica
+    const isDomenicaOggi = (oggiIdx === 0);
 
     document.getElementById('info-giorno').innerHTML = `
         <div style="color: #333; font-size: 1.1em;">Oggi è <b>${nomiGiorni[oggiIdx]}</b></div>
         <div style="margin-top: 5px;">Inventario per: <b>${nomiGiorni[domaniIdx]}</b> (${isWeekendDomani ? 'Weekend 🚀' : 'Feriale 🛡️'})</div>
     `;
+
+    function generaTabellaRiepilogo() {
+        const divRiepilogo = document.getElementById('riepilogo-globale');
+        const pizzoCorrente = document.getElementById('pizzeria').value;
+
+        if (pizzoCorrente !== "BIBAN") {
+            divRiepilogo.innerHTML = "";
+            return;
+        }
+
+        // Recupero dati dalle 3 pizzerie
+        const datiCasta = JSON.parse(localStorage.getItem('inventario_dati_CASTA')) || {};
+        const datiSilea = JSON.parse(localStorage.getItem('inventario_dati_SILEA')) || {};
+        const datiBiban = JSON.parse(localStorage.getItem('inventario_dati_BIBAN')) || {};
+
+        // Filtro solo gli ingredienti della categoria PASTA
+        const itemsPasta = ingredienti.filter(ing => ing.cat === "PASTA");
+
+        let html = `
+            <div class="riepilogo-biban">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>CATEGORIA PASTA</th>
+                            <th>Casta</th>
+                            <th>Silea</th>
+                            <th>Biban</th>
+                        </tr>
+                    </thead>
+                    <tbody>`;
+
+        itemsPasta.forEach(ing => {
+            html += `
+                <tr>
+                    <td>${ing.nome}</td>
+                    <td>${datiCasta[ing.nome] || "-"}</td>
+                    <td>${datiSilea[ing.nome] || "-"}</td>
+                    <td>${datiBiban[ing.nome] || "-"}</td>
+                </tr>`;
+        });
+
+        html += `</tbody></table></div>`;
+        divRiepilogo.innerHTML = html;
+    }
 
     function creaLista() {
         const cont = document.getElementById('contenitore-lista');
@@ -225,8 +277,18 @@
         const searchBox = document.getElementById('search-box');
         
         cont.innerHTML = ""; 
-        if (!pizzo) { btnAzzera.style.display = "none"; searchBox.style.display = "none"; return; }
-        btnAzzera.style.display = "block"; searchBox.style.display = "block";
+        if (!pizzo) { 
+            btnAzzera.style.display = "none"; 
+            searchBox.style.display = "none"; 
+            document.getElementById('riepilogo-globale').innerHTML = "";
+            return; 
+        }
+        
+        btnAzzera.style.display = "block"; 
+        searchBox.style.display = "block";
+        
+        // Genera riepilogo se è Biban
+        generaTabellaRiepilogo();
 
         let currentCat = "";
         const salvati = JSON.parse(localStorage.getItem('inventario_dati_' + pizzo)) || {};
@@ -234,14 +296,12 @@
         ingredienti.forEach((ing, i) => {
             let daMostrare = true;
 
-            // Filtri pizzerie base
             if (ing.cat === "FREEZER" && pizzo !== "BIBAN") daMostrare = false;
             if ((ing.nome === "Lievito" || ing.nome === "Canapa") && pizzo !== "BIBAN") daMostrare = false;
             if (ing.nome === "Sale" && pizzo === "SILEA") daMostrare = false;
             if (ing.nome === "Olio Fritte" && (pizzo === "SILEA" || pizzo === "BIBAN")) daMostrare = false;
             if (ing.nome === "Pel.Salsa" && (pizzo === "SILEA" || pizzo === "BIBAN")) daMostrare = false;
             
-            // FILTRO SPECIALE: Verdure crude solo Casta E solo di Domenica
             if (ing.cat === "VERDURE CRUDE") {
                 if (pizzo !== "CASTA" || !isDomenicaOggi) daMostrare = false;
             }
@@ -319,6 +379,10 @@
         });
         localStorage.setItem('inventario_dati_' + pizzo, JSON.stringify(datiDaSalvare));
         localStorage.setItem('ultima_pizzeria', pizzo);
+        
+        // Aggiorna tabella se siamo su Biban
+        if (pizzo === "BIBAN") generaTabellaRiepilogo();
+        
         alert("✅ Dati salvati correttamente per " + pizzo);
     }
 
@@ -360,7 +424,6 @@
             const soglia = isWeekendDomani ? ing.we : ing.fer;
 
             if (ing.noObbligo) {
-                // Le verdure crude vengono aggiunte solo se compilate
                 if (testo !== "" && isDomenicaOggi && pizzo === "CASTA") crudeMsg += `• ${ing.nome}: ${testo}\n`;
             } else {
                 if (testo === "") {
