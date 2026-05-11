@@ -19,7 +19,10 @@
         
         select.pizzeria-select { width: 100%; padding: 12px; border-radius: 8px; border: 2px solid var(--gold); font-size: 18px; font-weight: bold; background: #fffcf5; margin-top: 10px; color: var(--dark); }
         
-        /* Modificato: inizialmente nascosto */
+        /* BARRA DI RICERCA */
+        .search-container { margin-top: 10px; display: none; }
+        .search-input { width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #ccc; font-size: 16px; box-sizing: border-box; }
+
         .btn-reset { display: none; background: var(--red); color: white; border: none; padding: 8px 15px; border-radius: 8px; font-size: 0.8em; font-weight: bold; margin-top: 10px; width: 100%; cursor: pointer; }
 
         .categoria-header { color: black; padding: 8px 12px; margin-top: 20px; border-radius: 8px 8px 0 0; font-size: 0.9em; font-weight: bold; text-transform: uppercase; text-align: center; border: 1px solid #999; }
@@ -58,6 +61,11 @@
             <option value="SILEA">SILEA</option>
             <option value="BIBAN">BIBAN</option>
         </select>
+        
+        <div id="search-box" class="search-container">
+            <input type="text" id="searchInput" class="search-input" placeholder="🔍 Cerca ingrediente..." oninput="filtraLista()">
+        </div>
+
         <button id="btn-azzera" class="btn-reset" onclick="azzeraLista()">🗑️ AZZERA LISTA</button>
     </div>
 
@@ -200,15 +208,18 @@
         const cont = document.getElementById('contenitore-lista');
         const pizzo = document.getElementById('pizzeria').value;
         const btnAzzera = document.getElementById('btn-azzera');
+        const searchBox = document.getElementById('search-box');
         
         cont.innerHTML = ""; 
         
         if (!pizzo) {
-            btnAzzera.style.display = "none"; // Nasconde se non c'è pizzeria
+            btnAzzera.style.display = "none";
+            searchBox.style.display = "none";
             return; 
         }
 
-        btnAzzera.style.display = "block"; // Mostra se c'è pizzeria selezionata
+        btnAzzera.style.display = "block";
+        searchBox.style.display = "block";
 
         let currentCat = "";
         const salvati = JSON.parse(localStorage.getItem('inventario_dati_' + pizzo)) || {};
@@ -223,14 +234,14 @@
 
             if (daMostrare) {
                 if(ing.cat !== currentCat) {
-                    cont.innerHTML += `<div class="categoria-header" style="background-color: ${ing.color}">${ing.cat}</div>`;
+                    cont.innerHTML += `<div class="categoria-header cat-group-${i}" style="background-color: ${ing.color}">${ing.cat}</div>`;
                     currentCat = ing.cat;
                 }
                 const soglia = isWeekendDomani ? ing.we : ing.fer;
                 const valorePrecedente = salvati[ing.nome] || "";
                 
                 cont.innerHTML += `
-                    <div class="item ${valorePrecedente === "" ? "vuoto" : ""}" id="box-${i}">
+                    <div class="item ${valorePrecedente === "" ? "vuoto" : ""} ing-item" id="box-${i}" data-nome="${ing.nome.toLowerCase()}">
                         <div>
                             <div class="nome-ingrediente">${ing.nome}</div>
                             <div class="soglia-info">Min domani: ${soglia}</div>
@@ -246,6 +257,27 @@
         });
     }
 
+    // NUOVA FUNZIONE FILTRO
+    function filtraLista() {
+        const query = document.getElementById('searchInput').value.toLowerCase();
+        const items = document.querySelectorAll('.ing-item');
+        const headers = document.querySelectorAll('.categoria-header');
+
+        items.forEach(item => {
+            const nome = item.getAttribute('data-nome');
+            if (nome.includes(query)) {
+                item.style.display = "flex";
+            } else {
+                item.style.display = "none";
+            }
+        });
+
+        // Nasconde i titoli delle categorie se la ricerca è attiva (per pulizia)
+        headers.forEach(h => {
+            h.style.display = (query === "") ? "block" : "none";
+        });
+    }
+
     function valuta(i, soglia) {
         const input = document.getElementById(`sel-${i}`);
         if(!input) return;
@@ -253,12 +285,12 @@
         const box = document.getElementById(`box-${i}`);
 
         if (testo.trim() === "") {
-            box.className = "item vuoto";
+            box.className = "item vuoto ing-item";
         } else if (!contieneNumeri(testo)) {
-            box.className = "item errore-testo";
+            box.className = "item errore-testo ing-item";
         } else {
             const valore = estraiNumero(testo);
-            box.className = (valore < soglia) ? "item urgente" : "item ok";
+            box.className = (valore < soglia) ? "item urgente ing-item" : "item ok ing-item";
         }
     }
 
@@ -283,11 +315,13 @@
         if (confirm("⚠️ Vuoi davvero cancellare TUTTI i dati inseriti per questa pizzeria?")) {
             const pizzo = document.getElementById('pizzeria').value;
             if (pizzo) localStorage.removeItem('inventario_dati_' + pizzo);
+            document.getElementById('searchInput').value = ""; // Pulisce ricerca
             creaLista();
         }
     }
 
     function cambiaPizzeria() {
+        document.getElementById('searchInput').value = ""; // Reset ricerca al cambio pizzeria
         creaLista();
     }
 
