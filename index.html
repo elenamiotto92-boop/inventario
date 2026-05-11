@@ -19,7 +19,6 @@
         
         select.pizzeria-select { width: 100%; padding: 12px; border-radius: 8px; border: 2px solid var(--gold); font-size: 18px; font-weight: bold; background: #fffcf5; margin-top: 10px; color: var(--dark); }
         
-        /* BARRA DI RICERCA */
         .search-container { margin-top: 10px; display: none; }
         .search-input { width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #ccc; font-size: 16px; box-sizing: border-box; }
 
@@ -63,7 +62,7 @@
         </select>
         
         <div id="search-box" class="search-container">
-            <input type="text" id="searchInput" class="search-input" placeholder="🔍 Cerca ingrediente..." oninput="filtraLista()">
+            <input type="text" id="searchInput" class="search-input" placeholder="🔍 Cerca o digita BARBAZZA..." oninput="filtraLista()">
         </div>
 
         <button id="btn-azzera" class="btn-reset" onclick="azzeraLista()">🗑️ AZZERA LISTA</button>
@@ -181,6 +180,9 @@
         { cat: "VARIO", color: "var(--cat-vario)", nome: "Sacc. umi. picc", fer: 1, we: 1 }
     ];
 
+    // LISTA BARBAZZA
+    const listaBarbazza = ["brie", "gorgonzola", "asiago", "acciughe", "tonno (latte)", "salmone", "bresaola", "carciofi", "olive", "capperi", "semola", "carta mani", "pel.salsa", "cart.med", "cart.mezzi", "lievito"];
+
     function contieneNumeri(testo) { return /\d/.test(testo); }
 
     function estraiNumero(testo) {
@@ -211,15 +213,8 @@
         const searchBox = document.getElementById('search-box');
         
         cont.innerHTML = ""; 
-        
-        if (!pizzo) {
-            btnAzzera.style.display = "none";
-            searchBox.style.display = "none";
-            return; 
-        }
-
-        btnAzzera.style.display = "block";
-        searchBox.style.display = "block";
+        if (!pizzo) { btnAzzera.style.display = "none"; searchBox.style.display = "none"; return; }
+        btnAzzera.style.display = "block"; searchBox.style.display = "block";
 
         let currentCat = "";
         const salvati = JSON.parse(localStorage.getItem('inventario_dati_' + pizzo)) || {};
@@ -234,7 +229,7 @@
 
             if (daMostrare) {
                 if(ing.cat !== currentCat) {
-                    cont.innerHTML += `<div class="categoria-header cat-group-${i}" style="background-color: ${ing.color}">${ing.cat}</div>`;
+                    cont.innerHTML += `<div class="categoria-header" style="background-color: ${ing.color}">${ing.cat}</div>`;
                     currentCat = ing.cat;
                 }
                 const soglia = isWeekendDomani ? ing.we : ing.fer;
@@ -257,22 +252,22 @@
         });
     }
 
-    // NUOVA FUNZIONE FILTRO
     function filtraLista() {
-        const query = document.getElementById('searchInput').value.toLowerCase();
+        const query = document.getElementById('searchInput').value.toLowerCase().trim();
         const items = document.querySelectorAll('.ing-item');
         const headers = document.querySelectorAll('.categoria-header');
 
         items.forEach(item => {
             const nome = item.getAttribute('data-nome');
-            if (nome.includes(query)) {
-                item.style.display = "flex";
+            if (query === "barbazza") {
+                // Se scrivo BARBAZZA, mostro solo gli elementi della lista definita sopra
+                item.style.display = listaBarbazza.includes(nome) ? "flex" : "none";
             } else {
-                item.style.display = "none";
+                // Ricerca normale
+                item.style.display = nome.includes(query) ? "flex" : "none";
             }
         });
 
-        // Nasconde i titoli delle categorie se la ricerca è attiva (per pulizia)
         headers.forEach(h => {
             h.style.display = (query === "") ? "block" : "none";
         });
@@ -297,15 +292,11 @@
     function salvaDati() {
         const pizzo = document.getElementById('pizzeria').value;
         if (!pizzo) { alert("Seleziona prima la pizzeria!"); return; }
-
         let datiDaSalvare = {};
         ingredienti.forEach((ing, i) => {
             const input = document.getElementById(`sel-${i}`);
-            if (input) {
-                datiDaSalvare[ing.nome] = input.value;
-            }
+            if (input) { datiDaSalvare[ing.nome] = input.value; }
         });
-
         localStorage.setItem('inventario_dati_' + pizzo, JSON.stringify(datiDaSalvare));
         localStorage.setItem('ultima_pizzeria', pizzo);
         alert("✅ Dati salvati correttamente per " + pizzo);
@@ -315,13 +306,13 @@
         if (confirm("⚠️ Vuoi davvero cancellare TUTTI i dati inseriti per questa pizzeria?")) {
             const pizzo = document.getElementById('pizzeria').value;
             if (pizzo) localStorage.removeItem('inventario_dati_' + pizzo);
-            document.getElementById('searchInput').value = ""; // Pulisce ricerca
+            document.getElementById('searchInput').value = "";
             creaLista();
         }
     }
 
     function cambiaPizzeria() {
-        document.getElementById('searchInput').value = ""; // Reset ricerca al cambio pizzeria
+        document.getElementById('searchInput').value = "";
         creaLista();
     }
 
@@ -336,7 +327,6 @@
     function inviaWhatsApp() {
         const pizzo = document.getElementById('pizzeria').value;
         if (!pizzo) { alert("⚠️ SELEZIONA LA PIZZERIA!"); return; }
-
         let msg = `🏪 *INV. ${pizzo}* - PER ${nomiGiorni[domaniIdx].toUpperCase()}\n\n`;
         let trovatiMancanti = false;
         let listaVuoti = [];
@@ -347,7 +337,6 @@
             if (!input) return; 
             const testo = input.value.trim();
             const soglia = isWeekendDomani ? ing.we : ing.fer;
-
             if (testo === "") {
                 listaVuoti.push(ing.nome);
             } else if (!contieneNumeri(testo)) {
@@ -360,17 +349,8 @@
                 }
             }
         });
-
-        if (listaVuoti.length > 0) {
-            alert("⚠️ COMPILA TUTTO! Mancano:\n- " + listaVuoti.join("\n- "));
-            return;
-        }
-
-        if (listaErrori.length > 0) {
-            alert("⚠️ ERRORE! Devi inserire almeno un numero per:\n- " + listaErrori.join("\n- "));
-            return;
-        }
-
+        if (listaVuoti.length > 0) { alert("⚠️ COMPILA TUTTO! Mancano:\n- " + listaVuoti.join("\n- ")); return; }
+        if (listaErrori.length > 0) { alert("⚠️ ERRORE! Devi inserire almeno un numero per:\n- " + listaErrori.join("\n- ")); return; }
         if (!trovatiMancanti) msg += "✅ Scorte OK!";
         window.location.href = "whatsapp://send?text=" + encodeURIComponent(msg);
     }
