@@ -180,7 +180,7 @@
         { cat: "VARIO", color: "var(--cat-vario)", nome: "Sacc. plas picc", fer: 1, we: 1 },
         { cat: "VARIO", color: "var(--cat-vario)", nome: "Sacchi umido", fer: 1, we: 2 },
         { cat: "VARIO", color: "var(--cat-vario)", nome: "Sacc. umi. picc", fer: 1, we: 1 },
-        // --- CATEGORIA SPECIALE CASTA ---
+        // --- CATEGORIA SPECIALE CASTA (SOLO DOMENICA) ---
         { cat: "VERDURE CRUDE", color: "var(--cat-crude)", nome: "Melanzane crude", fer: 0, we: 0, noObbligo: true },
         { cat: "VERDURE CRUDE", color: "var(--cat-crude)", nome: "Zucchine crude", fer: 0, we: 0, noObbligo: true },
         { cat: "VERDURE CRUDE", color: "var(--cat-crude)", nome: "Peperoni crudi", fer: 0, we: 0, noObbligo: true },
@@ -211,6 +211,7 @@
     const oggiIdx = oraAttuale.getDay();
     const domaniIdx = (oggiIdx + 1) % 7;
     const isWeekendDomani = (domaniIdx === 0 || domaniIdx === 5 || domaniIdx === 6);
+    const isDomenicaOggi = (oggiIdx === 0); // Controllo se oggi è domenica
 
     document.getElementById('info-giorno').innerHTML = `
         <div style="color: #333; font-size: 1.1em;">Oggi è <b>${nomiGiorni[oggiIdx]}</b></div>
@@ -233,15 +234,17 @@
         ingredienti.forEach((ing, i) => {
             let daMostrare = true;
 
-            // Filtri pizzerie
+            // Filtri pizzerie base
             if (ing.cat === "FREEZER" && pizzo !== "BIBAN") daMostrare = false;
             if ((ing.nome === "Lievito" || ing.nome === "Canapa") && pizzo !== "BIBAN") daMostrare = false;
             if (ing.nome === "Sale" && pizzo === "SILEA") daMostrare = false;
             if (ing.nome === "Olio Fritte" && (pizzo === "SILEA" || pizzo === "BIBAN")) daMostrare = false;
             if (ing.nome === "Pel.Salsa" && (pizzo === "SILEA" || pizzo === "BIBAN")) daMostrare = false;
             
-            // Filtro speciale Categoria VERDURE CRUDE (solo Casta)
-            if (ing.cat === "VERDURE CRUDE" && pizzo !== "CASTA") daMostrare = false;
+            // FILTRO SPECIALE: Verdure crude solo Casta E solo di Domenica
+            if (ing.cat === "VERDURE CRUDE") {
+                if (pizzo !== "CASTA" || !isDomenicaOggi) daMostrare = false;
+            }
 
             if (daMostrare) {
                 if(ing.cat !== currentCat) {
@@ -256,7 +259,7 @@
                     <div class="item ${classeExtra} ing-item" id="box-${i}" data-nome="${ing.nome.toLowerCase()}">
                         <div>
                             <div class="nome-ingrediente">${ing.nome}</div>
-                            <div class="soglia-info">${ing.noObbligo ? 'Facoltativo' : 'Min domani: ' + soglia}</div>
+                            <div class="soglia-info">${ing.noObbligo ? '' : 'Min domani: ' + soglia}</div>
                         </div>
                         <div class="input-container">
                             <span class="warning-icon">!</span>
@@ -357,7 +360,8 @@
             const soglia = isWeekendDomani ? ing.we : ing.fer;
 
             if (ing.noObbligo) {
-                if (testo !== "") crudeMsg += `• ${ing.nome}: ${testo}\n`;
+                // Le verdure crude vengono aggiunte solo se compilate
+                if (testo !== "" && isDomenicaOggi && pizzo === "CASTA") crudeMsg += `• ${ing.nome}: ${testo}\n`;
             } else {
                 if (testo === "") {
                     listaVuoti.push(ing.nome);
