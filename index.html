@@ -12,6 +12,7 @@
             --cat-pesce: #9bc2e6; --cat-condimenti: #e2efda; --cat-freezer: #5b9bd5;
             --cat-impasti: #c6e0b4; --cat-combustibile: #ffeb3b; --cat-monete: #f2f2f2;
             --cat-imballaggi: #fce4d6; --cat-detersivi: #ddebf7; --cat-vario: #fff2cc;
+            --cat-crude: #f8f9fa;
         }
         body { font-family: -apple-system, sans-serif; background: #eef2f7; padding: 10px; margin: 0; padding-bottom: 180px; }
         
@@ -32,6 +33,7 @@
         .urgente { background: #ffcccc !important; border-left: 8px solid var(--red) !important; }
         .ok { background: #e2f0d9 !important; border-left: 8px solid var(--green) !important; }
         .vuoto { background: #fff9db !important; border-left: 8px solid var(--gold) !important; }
+        .no-obbligo { background: white !important; border-left: 8px solid #ddd !important; }
         .errore-testo { background: #6c757d !important; border-left: 8px solid black !important; color: white !important; }
         .errore-testo .nome-ingrediente, .errore-testo .soglia-info { color: white !important; }
         
@@ -177,7 +179,17 @@
         { cat: "VARIO", color: "var(--cat-vario)", nome: "Sacchi plastica", fer: 1, we: 2 },
         { cat: "VARIO", color: "var(--cat-vario)", nome: "Sacc. plas picc", fer: 1, we: 1 },
         { cat: "VARIO", color: "var(--cat-vario)", nome: "Sacchi umido", fer: 1, we: 2 },
-        { cat: "VARIO", color: "var(--cat-vario)", nome: "Sacc. umi. picc", fer: 1, we: 1 }
+        { cat: "VARIO", color: "var(--cat-vario)", nome: "Sacc. umi. picc", fer: 1, we: 1 },
+        // --- CATEGORIA SPECIALE CASTA ---
+        { cat: "VERDURE CRUDE", color: "var(--cat-crude)", nome: "Melanzane crude", fer: 0, we: 0, noObbligo: true },
+        { cat: "VERDURE CRUDE", color: "var(--cat-crude)", nome: "Zucchine crude", fer: 0, we: 0, noObbligo: true },
+        { cat: "VERDURE CRUDE", color: "var(--cat-crude)", nome: "Peperoni crudi", fer: 0, we: 0, noObbligo: true },
+        { cat: "VERDURE CRUDE", color: "var(--cat-crude)", nome: "Asparagi crudi", fer: 0, we: 0, noObbligo: true },
+        { cat: "VERDURE CRUDE", color: "var(--cat-crude)", nome: "Datterino crudo", fer: 0, we: 0, noObbligo: true },
+        { cat: "VERDURE CRUDE", color: "var(--cat-crude)", nome: "Datt. Giallo crudo", fer: 0, we: 0, noObbligo: true },
+        { cat: "VERDURE CRUDE", color: "var(--cat-crude)", nome: "Rucola cruda", fer: 0, we: 0, noObbligo: true },
+        { cat: "VERDURE CRUDE", color: "var(--cat-crude)", nome: "Basilico crudo", fer: 0, we: 0, noObbligo: true },
+        { cat: "VERDURE CRUDE", color: "var(--cat-crude)", nome: "Funghi crudi", fer: 0, we: 0, noObbligo: true }
     ];
 
     const listaBarbazza = ["brie", "gorgonzola", "asiago", "acciughe", "tonno (latte)", "salmone", "bresaola", "carciofi", "olive", "capperi", "semola", "carta mani", "pel.salsa", "cart.med", "cart.mezzi", "lievito"];
@@ -220,11 +232,16 @@
 
         ingredienti.forEach((ing, i) => {
             let daMostrare = true;
+
+            // Filtri pizzerie
             if (ing.cat === "FREEZER" && pizzo !== "BIBAN") daMostrare = false;
             if ((ing.nome === "Lievito" || ing.nome === "Canapa") && pizzo !== "BIBAN") daMostrare = false;
             if (ing.nome === "Sale" && pizzo === "SILEA") daMostrare = false;
             if (ing.nome === "Olio Fritte" && (pizzo === "SILEA" || pizzo === "BIBAN")) daMostrare = false;
             if (ing.nome === "Pel.Salsa" && (pizzo === "SILEA" || pizzo === "BIBAN")) daMostrare = false;
+            
+            // Filtro speciale Categoria VERDURE CRUDE (solo Casta)
+            if (ing.cat === "VERDURE CRUDE" && pizzo !== "CASTA") daMostrare = false;
 
             if (daMostrare) {
                 if(ing.cat !== currentCat) {
@@ -233,20 +250,21 @@
                 }
                 const soglia = isWeekendDomani ? ing.we : ing.fer;
                 const valorePrecedente = salvati[ing.nome] || "";
+                const classeExtra = ing.noObbligo ? "no-obbligo" : (valorePrecedente === "" ? "vuoto" : "");
                 
                 cont.innerHTML += `
-                    <div class="item ${valorePrecedente === "" ? "vuoto" : ""} ing-item" id="box-${i}" data-nome="${ing.nome.toLowerCase()}">
+                    <div class="item ${classeExtra} ing-item" id="box-${i}" data-nome="${ing.nome.toLowerCase()}">
                         <div>
                             <div class="nome-ingrediente">${ing.nome}</div>
-                            <div class="soglia-info">Min domani: ${soglia}</div>
+                            <div class="soglia-info">${ing.noObbligo ? 'Facoltativo' : 'Min domani: ' + soglia}</div>
                         </div>
                         <div class="input-container">
                             <span class="warning-icon">!</span>
-                            <input type="text" class="qty-input" id="sel-${i}" placeholder="Qtà" value="${valorePrecedente}" oninput="valuta(${i}, ${soglia})">
+                            <input type="text" class="qty-input" id="sel-${i}" placeholder="Qtà" value="${valorePrecedente}" oninput="valuta(${i}, ${soglia}, ${ing.noObbligo || false})">
                         </div>
                     </div>`;
                 
-                if(valorePrecedente !== "") valuta(i, soglia);
+                if(valorePrecedente !== "") valuta(i, soglia, ing.noObbligo || false);
             }
         });
     }
@@ -270,16 +288,18 @@
         });
     }
 
-    function valuta(i, soglia) {
+    function valuta(i, soglia, facoltativo) {
         const input = document.getElementById(`sel-${i}`);
         if(!input) return;
         const testo = input.value;
         const box = document.getElementById(`box-${i}`);
 
         if (testo.trim() === "") {
-            box.className = "item vuoto ing-item";
-        } else if (!contieneNumeri(testo)) {
+            box.className = facoltativo ? "item no-obbligo ing-item" : "item vuoto ing-item";
+        } else if (!contieneNumeri(testo) && !facoltativo) {
             box.className = "item errore-testo ing-item";
+        } else if (facoltativo) {
+            box.className = "item no-obbligo ing-item";
         } else {
             const valore = estraiNumero(testo);
             box.className = (valore < soglia) ? "item urgente ing-item" : "item ok ing-item";
@@ -328,27 +348,40 @@
         let trovatiMancanti = false;
         let listaVuoti = [];
         let listaErrori = [];
+        let crudeMsg = "";
 
         ingredienti.forEach((ing, i) => {
             const input = document.getElementById(`sel-${i}`);
             if (!input) return; 
             const testo = input.value.trim();
             const soglia = isWeekendDomani ? ing.we : ing.fer;
-            if (testo === "") {
-                listaVuoti.push(ing.nome);
-            } else if (!contieneNumeri(testo)) {
-                listaErrori.push(ing.nome);
+
+            if (ing.noObbligo) {
+                if (testo !== "") crudeMsg += `• ${ing.nome}: ${testo}\n`;
             } else {
-                const valore = estraiNumero(testo);
-                if (valore < soglia) {
-                    msg += `• *${ing.nome}*: ${testo} (Soglia: ${soglia})\n`;
-                    trovatiMancanti = true;
+                if (testo === "") {
+                    listaVuoti.push(ing.nome);
+                } else if (!contieneNumeri(testo)) {
+                    listaErrori.push(ing.nome);
+                } else {
+                    const valore = estraiNumero(testo);
+                    if (valore < soglia) {
+                        msg += `• *${ing.nome}*: ${testo} (Soglia: ${soglia})\n`;
+                        trovatiMancanti = true;
+                    }
                 }
             }
         });
+
         if (listaVuoti.length > 0) { alert("⚠️ COMPILA TUTTO! Mancano:\n- " + listaVuoti.join("\n- ")); return; }
         if (listaErrori.length > 0) { alert("⚠️ ERRORE! Devi inserire almeno un numero per:\n- " + listaErrori.join("\n- ")); return; }
+        
         if (!trovatiMancanti) msg += "✅ Scorte OK!";
+        
+        if (crudeMsg !== "") {
+            msg += `\n🥗 *VERDURE CRUDE*:\n${crudeMsg}`;
+        }
+
         window.location.href = "whatsapp://send?text=" + encodeURIComponent(msg);
     }
 </script>
