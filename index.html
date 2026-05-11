@@ -62,7 +62,7 @@
         </select>
         
         <div id="search-box" class="search-container">
-            <input type="text" id="searchInput" class="search-input" placeholder="🔍 Cerca o digita BARBAZZA..." oninput="filtraLista()">
+            <input type="text" id="searchInput" class="search-input" placeholder="🔍 Cerca..." oninput="filtraLista()">
         </div>
 
         <button id="btn-azzera" class="btn-reset" onclick="azzeraLista()">🗑️ AZZERA LISTA</button>
@@ -180,7 +180,6 @@
         { cat: "VARIO", color: "var(--cat-vario)", nome: "Sacc. umi. picc", fer: 1, we: 1 }
     ];
 
-    // LISTA BARBAZZA
     const listaBarbazza = ["brie", "gorgonzola", "asiago", "acciughe", "tonno (latte)", "salmone", "bresaola", "carciofi", "olive", "capperi", "semola", "carta mani", "pel.salsa", "cart.med", "cart.mezzi", "lievito"];
 
     function contieneNumeri(testo) { return /\d/.test(testo); }
@@ -260,10 +259,8 @@
         items.forEach(item => {
             const nome = item.getAttribute('data-nome');
             if (query === "barbazza") {
-                // Se scrivo BARBAZZA, mostro solo gli elementi della lista definita sopra
                 item.style.display = listaBarbazza.includes(nome) ? "flex" : "none";
             } else {
-                // Ricerca normale
                 item.style.display = nome.includes(query) ? "flex" : "none";
             }
         });
