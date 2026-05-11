@@ -35,6 +35,9 @@
         td { padding: 10px 5px; border-bottom: 1px solid #eee; text-align: center; vertical-align: middle; }
         td:first-child { text-align: left; font-weight: bold; padding-left: 10px; background: #fafafa; }
 
+        /* Colore rosso per valori sotto soglia nella vista TUTTE */
+        .sotto-soglia { color: var(--red); font-weight: bold; }
+
         .categoria-header { color: black; padding: 8px 12px; margin-top: 20px; border-radius: 8px 8px 0 0; font-size: 0.9em; font-weight: bold; text-transform: uppercase; text-align: center; border: 1px solid #999; }
         
         .item { background: white; padding: 10px 12px; display: flex; justify-content: space-between; align-items: center; border: 1px solid #ccc; border-top: none; position: relative; }
@@ -204,7 +207,8 @@
     function contieneNumeri(testo) { return /\d/.test(testo); }
 
     function estraiNumero(testo) {
-        testo = testo.trim().replace(',', '.');
+        if (!testo) return NaN;
+        testo = testo.toString().trim().replace(',', '.');
         if (/^\d+\/\d+$/.test(testo)) {
             const parti = testo.split('/');
             return parseFloat(parti[0]) / parseFloat(parti[1]);
@@ -237,6 +241,21 @@
         let html = "";
 
         ingredienti.forEach((ing, i) => {
+            const soglia = isWeekendDomani ? ing.we : ing.fer;
+
+            // Funzione interna per colorare se sotto soglia
+            const formattaValore = (valore, ingrediente) => {
+                if (!valore || valore === "-") return "-";
+                // Non coloriamo le verdure crude perché non hanno soglia
+                if (ingrediente.noObbligo) return valore;
+                
+                const num = estraiNumero(valore);
+                if (!isNaN(num) && num < soglia) {
+                    return `<span class="sotto-soglia">${valore}</span>`;
+                }
+                return valore;
+            };
+
             if(ing.cat !== currentCat) {
                 if(currentCat !== "") html += `</tbody></table></div>`;
                 html += `
@@ -258,9 +277,9 @@
             html += `
                 <tr class="ing-item" data-nome="${ing.nome.toLowerCase()}">
                     <td>${ing.nome}</td>
-                    <td>${datiCasta[ing.nome] || "-"}</td>
-                    <td>${datiSilea[ing.nome] || "-"}</td>
-                    <td>${datiBiban[ing.nome] || "-"}</td>
+                    <td>${formattaValore(datiCasta[ing.nome], ing)}</td>
+                    <td>${formattaValore(datiSilea[ing.nome], ing)}</td>
+                    <td>${formattaValore(datiBiban[ing.nome], ing)}</td>
                 </tr>`;
         });
 
