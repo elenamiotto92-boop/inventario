@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="it">
 <head>
@@ -14,10 +13,16 @@
             --cat-impasti: #c6e0b4; --cat-combustibile: #ffeb3b; --cat-monete: #f2f2f2;
             --cat-imballaggi: #fce4d6; --cat-detersivi: #ddebf7; --cat-vario: #fff2cc;
         }
-        body { font-family: -apple-system, sans-serif; background: #eef2f7; padding: 10px; margin: 0; padding-bottom: 110px; }
+        body { font-family: -apple-system, sans-serif; background: #eef2f7; padding: 10px; margin: 0; padding-bottom: 180px; }
+        
         .header-box { background: white; padding: 15px; border-radius: 12px; margin-bottom: 15px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); border-top: 5px solid var(--gold); text-align: center; }
+        
         select.pizzeria-select { width: 100%; padding: 12px; border-radius: 8px; border: 2px solid var(--gold); font-size: 18px; font-weight: bold; background: #fffcf5; margin-top: 10px; color: var(--dark); }
+        
+        .btn-reset { background: var(--red); color: white; border: none; padding: 8px 15px; border-radius: 8px; font-size: 0.8em; font-weight: bold; margin-top: 10px; width: 100%; cursor: pointer; }
+
         .categoria-header { color: black; padding: 8px 12px; margin-top: 20px; border-radius: 8px 8px 0 0; font-size: 0.9em; font-weight: bold; text-transform: uppercase; text-align: center; border: 1px solid #999; }
+        
         .item { background: white; padding: 10px 12px; display: flex; justify-content: space-between; align-items: center; border: 1px solid #ccc; border-top: none; position: relative; }
         .item:last-child { border-radius: 0 0 10px 10px; }
         
@@ -29,25 +34,39 @@
         
         .nome-ingrediente { font-weight: 500; color: #333; font-size: 0.9em; }
         .soglia-info { font-size: 0.65em; color: #888; }
+        
         .input-container { position: relative; display: flex; align-items: center; }
         input.qty-input { width: 90px; height: 32px; border-radius: 4px; border: 1px solid #999; font-size: 14px; text-align: center; background: white; }
+        
         .warning-icon { color: var(--gold); font-weight: bold; font-size: 20px; margin-right: 8px; display: none; }
         .vuoto .warning-icon { display: block; }
-        .btn-wa { position: fixed; bottom: 20px; left: 10px; right: 10px; background: #25D366; color: white; border: none; padding: 18px; border-radius: 15px; font-size: 1.1em; font-weight: bold; box-shadow: 0 5px 15px rgba(0,0,0,0.3); z-index: 999; }
+        
+        /* FOOTER TASTI */
+        .footer-controls { position: fixed; bottom: 0; left: 0; right: 0; background: white; padding: 15px 10px 25px 10px; box-shadow: 0 -5px 15px rgba(0,0,0,0.1); z-index: 1000; display: flex; flex-direction: column; gap: 10px; }
+        
+        .btn-wa { background: #25D366; color: white; border: none; padding: 15px; border-radius: 12px; font-size: 1.1em; font-weight: bold; cursor: pointer; flex: 1; }
+        .btn-save { background: var(--blue, #3498db); color: white; border: none; padding: 15px; border-radius: 12px; font-size: 1.1em; font-weight: bold; cursor: pointer; flex: 1; }
     </style>
 </head>
 <body>
+
     <div class="header-box">
         <div id="info-giorno" style="font-size: 0.9em; color: #666;"></div>
-        <select id="pizzeria" class="pizzeria-select" onchange="creaLista()">
+        <select id="pizzeria" class="pizzeria-select" onchange="cambiaPizzeria()">
             <option value="">📍 SELEZIONA PIZZERIA</option>
             <option value="CASTA">CASTA</option>
             <option value="SILEA">SILEA</option>
             <option value="BIBAN">BIBAN</option>
         </select>
+        <button class="btn-reset" onclick="azzeraLista()">🗑️ AZZERA LISTA</button>
     </div>
+
     <div id="contenitore-lista"></div>
-    <button class="btn-wa" onclick="inviaWhatsApp()">📤 INVIA REPORT MANCANTI</button>
+
+    <div class="footer-controls">
+        <button class="btn-save" onclick="salvaDati()">💾 SALVA DATI</button>
+        <button class="btn-wa" onclick="inviaWhatsApp()">📤 INVIA REPORT MANCANTI</button>
+    </div>
 
 <script>
     const ingredienti = [
@@ -154,9 +173,7 @@
         { cat: "VARIO", color: "var(--cat-vario)", nome: "Sacc. umi. picc", fer: 1, we: 1 }
     ];
 
-    function contieneNumeri(testo) {
-        return /\d/.test(testo);
-    }
+    function contieneNumeri(testo) { return /\d/.test(testo); }
 
     function estraiNumero(testo) {
         testo = testo.trim().replace(',', '.');
@@ -183,29 +200,17 @@
         const cont = document.getElementById('contenitore-lista');
         const pizzo = document.getElementById('pizzeria').value;
         cont.innerHTML = ""; 
-        
         if (!pizzo) return; 
 
         let currentCat = "";
-        
+        const salvati = JSON.parse(localStorage.getItem('inventario_dati_' + pizzo)) || {};
+
         ingredienti.forEach((ing, i) => {
             let daMostrare = true;
-
-            // --- REGOLE DI FILTRO ---
-            
-            // 1. Categoria Freezer: Solo a Biban
             if (ing.cat === "FREEZER" && pizzo !== "BIBAN") daMostrare = false;
-            
-            // 2. Lievito e Canapa: Solo a Biban
             if ((ing.nome === "Lievito" || ing.nome === "Canapa") && pizzo !== "BIBAN") daMostrare = false;
-            
-            // 3. Sale: Nascondi solo a Silea
             if (ing.nome === "Sale" && pizzo === "SILEA") daMostrare = false;
-
-            // 4. Olio Fritte: Solo a Casta (Nascondi a Silea e Biban)
             if (ing.nome === "Olio Fritte" && (pizzo === "SILEA" || pizzo === "BIBAN")) daMostrare = false;
-
-            // 5. Pel.Salsa: Solo a Casta (Nascondi a Silea e Biban)
             if (ing.nome === "Pel.Salsa" && (pizzo === "SILEA" || pizzo === "BIBAN")) daMostrare = false;
 
             if (daMostrare) {
@@ -214,24 +219,29 @@
                     currentCat = ing.cat;
                 }
                 const soglia = isWeekendDomani ? ing.we : ing.fer;
+                const valorePrecedente = salvati[ing.nome] || "";
                 
                 cont.innerHTML += `
-                    <div class="item vuoto" id="box-${i}">
+                    <div class="item ${valorePrecedente === "" ? "vuoto" : ""}" id="box-${i}">
                         <div>
                             <div class="nome-ingrediente">${ing.nome}</div>
                             <div class="soglia-info">Min domani: ${soglia}</div>
                         </div>
                         <div class="input-container">
                             <span class="warning-icon">!</span>
-                            <input type="text" class="qty-input" id="sel-${i}" placeholder="Qtà" oninput="valuta(${i}, ${soglia})">
+                            <input type="text" class="qty-input" id="sel-${i}" placeholder="Qtà" value="${valorePrecedente}" oninput="valuta(${i}, ${soglia})">
                         </div>
                     </div>`;
+                
+                if(valorePrecedente !== "") valuta(i, soglia);
             }
         });
     }
 
     function valuta(i, soglia) {
-        const testo = document.getElementById(`sel-${i}`).value;
+        const input = document.getElementById(`sel-${i}`);
+        if(!input) return;
+        const testo = input.value;
         const box = document.getElementById(`box-${i}`);
 
         if (testo.trim() === "") {
@@ -241,6 +251,44 @@
         } else {
             const valore = estraiNumero(testo);
             box.className = (valore < soglia) ? "item urgente" : "item ok";
+        }
+    }
+
+    function salvaDati() {
+        const pizzo = document.getElementById('pizzeria').value;
+        if (!pizzo) { alert("Seleziona prima la pizzeria!"); return; }
+
+        let datiDaSalvare = {};
+        ingredienti.forEach((ing, i) => {
+            const input = document.getElementById(`sel-${i}`);
+            if (input) {
+                datiDaSalvare[ing.nome] = input.value;
+            }
+        });
+
+        localStorage.setItem('inventario_dati_' + pizzo, JSON.stringify(datiDaSalvare));
+        localStorage.setItem('ultima_pizzeria', pizzo);
+        alert("✅ Dati salvati correttamente per " + pizzo);
+    }
+
+    function azzeraLista() {
+        if (confirm("⚠️ Vuoi davvero cancellare TUTTI i dati inseriti per questa pizzeria?")) {
+            const pizzo = document.getElementById('pizzeria').value;
+            if (pizzo) localStorage.removeItem('inventario_dati_' + pizzo);
+            creaLista();
+        }
+    }
+
+    function cambiaPizzeria() {
+        creaLista();
+    }
+
+    // Al caricamento, ripristina l'ultima pizzeria
+    window.onload = function() {
+        const ultimaPizzo = localStorage.getItem('ultima_pizzeria');
+        if (ultimaPizzo) {
+            document.getElementById('pizzeria').value = ultimaPizzo;
+            creaLista();
         }
     }
 
@@ -256,7 +304,6 @@
         ingredienti.forEach((ing, i) => {
             const input = document.getElementById(`sel-${i}`);
             if (!input) return; 
-
             const testo = input.value.trim();
             const soglia = isWeekendDomani ? ing.we : ing.fer;
 
