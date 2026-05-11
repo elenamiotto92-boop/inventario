@@ -25,13 +25,15 @@
 
         .btn-reset { display: none; background: var(--red); color: white; border: none; padding: 8px 15px; border-radius: 8px; font-size: 0.8em; font-weight: bold; margin-top: 10px; width: 100%; cursor: pointer; }
 
-        /* TABELLA RIEPILOGO BIBAN */
-        .riepilogo-biban { background: white; border-radius: 10px; border: 2px solid var(--cat-pasta); margin-bottom: 20px; overflow: hidden; font-size: 0.85em; }
-        .riepilogo-biban table { width: 100%; border-collapse: collapse; table-layout: fixed; }
-        .riepilogo-biban th { background: var(--cat-pasta); padding: 10px 5px; text-align: center; }
-        .riepilogo-biban th:first-child { text-align: left; width: 40%; padding-left: 10px; }
-        .riepilogo-biban td { padding: 10px 5px; border-bottom: 1px solid #eee; text-align: center; vertical-align: middle; }
-        .riepilogo-biban td:first-child { text-align: left; font-weight: bold; padding-left: 10px; }
+        /* TABELLE RIEPILOGO */
+        .riepilogo-biban, .tabella-globale { background: white; border-radius: 10px; border: 2px solid #ccc; margin-bottom: 20px; overflow: hidden; font-size: 0.85em; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        .tabella-globale { border: 2px solid var(--dark); }
+        
+        table { width: 100%; border-collapse: collapse; table-layout: fixed; }
+        th { background: #f2f2f2; padding: 10px 5px; text-align: center; border-bottom: 2px solid #ddd; }
+        th:first-child { text-align: left; width: 40%; padding-left: 10px; }
+        td { padding: 10px 5px; border-bottom: 1px solid #eee; text-align: center; vertical-align: middle; }
+        td:first-child { text-align: left; font-weight: bold; padding-left: 10px; background: #fafafa; }
 
         .categoria-header { color: black; padding: 8px 12px; margin-top: 20px; border-radius: 8px 8px 0 0; font-size: 0.9em; font-weight: bold; text-transform: uppercase; text-align: center; border: 1px solid #999; }
         
@@ -43,16 +45,11 @@
         .vuoto { background: #fff9db !important; border-left: 8px solid var(--gold) !important; }
         .no-obbligo { background: white !important; border-left: 8px solid #ddd !important; }
         .errore-testo { background: #6c757d !important; border-left: 8px solid black !important; color: white !important; }
-        .errore-testo .nome-ingrediente, .errore-testo .soglia-info { color: white !important; }
         
         .nome-ingrediente { font-weight: 500; color: #333; font-size: 0.9em; }
         .soglia-info { font-size: 0.65em; color: #888; }
         
-        .input-container { position: relative; display: flex; align-items: center; }
         input.qty-input { width: 90px; height: 32px; border-radius: 4px; border: 1px solid #999; font-size: 14px; text-align: center; background: white; }
-        
-        .warning-icon { color: var(--gold); font-weight: bold; font-size: 20px; margin-right: 8px; display: none; }
-        .vuoto .warning-icon { display: block; }
         
         .footer-controls { position: fixed; bottom: 0; left: 0; right: 0; background: white; padding: 15px 10px 25px 10px; box-shadow: 0 -5px 15px rgba(0,0,0,0.1); z-index: 1000; display: flex; flex-direction: column; gap: 10px; }
         
@@ -69,10 +66,11 @@
             <option value="CASTA">CASTA</option>
             <option value="SILEA">SILEA</option>
             <option value="BIBAN">BIBAN</option>
+            <option value="TUTTE">📊 TUTTE (VISUALIZZA)</option>
         </select>
         
         <div id="search-box" class="search-container">
-            <input type="text" id="searchInput" class="search-input" placeholder="🔍 Cerca..." oninput="filtraLista()">
+            <input type="text" id="searchInput" class="search-input" placeholder="🔍 Cerca ingrediente..." oninput="filtraLista()">
         </div>
 
         <button id="btn-azzera" class="btn-reset" onclick="azzeraLista()">🗑️ AZZERA LISTA</button>
@@ -82,7 +80,7 @@
 
     <div id="contenitore-lista"></div>
 
-    <div class="footer-controls">
+    <div class="footer-controls" id="footer-btns">
         <button class="btn-save" onclick="salvaDati()">💾 SALVA DATI</button>
         <button class="btn-wa" onclick="inviaWhatsApp()">📤 INVIA REPORT MANCANTI</button>
     </div>
@@ -227,15 +225,51 @@
         <div style="margin-top: 5px;">Inventario per: <b>${nomiGiorni[domaniIdx]}</b> (${isWeekendDomani ? 'Weekend 🚀' : 'Feriale 🛡️'})</div>
     `;
 
-    function generaTabellaRiepilogo() {
+    function generaVistaTutte() {
+        const cont = document.getElementById('contenitore-lista');
+        cont.innerHTML = "";
+        
+        const datiCasta = JSON.parse(localStorage.getItem('inventario_dati_CASTA')) || {};
+        const datiSilea = JSON.parse(localStorage.getItem('inventario_dati_SILEA')) || {};
+        const datiBiban = JSON.parse(localStorage.getItem('inventario_dati_BIBAN')) || {};
+
+        let currentCat = "";
+        let html = "";
+
+        ingredienti.forEach((ing, i) => {
+            if(ing.cat !== currentCat) {
+                if(currentCat !== "") html += `</tbody></table></div>`;
+                html += `
+                    <div class="categoria-header" style="background-color: ${ing.color}">${ing.cat}</div>
+                    <div class="tabella-globale cat-group" data-cat="${ing.cat}">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>INGREDIENTE</th>
+                                    <th>Casta</th>
+                                    <th>Silea</th>
+                                    <th>Biban</th>
+                                </tr>
+                            </thead>
+                            <tbody>`;
+                currentCat = ing.cat;
+            }
+
+            html += `
+                <tr class="ing-item" data-nome="${ing.nome.toLowerCase()}">
+                    <td>${ing.nome}</td>
+                    <td>${datiCasta[ing.nome] || "-"}</td>
+                    <td>${datiSilea[ing.nome] || "-"}</td>
+                    <td>${datiBiban[ing.nome] || "-"}</td>
+                </tr>`;
+        });
+
+        html += `</tbody></table></div>`;
+        cont.innerHTML = html;
+    }
+
+    function generaTabellaRiepilogoBiban() {
         const divRiepilogo = document.getElementById('riepilogo-globale');
-        const pizzoCorrente = document.getElementById('pizzeria').value;
-
-        if (pizzoCorrente !== "BIBAN") {
-            divRiepilogo.innerHTML = "";
-            return;
-        }
-
         const datiCasta = JSON.parse(localStorage.getItem('inventario_dati_CASTA')) || {};
         const datiSilea = JSON.parse(localStorage.getItem('inventario_dati_SILEA')) || {};
         const datiBiban = JSON.parse(localStorage.getItem('inventario_dati_BIBAN')) || {};
@@ -274,19 +308,34 @@
         const pizzo = document.getElementById('pizzeria').value;
         const btnAzzera = document.getElementById('btn-azzera');
         const searchBox = document.getElementById('search-box');
+        const footerBtns = document.getElementById('footer-btns');
+        const riepilogoDiv = document.getElementById('riepilogo-globale');
         
         cont.innerHTML = ""; 
+        riepilogoDiv.innerHTML = "";
+
         if (!pizzo) { 
             btnAzzera.style.display = "none"; 
             searchBox.style.display = "none"; 
-            document.getElementById('riepilogo-globale').innerHTML = "";
+            footerBtns.style.display = "none";
             return; 
         }
         
-        btnAzzera.style.display = "block"; 
         searchBox.style.display = "block";
-        
-        generaTabellaRiepilogo();
+
+        if (pizzo === "TUTTE") {
+            btnAzzera.style.display = "none";
+            footerBtns.style.display = "none";
+            generaVistaTutte();
+            return;
+        }
+
+        btnAzzera.style.display = "block"; 
+        footerBtns.style.display = "flex";
+
+        if (pizzo === "BIBAN") {
+            generaTabellaRiepilogoBiban();
+        }
 
         let currentCat = "";
         const salvati = JSON.parse(localStorage.getItem('inventario_dati_' + pizzo)) || {};
@@ -320,7 +369,6 @@
                             <div class="soglia-info">${ing.noObbligo ? '' : 'Min domani: ' + soglia}</div>
                         </div>
                         <div class="input-container">
-                            <span class="warning-icon">!</span>
                             <input type="text" class="qty-input" id="sel-${i}" placeholder="Qtà" value="${valorePrecedente}" oninput="valuta(${i}, ${soglia}, ${ing.noObbligo || false})">
                         </div>
                     </div>`;
@@ -334,18 +382,23 @@
         const query = document.getElementById('searchInput').value.toLowerCase().trim();
         const items = document.querySelectorAll('.ing-item');
         const headers = document.querySelectorAll('.categoria-header');
+        const tabelle = document.querySelectorAll('.cat-group');
 
         items.forEach(item => {
             const nome = item.getAttribute('data-nome');
             if (query === "barbazza") {
-                item.style.display = listaBarbazza.includes(nome) ? "flex" : "none";
+                item.style.display = listaBarbazza.includes(nome) ? (item.tagName === 'TR' ? 'table-row' : 'flex') : "none";
             } else {
-                item.style.display = nome.includes(query) ? "flex" : "none";
+                item.style.display = nome.includes(query) ? (item.tagName === 'TR' ? 'table-row' : 'flex') : "none";
             }
         });
 
         headers.forEach(h => {
             h.style.display = (query === "") ? "block" : "none";
+        });
+        
+        tabelle.forEach(t => {
+            t.style.display = (query === "") ? "block" : "none";
         });
     }
 
@@ -369,7 +422,7 @@
 
     function salvaDati() {
         const pizzo = document.getElementById('pizzeria').value;
-        if (!pizzo) { alert("Seleziona prima la pizzeria!"); return; }
+        if (!pizzo || pizzo === "TUTTE") return;
         let datiDaSalvare = {};
         ingredienti.forEach((ing, i) => {
             const input = document.getElementById(`sel-${i}`);
@@ -377,16 +430,13 @@
         });
         localStorage.setItem('inventario_dati_' + pizzo, JSON.stringify(datiDaSalvare));
         localStorage.setItem('ultima_pizzeria', pizzo);
-        
-        if (pizzo === "BIBAN") generaTabellaRiepilogo();
-        
         alert("✅ Dati salvati correttamente per " + pizzo);
     }
 
     function azzeraLista() {
         if (confirm("⚠️ Vuoi davvero cancellare TUTTI i dati inseriti per questa pizzeria?")) {
             const pizzo = document.getElementById('pizzeria').value;
-            if (pizzo) localStorage.removeItem('inventario_dati_' + pizzo);
+            if (pizzo && pizzo !== "TUTTE") localStorage.removeItem('inventario_dati_' + pizzo);
             document.getElementById('searchInput').value = "";
             creaLista();
         }
@@ -407,7 +457,7 @@
 
     function inviaWhatsApp() {
         const pizzo = document.getElementById('pizzeria').value;
-        if (!pizzo) { alert("⚠️ SELEZIONA LA PIZZERIA!"); return; }
+        if (!pizzo || pizzo === "TUTTE") return;
         let msg = `🏪 *INV. ${pizzo}* - PER ${nomiGiorni[domaniIdx].toUpperCase()}\n\n`;
         let trovatiMancanti = false;
         let listaVuoti = [];
@@ -439,12 +489,8 @@
 
         if (listaVuoti.length > 0) { alert("⚠️ COMPILA TUTTO! Mancano:\n- " + listaVuoti.join("\n- ")); return; }
         if (listaErrori.length > 0) { alert("⚠️ ERRORE! Devi inserire almeno un numero per:\n- " + listaErrori.join("\n- ")); return; }
-        
         if (!trovatiMancanti) msg += "✅ Scorte OK!";
-        
-        if (crudeMsg !== "") {
-            msg += `\n🥗 *VERDURE CRUDE*:\n${crudeMsg}`;
-        }
+        if (crudeMsg !== "") msg += `\n🥗 *VERDURE CRUDE*:\n${crudeMsg}`;
 
         window.location.href = "whatsapp://send?text=" + encodeURIComponent(msg);
     }
