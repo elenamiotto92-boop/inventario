@@ -1,4 +1,220 @@
-function generaVistaTutte() {
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Inventario Pizzerie</title>
+    <style>
+        :root { 
+            --red: #ff4d4d; --green: #4caf50; --gold: #f39c12; --dark: #2c3e50;
+            --cat-pasta: #cbd5e0; --cat-vaschette: #a8d08d; --cat-formaggi: #ffff00;
+            --cat-salumi: #ed7d31; --cat-scaffaleria: #d9d9d9; --cat-fresco: #92d050;
+            --cat-pesce: #9bc2e6; --cat-condimenti: #e2efda; --cat-freezer: #5b9bd5;
+            --cat-impasti: #c6e0b4; --cat-combustibile: #ffeb3b; --cat-monete: #f2f2f2;
+            --cat-imballaggi: #fce4d6; --cat-detersivi: #ddebf7; --cat-vario: #fff2cc;
+            --cat-crude: #f8f9fa;
+        }
+        body { font-family: -apple-system, sans-serif; background: #eef2f7; padding: 10px; margin: 0; padding-bottom: 180px; }
+        .header-box { background: white; padding: 15px; border-radius: 12px; margin-bottom: 15px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); border-top: 5px solid var(--gold); text-align: center; }
+        select.pizzeria-select { width: 100%; padding: 12px; border-radius: 8px; border: 2px solid var(--gold); font-size: 18px; font-weight: bold; background: #fffcf5; margin-top: 10px; color: var(--dark); }
+        .search-container { margin-top: 10px; display: none; }
+        .search-input { width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #ccc; font-size: 16px; box-sizing: border-box; }
+        .btn-reset { display: none; background: var(--red); color: white; border: none; padding: 8px 15px; border-radius: 8px; font-size: 0.8em; font-weight: bold; margin-top: 10px; width: 100%; cursor: pointer; }
+        .riepilogo-biban, .tabella-globale { background: white; border-radius: 10px; border: 2px solid #ccc; margin-bottom: 20px; overflow: hidden; font-size: 0.85em; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        .tabella-globale { border: 2px solid var(--dark); }
+        table { width: 100%; border-collapse: collapse; table-layout: fixed; }
+        th { background: #f2f2f2; padding: 10px 5px; text-align: center; border-bottom: 2px solid #ddd; }
+        th:first-child { text-align: left; width: 40%; padding-left: 10px; }
+        td { padding: 10px 5px; border-bottom: 1px solid #eee; text-align: center; vertical-align: middle; }
+        td:first-child { text-align: left; font-weight: bold; padding-left: 10px; background: #fafafa; }
+        .sotto-soglia { color: var(--red); font-weight: bold; }
+        .categoria-header { color: black; padding: 8px 12px; margin-top: 20px; border-radius: 8px 8px 0 0; font-size: 0.9em; font-weight: bold; text-transform: uppercase; text-align: center; border: 1px solid #999; }
+        .item { background: white; padding: 10px 12px; display: flex; justify-content: space-between; align-items: center; border: 1px solid #ccc; border-top: none; position: relative; }
+        .item:last-child { border-radius: 0 0 10px 10px; }
+        .urgente { background: #ffcccc !important; border-left: 8px solid var(--red) !important; }
+        .ok { background: #e2f0d9 !important; border-left: 8px solid var(--green) !important; }
+        .vuoto { background: #fff9db !important; border-left: 8px solid var(--gold) !important; }
+        .no-obbligo { background: white !important; border-left: 8px solid #ddd !important; }
+        .errore-testo { background: #6c757d !important; border-left: 8px solid black !important; color: white !important; }
+        .nome-ingrediente { font-weight: 500; color: #333; font-size: 0.9em; }
+        .soglia-info { font-size: 0.65em; color: #888; }
+        input.qty-input { width: 90px; height: 32px; border-radius: 4px; border: 1px solid #999; font-size: 14px; text-align: center; background: white; }
+        .footer-controls { position: fixed; bottom: 0; left: 0; right: 0; background: white; padding: 15px 10px 25px 10px; box-shadow: 0 -5px 15px rgba(0,0,0,0.1); z-index: 1000; display: flex; flex-direction: column; gap: 10px; }
+        .btn-wa { background: #25D366; color: white; border: none; padding: 15px; border-radius: 12px; font-size: 1.1em; font-weight: bold; cursor: pointer; flex: 1; }
+        .btn-save { background: #3498db; color: white; border: none; padding: 15px; border-radius: 12px; font-size: 1.1em; font-weight: bold; cursor: pointer; flex: 1; }
+    </style>
+</head>
+<body>
+    <div class="header-box">
+        <div id="info-giorno" style="font-size: 0.9em; color: #666;"></div>
+        <select id="pizzeria" class="pizzeria-select" onchange="cambiaPizzeria()">
+            <option value="">📍 SELEZIONA PIZZERIA</option>
+            <option value="CASTA">CASTA</option>
+            <option value="SILEA">SILEA</option>
+            <option value="BIBAN">BIBAN</option>
+            <option value="TUTTE">📊 TUTTE (VISUALIZZA)</option>
+        </select>
+        <div id="search-box" class="search-container">
+            <input type="text" id="searchInput" class="search-input" placeholder="🔍 Cerca..." oninput="filtraLista()">
+        </div>
+        <button id="btn-azzera" class="btn-reset" onclick="azzeraLista()">🗑️ AZZERA LISTA</button>
+    </div>
+    <div id="riepilogo-globale"></div>
+    <div id="contenitore-lista"></div>
+    <div class="footer-controls" id="footer-btns">
+        <button class="btn-save" onclick="salvaDati()">💾 SALVA DATI</button>
+        <button class="btn-wa" onclick="inviaWhatsApp()">📤 INVIA REPORT MANCANTI</button>
+    </div>
+
+<script>
+    const ingredienti = [
+        { cat: "PASTA", color: "var(--cat-pasta)", nome: "Palline norm", fer: 150, we: 250 },
+        { cat: "PASTA", color: "var(--cat-pasta)", nome: "Palline canapa", fer: 15, we: 30 },
+        { cat: "PASTA", color: "var(--cat-pasta)", nome: "Mezzi", fer: 2, we: 10 },
+        { cat: "VASCHETTE", color: "var(--cat-vaschette)", nome: "Melanzane", fer: 1, we: 4 },
+        { cat: "VASCHETTE", color: "var(--cat-vaschette)", nome: "Zucchine", fer: 1, we: 4 },
+        { cat: "VASCHETTE", color: "var(--cat-vaschette)", nome: "Peperoni", fer: 1, we: 4 },
+        { cat: "VASCHETTE", color: "var(--cat-vaschette)", nome: "Funghi", fer: 1, we: 2 },
+        { cat: "VASCHETTE", color: "var(--cat-vaschette)", nome: "Forno", fer: 1, we: 2 },
+        { cat: "VASCHETTE", color: "var(--cat-vaschette)", nome: "Fritte", fer: 1, we: 2 },
+        { cat: "VASCHETTE", color: "var(--cat-vaschette)", nome: "Salsa", fer: 1, we: 2 },
+        { cat: "VASCHETTE", color: "var(--cat-vaschette)", nome: "Asparagi", fer: 1, we: 2 },
+        { cat: "FORMAGGI", color: "var(--cat-formaggi)", nome: "Mozza kg", fer: 15, we: 40 },
+        { cat: "FORMAGGI", color: "var(--cat-formaggi)", nome: "Bufala", fer: 5, we: 15 },
+        { cat: "FORMAGGI", color: "var(--cat-formaggi)", nome: "Provola", fer: 2, we: 5 },
+        { cat: "FORMAGGI", color: "var(--cat-formaggi)", nome: "Burrata", fer: 5, we: 10 },
+        { cat: "FORMAGGI", color: "var(--cat-formaggi)", nome: "Casatella", fer: 1, we: 3 },
+        { cat: "FORMAGGI", color: "var(--cat-formaggi)", nome: "Ricotta", fer: 1, we: 2 },
+        { cat: "FORMAGGI", color: "var(--cat-formaggi)", nome: "NO lattosio", fer: 1, we: 2 },
+        { cat: "FORMAGGI", color: "var(--cat-formaggi)", nome: "Parmigiano", fer: 1, we: 1 },
+        { cat: "FORMAGGI", color: "var(--cat-formaggi)", nome: "Brie", fer: 1, we: 2 },
+        { cat: "FORMAGGI", color: "var(--cat-formaggi)", nome: "Gorgonzola", fer: 1, we: 1 },
+        { cat: "FORMAGGI", color: "var(--cat-formaggi)", nome: "Asiago", fer: 0.5, we: 1 },
+        { cat: "FORMAGGI", color: "var(--cat-formaggi)", nome: "Pecorino", fer: 1, we: 2 },
+        { cat: "SALUMI", color: "var(--cat-salumi)", nome: "Salsiccia", fer: 2, we: 10 },
+        { cat: "SALUMI", color: "var(--cat-salumi)", nome: "Pancetta", fer: 0.5, we: 1 },
+        { cat: "SALUMI", color: "var(--cat-salumi)", nome: "Salamino num", fer: 2, we: 5 },
+        { cat: "SALUMI", color: "var(--cat-salumi)", nome: "Porchetta", fer: 1, we: 2 },
+        { cat: "SALUMI", color: "var(--cat-salumi)", nome: "Roastbeef", fer: 0.5, we: 1 },
+        { cat: "SALUMI", color: "var(--cat-salumi)", nome: "P.cotto", fer: 1, we: 2 },
+        { cat: "SALUMI", color: "var(--cat-salumi)", nome: "Sopressa", fer: 0.5, we: 1 },
+        { cat: "SALUMI", color: "var(--cat-salumi)", nome: "Speck", fer: 1, we: 1 },
+        { cat: "SALUMI", color: "var(--cat-salumi)", nome: "Mortadella", fer: 1, we: 1 },
+        { cat: "SALUMI", color: "var(--cat-salumi)", nome: "P. Crudo", fer: 1, we: 1 },
+        { cat: "SALUMI", color: "var(--cat-salumi)", nome: "Wurstel", fer: 2, we: 5 },
+        { cat: "SALUMI", color: "var(--cat-salumi)", nome: "Bresaola", fer: 1, we: 1 },
+        { cat: "SCAFFALERIA", color: "var(--cat-scaffaleria)", nome: "Uova", fer: 6, we: 12 },
+        { cat: "SCAFFALERIA", color: "var(--cat-scaffaleria)", nome: "Pesto", fer: 1, we: 2 },
+        { cat: "SCAFFALERIA", color: "var(--cat-scaffaleria)", nome: "Pistacchio", fer: 1, we: 1 },
+        { cat: "SCAFFALERIA", color: "var(--cat-scaffaleria)", nome: "Noci", fer: 1, we: 1 },
+        { cat: "SCAFFALERIA", color: "var(--cat-scaffaleria)", nome: "s.Papavero", fer: 1, we: 1 },
+        { cat: "SCAFFALERIA", color: "var(--cat-scaffaleria)", nome: "PomSecchi", fer: 1, we: 2 },
+        { cat: "SCAFFALERIA", color: "var(--cat-scaffaleria)", nome: "Carciofi", fer: 2, we: 4 },
+        { cat: "SCAFFALERIA", color: "var(--cat-scaffaleria)", nome: "Olive", fer: 1, we: 1 },
+        { cat: "SCAFFALERIA", color: "var(--cat-scaffaleria)", nome: "Capperi", fer: 1, we: 1 },
+        { cat: "SCAFFALERIA", color: "var(--cat-scaffaleria)", nome: "Mais", fer: 1, we: 1 },
+        { cat: "SCAFFALERIA", color: "var(--cat-scaffaleria)", nome: "Miele", fer: 1, we: 1 },
+        { cat: "SCAFFALERIA", color: "var(--cat-scaffaleria)", nome: "Pel.Salsa", fer: 1, we: 1 },
+        { cat: "FRESCO", color: "var(--cat-fresco)", nome: "Datterino", fer: 1, we: 2 },
+        { cat: "FRESCO", color: "var(--cat-fresco)", nome: "Datt giallo", fer: 1, we: 1 },
+        { cat: "FRESCO", color: "var(--cat-fresco)", nome: "Cipolla", fer: 1, we: 2 },
+        { cat: "FRESCO", color: "var(--cat-fresco)", nome: "Rucola", fer: 1, we: 2 },
+        { cat: "FRESCO", color: "var(--cat-fresco)", nome: "cass. Datt.", fer: 0.5, we: 1 },
+        { cat: "FRESCO", color: "var(--cat-fresco)", nome: "casse D. Giallo", fer: 0.25, we: 0.5 },
+        { cat: "FRESCO", color: "var(--cat-fresco)", nome: "cass.Cipolla", fer: 0.25, we: 0.25 },
+        { cat: "FRESCO", color: "var(--cat-fresco)", nome: "Basilico", fer: 1, we: 2 },
+        { cat: "FRESCO", color: "var(--cat-fresco)", nome: "Menta", fer: 1, we: 1 },
+        { cat: "FRESCO", color: "var(--cat-fresco)", nome: "Pere", fer: 1, we: 2 },
+        { cat: "PESCE", color: "var(--cat-pesce)", nome: "Acciughe", fer: 1, we: 1 },
+        { cat: "PESCE", color: "var(--cat-pesce)", nome: "Tonno (latte)", fer: 1, we: 1 },
+        { cat: "PESCE", color: "var(--cat-pesce)", nome: "Salmone", fer: 3, we: 5 },
+        { cat: "PESCE", color: "var(--cat-pesce)", nome: "Baccalà", fer: 1, we: 1 },
+        { cat: "CONDIMENTI", color: "var(--cat-condimenti)", nome: "Aceto", fer: 1, we: 1 },
+        { cat: "CONDIMENTI", color: "var(--cat-condimenti)", nome: "Origano", fer: 1, we: 1 },
+        { cat: "CONDIMENTI", color: "var(--cat-condimenti)", nome: "Sale", fer: 1, we: 1 },
+        { cat: "CONDIMENTI", color: "var(--cat-condimenti)", nome: "Olio EVO", fer: 2, we: 1 },
+        { cat: "CONDIMENTI", color: "var(--cat-condimenti)", nome: "Olio Aglio", fer: 1, we: 1 },
+        { cat: "CONDIMENTI", color: "var(--cat-condimenti)", nome: "Olio Piccante", fer: 1, we: 1 },
+        { cat: "CONDIMENTI", color: "var(--cat-condimenti)", nome: "Olio Fritte", fer: 1, we: 2 },
+        { cat: "FREEZER", color: "var(--cat-freezer)", nome: "Fritte", fer: 2, we: 5 },
+        { cat: "FREEZER", color: "var(--cat-freezer)", nome: "Forno", fer: 1, we: 3 },
+        { cat: "FREEZER", color: "var(--cat-freezer)", nome: "Ghiaccio", fer: 2, we: 5 },
+        { cat: "IMPASTI", color: "var(--cat-impasti)", nome: "Canapa", fer: 1, we: 2 },
+        { cat: "IMPASTI", color: "var(--cat-impasti)", nome: "Semola", fer: 1, we: 2 },
+        { cat: "IMPASTI", color: "var(--cat-impasti)", nome: "Lievito", fer: 1, we: 2 },
+        { cat: "COMBUSTIBILE", color: "var(--cat-combustibile)", nome: "Legna", fer: 1, we: 2 },
+        { cat: "MONETE", color: "var(--cat-monete)", nome: "Rotoli 0,50 €", fer: 1, we: 1 },
+        { cat: "MONETE", color: "var(--cat-monete)", nome: "Rotoli 1 €", fer: 1, we: 1 },
+        { cat: "MONETE", color: "var(--cat-monete)", nome: "Rotoli 2 €", fer: 1, we: 1 },
+        { cat: "MONETE", color: "var(--cat-monete)", nome: "Banc. 5 €", fer: 150, we: 150 },
+        { cat: "MONETE", color: "var(--cat-monete)", nome: "Banc. 10 €", fer: 150, we: 150 },
+        { cat: "IMBALLAGGI", color: "var(--cat-imballaggi)", nome: "Pellicola", fer: 1, we: 1 },
+        { cat: "IMBALLAGGI", color: "var(--cat-imballaggi)", nome: "Carta mani", fer: 2, we: 2 },
+        { cat: "IMBALLAGGI", color: "var(--cat-imballaggi)", nome: "Cart.med", fer: 1, we: 2 },
+        { cat: "IMBALLAGGI", color: "var(--cat-imballaggi)", nome: "Cart.mezzi", fer: 1, we: 1 },
+        { cat: "IMBALLAGGI", color: "var(--cat-imballaggi)", nome: "Cart.pers.", fer: 0, we: 0 },
+        { cat: "DETERSIVI", color: "var(--cat-detersivi)", nome: "Detergente", fer: 1, we: 1 },
+        { cat: "DETERSIVI", color: "var(--cat-detersivi)", nome: "Napisan", fer: 1, we: 1 },
+        { cat: "DETERSIVI", color: "var(--cat-detersivi)", nome: "Det. piatti", fer: 1, we: 1 },
+        { cat: "DETERSIVI", color: "var(--cat-detersivi)", nome: "Sapone mani", fer: 1, we: 1 },
+        { cat: "DETERSIVI", color: "var(--cat-detersivi)", nome: "Ric. scopa", fer: 1, we: 1 },
+        { cat: "DETERSIVI", color: "var(--cat-detersivi)", nome: "Stracci", fer: 1, we: 1 },
+        { cat: "DETERSIVI", color: "var(--cat-detersivi)", nome: "Spugne", fer: 1, we: 1 },
+        { cat: "DETERSIVI", color: "var(--cat-detersivi)", nome: "Spugne ferro", fer: 1, we: 1 },
+        { cat: "VARIO", color: "var(--cat-vario)", nome: "Rot. comande", fer: 5, we: 10 },
+        { cat: "VARIO", color: "var(--cat-vario)", nome: "Rotoli pos", fer: 2, we: 5 },
+        { cat: "VARIO", color: "var(--cat-vario)", nome: "Rotoli scontrini", fer: 2, we: 5 },
+        { cat: "VARIO", color: "var(--cat-vario)", nome: "Spazzolaforno", fer: 1, we: 1 },
+        { cat: "VARIO", color: "var(--cat-vario)", nome: "Sacchi plastica", fer: 1, we: 2 },
+        { cat: "VARIO", color: "var(--cat-vario)", nome: "Sacc. plas picc", fer: 1, we: 1 },
+        { cat: "VARIO", color: "var(--cat-vario)", nome: "Sacchi umido", fer: 1, we: 2 },
+        { cat: "VARIO", color: "var(--cat-vario)", nome: "Sacc. umi. picc", fer: 1, we: 1 },
+        { cat: "VERDURE CRUDE", color: "var(--cat-crude)", nome: "Melanzane crude", fer: 0, we: 0, noObbligo: true },
+        { cat: "VERDURE CRUDE", color: "var(--cat-crude)", nome: "Zucchine crude", fer: 0, we: 0, noObbligo: true },
+        { cat: "VERDURE CRUDE", color: "var(--cat-crude)", nome: "Peperoni crudi", fer: 0, we: 0, noObbligo: true },
+        { cat: "VERDURE CRUDE", color: "var(--cat-crude)", nome: "Asparagi crudi", fer: 0, we: 0, noObbligo: true },
+        { cat: "VERDURE CRUDE", color: "var(--cat-crude)", nome: "Datterino crudo", fer: 0, we: 0, noObbligo: true },
+        { cat: "VERDURE CRUDE", color: "var(--cat-crude)", nome: "Datt. Giallo crudo", fer: 0, we: 0, noObbligo: true },
+        { cat: "VERDURE CRUDE", color: "var(--cat-crude)", nome: "Rucola cruda", fer: 0, we: 0, noObbligo: true },
+        { cat: "VERDURE CRUDE", color: "var(--cat-crude)", nome: "Basilico crudo", fer: 0, we: 0, noObbligo: true },
+        { cat: "VERDURE CRUDE", color: "var(--cat-crude)", nome: "Funghi crudi", fer: 0, we: 0, noObbligo: true }
+    ];
+
+    const listaBarbazza = ["brie", "gorgonzola", "asiago", "acciughe", "tonno (latte)", "salmone", "bresaola", "carciofi", "olive", "capperi", "semola", "carta mani", "pel.salsa", "cart.med", "cart.mezzi", "lievito"];
+
+    function contieneNumeri(testo) { return /\d/.test(testo); }
+
+    function estraiNumeroIntelligente(testo, nomeIngrediente = "") {
+        if (!testo) return NaN;
+        testo = testo.toString().toLowerCase().trim().replace(',', '.');
+        let valore = NaN;
+        const contieneCip = testo.includes("cip");
+        if (/^\d+\/\d+$/.test(testo)) {
+            const parti = testo.split('/');
+            valore = parseFloat(parti[0]) / parseFloat(parti[1]);
+        } else {
+            const match = testo.match(/(\d+(\.\d+)?)/);
+            valore = match ? parseFloat(match[0]) : NaN;
+        }
+        if (nomeIngrediente.includes("Cipolla") && !isNaN(valore) && contieneCip) {
+            valore = valore / 20;
+        }
+        return valore;
+    }
+
+    const nomiGiorni = ["Domenica", "Lunedì", "Martedì", "Mercoledì", "Giovedì", "Venerdì", "Sabato"];
+    const oraAttuale = new Date();
+    const oggiIdx = oraAttuale.getDay();
+    const domaniIdx = (oggiIdx + 1) % 7;
+    const isWeekendDomani = (domaniIdx === 0 || domaniIdx === 5 || domaniIdx === 6);
+    const isDomenicaOggi = (oggiIdx === 0);
+
+    document.getElementById('info-giorno').innerHTML = `
+        <div style="color: #333; font-size: 1.1em;">Oggi è <b>${nomiGiorni[oggiIdx]}</b></div>
+        <div style="margin-top: 5px;">Inventario per: <b>${nomiGiorni[domaniIdx]}</b> (${isWeekendDomani ? 'Weekend 🚀' : 'Feriale 🛡️'})</div>
+    `;
+
+    function generaVistaTutte() {
         const cont = document.getElementById('contenitore-lista');
         cont.innerHTML = "";
         const datiCasta = JSON.parse(localStorage.getItem('inventario_dati_CASTA')) || {};
@@ -25,12 +241,11 @@ function generaVistaTutte() {
                 currentCat = ing.cat;
             }
 
-            // LOGICA MODIFICATA PER CATEGORIA FREEZER
             let valCasta = datiCasta[ing.nome] || "-";
             let valSilea = datiSilea[ing.nome] || "-";
             let valBiban = datiBiban[ing.nome] || "-";
 
-            // Se siamo nella categoria FREEZER, forziamo Casta e Silea a "-"
+            // Se la categoria è Freezer, mostra solo Biban
             if (ing.cat === "FREEZER") {
                 valCasta = "-";
                 valSilea = "-";
@@ -46,3 +261,147 @@ function generaVistaTutte() {
         html += `</tbody></table></div>`;
         cont.innerHTML = html;
     }
+
+    function creaLista() {
+        const cont = document.getElementById('contenitore-lista');
+        const pizzo = document.getElementById('pizzeria').value;
+        const btnAzzera = document.getElementById('btn-azzera');
+        const searchBox = document.getElementById('search-box');
+        const footerBtns = document.getElementById('footer-btns');
+        const riepilogoDiv = document.getElementById('riepilogo-globale');
+        cont.innerHTML = ""; 
+        riepilogoDiv.innerHTML = "";
+        if (!pizzo) { btnAzzera.style.display = "none"; searchBox.style.display = "none"; footerBtns.style.display = "none"; return; }
+        searchBox.style.display = "block";
+        if (pizzo === "TUTTE") { btnAzzera.style.display = "none"; footerBtns.style.display = "none"; generaVistaTutte(); return; }
+        btnAzzera.style.display = "block"; footerBtns.style.display = "flex";
+        if (pizzo === "BIBAN") generaTabellaRiepilogoBiban();
+        let currentCat = "";
+        const salvati = JSON.parse(localStorage.getItem('inventario_dati_' + pizzo)) || {};
+        ingredienti.forEach((ing, i) => {
+            let daMostrare = true;
+            if (ing.cat === "FREEZER" && pizzo !== "BIBAN") daMostrare = false;
+            if ((ing.nome === "Lievito" || ing.nome === "Canapa") && pizzo !== "BIBAN") daMostrare = false;
+            if (ing.nome === "Sale" && pizzo === "SILEA") daMostrare = false;
+            if (ing.nome === "Olio Fritte" && (pizzo === "SILEA" || pizzo === "BIBAN")) daMostrare = false;
+            if (ing.nome === "Pel.Salsa" && (pizzo === "SILEA" || pizzo === "BIBAN")) daMostrare = false;
+            if (ing.cat === "VERDURE CRUDE") { if (pizzo !== "CASTA" || !isDomenicaOggi) daMostrare = false; }
+            if (daMostrare) {
+                if(ing.cat !== currentCat) {
+                    cont.innerHTML += `<div class="categoria-header" style="background-color: ${ing.color}">${ing.cat}</div>`;
+                    currentCat = ing.cat;
+                }
+                const soglia = isWeekendDomani ? ing.we : ing.fer;
+                const valorePrecedente = salvati[ing.nome] || "";
+                const classeExtra = ing.noObbligo ? "no-obbligo" : (valorePrecedente === "" ? "vuoto" : "");
+                cont.innerHTML += `<div class="item ${classeExtra} ing-item" id="box-${i}" data-nome="${ing.nome.toLowerCase()}">
+                        <div><div class="nome-ingrediente">${ing.nome}</div><div class="soglia-info">${ing.noObbligo ? '' : 'Min domani: ' + (ing.nome.includes("Cipolla") ? "1/4" : soglia)}</div></div>
+                        <div class="input-container"><input type="text" class="qty-input" id="sel-${i}" placeholder="Qtà" value="${valorePrecedente}" oninput="valuta(${i}, ${soglia}, '${ing.nome}')"></div></div>`;
+                if(valorePrecedente !== "") valuta(i, soglia, ing.nome);
+            }
+        });
+    }
+
+    function valuta(i, soglia, nomeIngrediente) {
+        const input = document.getElementById(`sel-${i}`);
+        if(!input) return;
+        const testo = input.value;
+        const box = document.getElementById(`box-${i}`);
+        const facoltativo = ingredienti.find(ing => ing.nome === nomeIngrediente).noObbligo;
+        if (testo.trim() === "") box.className = facoltativo ? "item no-obbligo ing-item" : "item vuoto ing-item";
+        else if (!contieneNumeri(testo) && !facoltativo) box.className = "item errore-testo ing-item";
+        else if (facoltativo) box.className = "item no-obbligo ing-item";
+        else {
+            const valore = estraiNumeroIntelligente(testo, nomeIngrediente);
+            box.className = (valore < soglia) ? "item urgente ing-item" : "item ok ing-item";
+        }
+    }
+
+    function generaTabellaRiepilogoBiban() {
+        const divRiepilogo = document.getElementById('riepilogo-globale');
+        const datiCasta = JSON.parse(localStorage.getItem('inventario_dati_CASTA')) || {};
+        const datiSilea = JSON.parse(localStorage.getItem('inventario_dati_SILEA')) || {};
+        const datiBiban = JSON.parse(localStorage.getItem('inventario_dati_BIBAN')) || {};
+        const itemsPasta = ingredienti.filter(ing => ing.cat === "PASTA");
+        let html = `<div class="riepilogo-biban"><table><thead><tr><th>PASTA GENERALE</th><th>Casta</th><th>Silea</th><th>Biban</th></tr></thead><tbody>`;
+        itemsPasta.forEach(ing => {
+            html += `<tr><td>${ing.nome}</td><td>${datiCasta[ing.nome] || "-"}</td><td>${datiSilea[ing.nome] || "-"}</td><td>${datiBiban[ing.nome] || "-"}</td></tr>`;
+        });
+        html += `</tbody></table></div>`;
+        divRiepilogo.innerHTML = html;
+    }
+
+    function filtraLista() {
+        const query = document.getElementById('searchInput').value.toLowerCase().trim();
+        const items = document.querySelectorAll('.ing-item');
+        const headers = document.querySelectorAll('.categoria-header');
+        const tabelle = document.querySelectorAll('.cat-group');
+        items.forEach(item => {
+            const nome = item.getAttribute('data-nome');
+            if (query === "barbazza") item.style.display = listaBarbazza.includes(nome) ? (item.tagName === 'TR' ? 'table-row' : 'flex') : "none";
+            else item.style.display = nome.includes(query) ? (item.tagName === 'TR' ? 'table-row' : 'flex') : "none";
+        });
+        headers.forEach(h => h.style.display = (query === "") ? "block" : "none");
+        tabelle.forEach(t => t.style.display = (query === "") ? "block" : "none");
+    }
+
+    function salvaDati() {
+        const pizzo = document.getElementById('pizzeria').value;
+        if (!pizzo || pizzo === "TUTTE") return;
+        let datiDaSalvare = {};
+        ingredienti.forEach((ing, i) => {
+            const input = document.getElementById(`sel-${i}`);
+            if (input) datiDaSalvare[ing.nome] = input.value;
+        });
+        localStorage.setItem('inventario_dati_' + pizzo, JSON.stringify(datiDaSalvare));
+        localStorage.setItem('ultima_pizzeria', pizzo);
+        alert("✅ Dati salvati correttamente per " + pizzo);
+    }
+
+    function azzeraLista() {
+        if (confirm("⚠️ Vuoi davvero cancellare TUTTI i dati inseriti per questa pizzeria?")) {
+            const pizzo = document.getElementById('pizzeria').value;
+            if (pizzo && pizzo !== "TUTTE") localStorage.removeItem('inventario_dati_' + pizzo);
+            document.getElementById('searchInput').value = "";
+            creaLista();
+        }
+    }
+
+    function cambiaPizzeria() { document.getElementById('searchInput').value = ""; creaLista(); }
+    window.onload = function() {
+        const ultimaPizzo = localStorage.getItem('ultima_pizzeria');
+        if (ultimaPizzo) { document.getElementById('pizzeria').value = ultimaPizzo; creaLista(); }
+    }
+
+    function inviaWhatsApp() {
+        const pizzo = document.getElementById('pizzeria').value;
+        if (!pizzo || pizzo === "TUTTE") return;
+        let msg = `🏪 *INV. ${pizzo}* - PER ${nomiGiorni[domaniIdx].toUpperCase()}\n\n`;
+        let trovatiMancanti = false;
+        let listaVuoti = [];
+        let listaErrori = [];
+        let crudeMsg = "";
+        ingredienti.forEach((ing, i) => {
+            const input = document.getElementById(`sel-${i}`);
+            if (!input) return; 
+            const testo = input.value.trim();
+            const soglia = isWeekendDomani ? ing.we : ing.fer;
+            if (ing.noObbligo) { if (testo !== "" && isDomenicaOggi && pizzo === "CASTA") crudeMsg += `• ${ing.nome}: ${testo}\n`; }
+            else {
+                if (testo === "") listaVuoti.push(ing.nome);
+                else if (!contieneNumeri(testo)) listaErrori.push(ing.nome);
+                else {
+                    const valore = estraiNumeroIntelligente(testo, ing.nome);
+                    if (valore < soglia) { msg += `• *${ing.nome}*: ${testo} (Soglia: ${ing.nome.includes("Cipolla") ? "1/4" : soglia})\n`; trovatiMancanti = true; }
+                }
+            }
+        });
+        if (listaVuoti.length > 0) { alert("⚠️ COMPILA TUTTO! Mancano:\n- " + listaVuoti.join("\n- ")); return; }
+        if (listaErrori.length > 0) { alert("⚠️ ERRORE! Devi inserire almeno un numero per:\n- " + listaErrori.join("\n- ")); return; }
+        if (!trovatiMancanti) msg += "✅ Scorte OK!";
+        if (crudeMsg !== "") msg += `\n🥗 *VERDURE CRUDE*:\n${crudeMsg}`;
+        window.location.href = "whatsapp://send?text=" + encodeURIComponent(msg);
+    }
+</script>
+</body>
+</html>
