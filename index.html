@@ -230,4 +230,171 @@
             const soglia = isWeekendDomani ? ing.we : ing.fer;
             const formattaValore = (valore, ingrediente) => {
                 if (!valore || valore === "-") return "-";
-                if (ingrediente.noOb
+                if (ingrediente.noObbligo) return valore;
+                const num = estraiNumeroIntelligente(valore, ingrediente.nome);
+                if (!isNaN(num) && num < soglia) return `<span class="sotto-soglia">${valore}</span>`;
+                return valore;
+            };
+
+            if(ing.cat !== currentCat) {
+                if(currentCat !== "") html += `</tbody></table></div>`;
+                html += `<div class="categoria-header" style="background-color: ${ing.color}">${ing.cat}</div>
+                        <div class="tabella-globale cat-group" data-cat="${ing.cat}">
+                        <table><thead><tr><th>INGREDIENTE</th><th>Casta</th><th>Silea</th><th>Biban</th></tr></thead><tbody>`;
+                currentCat = ing.cat;
+            }
+            html += `<tr class="ing-item" data-nome="${ing.nome.toLowerCase()}">
+                    <td>${ing.nome}</td>
+                    <td>${formattaValore(datiCasta[ing.nome], ing)}</td>
+                    <td>${formattaValore(datiSilea[ing.nome], ing)}</td>
+                    <td>${formattaValore(datiBiban[ing.nome], ing)}</td>
+                </tr>`;
+        });
+        html += `</tbody></table></div>`;
+        cont.innerHTML = html;
+    }
+
+    function creaLista() {
+        const cont = document.getElementById('contenitore-lista');
+        const pizzo = document.getElementById('pizzeria').value;
+        const btnAzzera = document.getElementById('btn-azzera');
+        const searchBox = document.getElementById('search-box');
+        const footerBtns = document.getElementById('footer-btns');
+        const riepilogoDiv = document.getElementById('riepilogo-globale');
+        cont.innerHTML = ""; 
+        riepilogoDiv.innerHTML = "";
+        if (!pizzo) { btnAzzera.style.display = "none"; searchBox.style.display = "none"; footerBtns.style.display = "none"; return; }
+        searchBox.style.display = "block";
+        if (pizzo === "TUTTE") { btnAzzera.style.display = "none"; footerBtns.style.display = "none"; generaVistaTutte(); return; }
+        btnAzzera.style.display = "block"; footerBtns.style.display = "flex";
+        if (pizzo === "BIBAN") generaTabellaRiepilogoBiban();
+        let currentCat = "";
+        const salvati = JSON.parse(localStorage.getItem('inventario_dati_' + pizzo)) || {};
+        ingredienti.forEach((ing, i) => {
+            let daMostrare = true;
+            if (ing.cat === "FREEZER" && pizzo !== "BIBAN") daMostrare = false;
+            if ((ing.nome === "Lievito" || ing.nome === "Canapa") && pizzo !== "BIBAN") daMostrare = false;
+            if (ing.nome === "Sale" && pizzo === "SILEA") daMostrare = false;
+            if (ing.nome === "Olio Fritte" && (pizzo === "SILEA" || pizzo === "BIBAN")) daMostrare = false;
+            if (ing.nome === "Pel.Salsa" && (pizzo === "SILEA" || pizzo === "BIBAN")) daMostrare = false;
+            if (ing.cat === "VERDURE CRUDE") { if (pizzo !== "CASTA" || !isDomenicaOggi) daMostrare = false; }
+            if (daMostrare) {
+                if(ing.cat !== currentCat) {
+                    cont.innerHTML += `<div class="categoria-header" style="background-color: ${ing.color}">${ing.cat}</div>`;
+                    currentCat = ing.cat;
+                }
+                const soglia = isWeekendDomani ? ing.we : ing.fer;
+                const valorePrecedente = salvati[ing.nome] || "";
+                const classeExtra = ing.noObbligo ? "no-obbligo" : (valorePrecedente === "" ? "vuoto" : "");
+                cont.innerHTML += `<div class="item ${classeExtra} ing-item" id="box-${i}" data-nome="${ing.nome.toLowerCase()}">
+                        <div><div class="nome-ingrediente">${ing.nome}</div><div class="soglia-info">${ing.noObbligo ? '' : 'Min domani: ' + (ing.nome.includes("Cipolla") ? "1/4" : soglia)}</div></div>
+                        <div class="input-container"><input type="text" class="qty-input" id="sel-${i}" placeholder="Qtà" value="${valorePrecedente}" oninput="valuta(${i}, ${soglia}, '${ing.nome}')"></div></div>`;
+                if(valorePrecedente !== "") valuta(i, soglia, ing.nome);
+            }
+        });
+    }
+
+    function valuta(i, soglia, nomeIngrediente) {
+        const input = document.getElementById(`sel-${i}`);
+        if(!input) return;
+        const testo = input.value;
+        const box = document.getElementById(`box-${i}`);
+        const facoltativo = ingredienti.find(ing => ing.nome === nomeIngrediente).noObbligo;
+
+        if (testo.trim() === "") box.className = facoltativo ? "item no-obbligo ing-item" : "item vuoto ing-item";
+        else if (!/\d/.test(testo) && !facoltativo) box.className = "item errore-testo ing-item";
+        else if (facoltativo) box.className = "item no-obbligo ing-item";
+        else {
+            const valore = estraiNumeroIntelligente(testo, nomeIngrediente);
+            box.className = (valore < soglia) ? "item urgente ing-item" : "item ok ing-item";
+        }
+    }
+
+    function generaTabellaRiepilogoBiban() {
+        const divRiepilogo = document.getElementById('riepilogo-globale');
+        const datiCasta = JSON.parse(localStorage.getItem('inventario_dati_CASTA')) || {};
+        const datiSilea = JSON.parse(localStorage.getItem('inventario_dati_SILEA')) || {};
+        const datiBiban = JSON.parse(localStorage.getItem('inventario_dati_BIBAN')) || {};
+        const itemsPasta = ingredienti.filter(ing => ing.cat === "PASTA");
+        let html = `<div class="riepilogo-biban"><table><thead><tr><th>PASTA GENERALE</th><th>Casta</th><th>Silea</th><th>Biban</th></tr></thead><tbody>`;
+        itemsPasta.forEach(ing => {
+            html += `<tr><td>${ing.nome}</td><td>${datiCasta[ing.nome] || "-"}</td><td>${datiSilea[ing.nome] || "-"}</td><td>${datiBiban[ing.nome] || "-"}</td></tr>`;
+        });
+        html += `</tbody></table></div>`;
+        divRiepilogo.innerHTML = html;
+    }
+
+    function filtraLista() {
+        const query = document.getElementById('searchInput').value.toLowerCase().trim();
+        const items = document.querySelectorAll('.ing-item');
+        const headers = document.querySelectorAll('.categoria-header');
+        const tabelle = document.querySelectorAll('.cat-group');
+        items.forEach(item => {
+            const nome = item.getAttribute('data-nome');
+            if (query === "barbazza") item.style.display = listaBarbazza.includes(nome) ? (item.tagName === 'TR' ? 'table-row' : 'flex') : "none";
+            else item.style.display = nome.includes(query) ? (item.tagName === 'TR' ? 'table-row' : 'flex') : "none";
+        });
+        headers.forEach(h => h.style.display = (query === "") ? "block" : "none");
+        tabelle.forEach(t => t.style.display = (query === "") ? "block" : "none");
+    }
+
+    function salvaDati() {
+        const pizzo = document.getElementById('pizzeria').value;
+        if (!pizzo || pizzo === "TUTTE") return;
+        let datiDaSalvare = {};
+        ingredienti.forEach((ing, i) => {
+            const input = document.getElementById(`sel-${i}`);
+            if (input) datiDaSalvare[ing.nome] = input.value;
+        });
+        localStorage.setItem('inventario_dati_' + pizzo, JSON.stringify(datiDaSalvare));
+        localStorage.setItem('ultima_pizzeria', pizzo);
+        alert("✅ Dati salvati correttamente per " + pizzo);
+    }
+
+    function azzeraLista() {
+        if (confirm("⚠️ Vuoi davvero cancellare TUTTI i dati inseriti per questa pizzeria?")) {
+            const pizzo = document.getElementById('pizzeria').value;
+            if (pizzo && pizzo !== "TUTTE") localStorage.removeItem('inventario_dati_' + pizzo);
+            document.getElementById('searchInput').value = "";
+            creaLista();
+        }
+    }
+
+    function cambiaPizzeria() { document.getElementById('searchInput').value = ""; creaLista(); }
+    window.onload = function() {
+        const ultimaPizzo = localStorage.getItem('ultima_pizzeria');
+        if (ultimaPizzo) { document.getElementById('pizzeria').value = ultimaPizzo; creaLista(); }
+    }
+
+    function inviaWhatsApp() {
+        const pizzo = document.getElementById('pizzeria').value;
+        if (!pizzo || pizzo === "TUTTE") return;
+        let msg = `🏪 *INV. ${pizzo}* - PER ${nomiGiorni[domaniIdx].toUpperCase()}\n\n`;
+        let trovatiMancanti = false;
+        let listaVuoti = [];
+        let listaErrori = [];
+        let crudeMsg = "";
+        ingredienti.forEach((ing, i) => {
+            const input = document.getElementById(`sel-${i}`);
+            if (!input) return; 
+            const testo = input.value.trim();
+            const soglia = isWeekendDomani ? ing.we : ing.fer;
+            if (ing.noObbligo) { if (testo !== "" && isDomenicaOggi && pizzo === "CASTA") crudeMsg += `• ${ing.nome}: ${testo}\n`; }
+            else {
+                if (testo === "") listaVuoti.push(ing.nome);
+                else if (!/\d/.test(testo)) listaErrori.push(ing.nome);
+                else {
+                    const valore = estraiNumeroIntelligente(testo, ing.nome);
+                    if (valore < soglia) { msg += `• *${ing.nome}*: ${testo} (Soglia: ${ing.nome.includes("Cipolla") ? "1/4" : soglia})\n`; trovatiMancanti = true; }
+                }
+            }
+        });
+        if (listaVuoti.length > 0) { alert("⚠️ COMPILA TUTTO! Mancano:\n- " + listaVuoti.join("\n- ")); return; }
+        if (listaErrori.length > 0) { alert("⚠️ ERRORE! Devi inserire almeno un numero per:\n- " + listaErrori.join("\n- ")); return; }
+        if (!trovatiMancanti) msg += "✅ Scorte OK!";
+        if (crudeMsg !== "") msg += `\n🥗 *VERDURE CRUDE*:\n${crudeMsg}`;
+        window.location.href = "whatsapp://send?text=" + encodeURIComponent(msg);
+    }
+</script>
+</body>
+</html>
