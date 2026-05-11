@@ -38,7 +38,7 @@
 <body>
     <div class="header-box">
         <div id="info-giorno" style="font-size: 0.9em; color: #666;"></div>
-        <select id="pizzeria" class="pizzeria-select">
+        <select id="pizzeria" class="pizzeria-select" onchange="creaLista()">
             <option value="">📍 SELEZIONA PIZZERIA</option>
             <option value="CASTA">CASTA</option>
             <option value="SILEA">SILEA</option>
@@ -167,15 +167,10 @@
         return match ? parseFloat(match[0]) : NaN;
     }
 
-    // GESTIONE DATE
     const nomiGiorni = ["Domenica", "Lunedì", "Martedì", "Mercoledì", "Giovedì", "Venerdì", "Sabato"];
     const oraAttuale = new Date();
     const oggiIdx = oraAttuale.getDay();
-    
-    // Calcolo domani
     const domaniIdx = (oggiIdx + 1) % 7;
-    
-    // Una soglia è Weekend se il giorno per cui si fa l'inventario è Venerdì (5), Sabato (6) o Domenica (0)
     const isWeekendDomani = (domaniIdx === 0 || domaniIdx === 5 || domaniIdx === 6);
 
     document.getElementById('info-giorno').innerHTML = `
@@ -185,26 +180,43 @@
 
     function creaLista() {
         const cont = document.getElementById('contenitore-lista');
+        const pizzo = document.getElementById('pizzeria').value;
+        cont.innerHTML = ""; // Pulisce la lista ogni volta
+        
+        if (!pizzo) return; // Se non c'è pizzeria, non mostrare nulla
+
         let currentCat = "";
         
         ingredienti.forEach((ing, i) => {
-            if(ing.cat !== currentCat) {
-                cont.innerHTML += `<div class="categoria-header" style="background-color: ${ing.color}">${ing.cat}</div>`;
-                currentCat = ing.cat;
+            // LOGICA FILTRI SEDI
+            let daMostrare = true;
+
+            // Filtro Categoria Freezer
+            if (ing.cat === "FREEZER" && pizzo !== "BIBAN") daMostrare = false;
+            // Filtro Lievito e Canapa
+            if ((ing.nome === "Lievito" || ing.nome === "Canapa") && pizzo !== "BIBAN") daMostrare = false;
+            // Filtro Sale e Olio Fritte (Solo per Casta e Biban, Silea esclusa)
+            if ((ing.nome === "Sale" || ing.nome === "Olio Fritte") && pizzo === "SILEA") daMostrare = false;
+
+            if (daMostrare) {
+                if(ing.cat !== currentCat) {
+                    cont.innerHTML += `<div class="categoria-header" style="background-color: ${ing.color}">${ing.cat}</div>`;
+                    currentCat = ing.cat;
+                }
+                const soglia = isWeekendDomani ? ing.we : ing.fer;
+                
+                cont.innerHTML += `
+                    <div class="item vuoto" id="box-${i}">
+                        <div>
+                            <div class="nome-ingrediente">${ing.nome}</div>
+                            <div class="soglia-info">Min domani: ${soglia}</div>
+                        </div>
+                        <div class="input-container">
+                            <span class="warning-icon">!</span>
+                            <input type="text" class="qty-input" id="sel-${i}" placeholder="Qtà" oninput="valuta(${i}, ${soglia})">
+                        </div>
+                    </div>`;
             }
-            const soglia = isWeekendDomani ? ing.we : ing.fer;
-            
-            cont.innerHTML += `
-                <div class="item vuoto" id="box-${i}">
-                    <div>
-                        <div class="nome-ingrediente">${ing.nome}</div>
-                        <div class="soglia-info">Min domani: ${soglia}</div>
-                    </div>
-                    <div class="input-container">
-                        <span class="warning-icon">!</span>
-                        <input type="text" class="qty-input" id="sel-${i}" placeholder="Qtà" oninput="valuta(${i}, ${soglia})">
-                    </div>
-                </div>`;
         });
     }
 
@@ -231,8 +243,12 @@
         let listaVuoti = [];
         let listaErrori = [];
 
+        // Dobbiamo scorrere solo gli ingredienti visibili
         ingredienti.forEach((ing, i) => {
-            const testo = document.getElementById(`sel-${i}`).value.trim();
+            const input = document.getElementById(`sel-${i}`);
+            if (!input) return; // Salta gli ingredienti filtrati (non presenti nel DOM)
+
+            const testo = input.value.trim();
             const soglia = isWeekendDomani ? ing.we : ing.fer;
 
             if (testo === "") {
@@ -262,7 +278,7 @@
         window.location.href = "whatsapp://send?text=" + encodeURIComponent(msg);
     }
 
-    creaLista();
+    // Nota: creaLista ora viene chiamata dall'onchange del menu pizzeria
 </script>
 </body>
 </html>
