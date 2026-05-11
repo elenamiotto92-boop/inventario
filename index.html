@@ -16,7 +16,7 @@
         }
         body { font-family: -apple-system, sans-serif; background: #eef2f7; padding: 10px; margin: 0; padding-bottom: 180px; }
         .header-box { background: white; padding: 15px; border-radius: 12px; margin-bottom: 15px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); border-top: 5px solid var(--gold); text-align: center; }
-        select.pizzeria-select { width: 100%; padding: 12px; border-radius: 8px; border: 2px solid var(--gold); font-size: 18px; font-weight: bold; background: #fffcf5; margin-top: 10px; color: var(--dark); }
+        select.pizzeria-select, .date-input { width: 100%; padding: 12px; border-radius: 8px; border: 2px solid var(--gold); font-size: 18px; font-weight: bold; background: #fffcf5; margin-top: 10px; color: var(--dark); box-sizing: border-box; }
         .search-container { margin-top: 10px; display: none; }
         .search-input { width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #ccc; font-size: 16px; box-sizing: border-box; }
         .btn-reset { display: none; background: var(--red); color: white; border: none; padding: 8px 15px; border-radius: 8px; font-size: 0.8em; font-weight: bold; margin-top: 10px; width: 100%; cursor: pointer; }
@@ -42,6 +42,9 @@
         .footer-controls { position: fixed; bottom: 0; left: 0; right: 0; background: white; padding: 15px 10px 25px 10px; box-shadow: 0 -5px 15px rgba(0,0,0,0.1); z-index: 1000; display: flex; flex-direction: column; gap: 10px; }
         .btn-wa { background: #25D366; color: white; border: none; padding: 15px; border-radius: 12px; font-size: 1.1em; font-weight: bold; cursor: pointer; flex: 1; }
         .btn-save { background: #3498db; color: white; border: none; padding: 15px; border-radius: 12px; font-size: 1.1em; font-weight: bold; cursor: pointer; flex: 1; }
+        
+        /* Stile specifico per archivio */
+        .archivio-header { background: var(--dark); color: white; padding: 10px; border-radius: 8px; margin-top: 15px; font-size: 0.9em; }
     </style>
 </head>
 <body>
@@ -53,10 +56,17 @@
             <option value="SILEA">SILEA</option>
             <option value="BIBAN">BIBAN</option>
             <option value="TUTTE">📊 TUTTE (VISUALIZZA)</option>
+            <option value="ARCHIVIO">📜 ARCHIVIO STORICO</option>
         </select>
         <div id="search-box" class="search-container">
             <input type="text" id="searchInput" class="search-input" placeholder="🔍 Cerca..." oninput="filtraLista()">
         </div>
+        
+        <div id="date-picker-container" style="display: none; margin-top:10px;">
+            <label style="font-size: 0.8em; font-weight: bold;">SCEGLI DATA DA CONSULTARE:</label>
+            <input type="date" id="archiveDate" class="date-input" onchange="generaVistaArchivio()">
+        </div>
+
         <button id="btn-azzera" class="btn-reset" onclick="azzeraLista()">🗑️ AZZERA LISTA</button>
     </div>
     <div id="riepilogo-globale"></div>
@@ -182,8 +192,6 @@
 
     const listaBarbazza = ["brie", "gorgonzola", "asiago", "acciughe", "tonno (latte)", "salmone", "bresaola", "carciofi", "olive", "capperi", "semola", "carta mani", "pel.salsa", "cart.med", "cart.mezzi", "lievito"];
 
-    function contieneNumeri(testo) { return /\d/.test(testo); }
-
     function estraiNumeroIntelligente(testo, nomeIngrediente = "") {
         if (!testo) return NaN;
         testo = testo.toString().toLowerCase().trim().replace(',', '.');
@@ -202,8 +210,9 @@
         return valore;
     }
 
-    const nomiGiorni = ["Domenica", "Lunedì", "Martedì", "Mercoledì", "Giovedì", "Venerdì", "Sabato"];
     const oraAttuale = new Date();
+    const oggiString = oraAttuale.toISOString().split('T')[0];
+    const nomiGiorni = ["Domenica", "Lunedì", "Martedì", "Mercoledì", "Giovedì", "Venerdì", "Sabato"];
     const oggiIdx = oraAttuale.getDay();
     const domaniIdx = (oggiIdx + 1) % 7;
     const isWeekendDomani = (domaniIdx === 0 || domaniIdx === 5 || domaniIdx === 6);
@@ -222,8 +231,7 @@
         const datiBiban = JSON.parse(localStorage.getItem('inventario_dati_BIBAN')) || {};
         let currentCat = "";
         let html = "";
-
-        ingredienti.forEach((ing, i) => {
+        ingredienti.forEach((ing) => {
             const soglia = isWeekendDomani ? ing.we : ing.fer;
             const formattaValore = (valore, ingrediente) => {
                 if (!valore || valore === "-") return "-";
@@ -232,34 +240,52 @@
                 if (!isNaN(num) && num < soglia) return `<span class="sotto-soglia">${valore}</span>`;
                 return valore;
             };
-
             if(ing.cat !== currentCat) {
                 if(currentCat !== "") html += `</tbody></table></div>`;
-                html += `<div class="categoria-header" style="background-color: ${ing.color}">${ing.cat}</div>
-                        <div class="tabella-globale cat-group" data-cat="${ing.cat}">
-                        <table><thead><tr><th>INGREDIENTE</th><th>Casta</th><th>Silea</th><th>Biban</th></tr></thead><tbody>`;
+                html += `<div class="categoria-header" style="background-color: ${ing.color}">${ing.cat}</div><div class="tabella-globale cat-group"><table><thead><tr><th>INGREDIENTE</th><th>Casta</th><th>Silea</th><th>Biban</th></tr></thead><tbody>`;
                 currentCat = ing.cat;
             }
-
             let valCasta = datiCasta[ing.nome] || "-";
             let valSilea = datiSilea[ing.nome] || "-";
             let valBiban = datiBiban[ing.nome] || "-";
-
-            // Se la categoria è Freezer, mostra solo Biban
-            if (ing.cat === "FREEZER") {
-                valCasta = "-";
-                valSilea = "-";
-            }
-
-            html += `<tr class="ing-item" data-nome="${ing.nome.toLowerCase()}">
-                    <td>${ing.nome}</td>
-                    <td>${formattaValore(valCasta, ing)}</td>
-                    <td>${formattaValore(valSilea, ing)}</td>
-                    <td>${formattaValore(valBiban, ing)}</td>
-                </tr>`;
+            if (ing.cat === "FREEZER") { valCasta = "-"; valSilea = "-"; }
+            html += `<tr class="ing-item" data-nome="${ing.nome.toLowerCase()}"><td>${ing.nome}</td><td>${formattaValore(valCasta, ing)}</td><td>${formattaValore(valSilea, ing)}</td><td>${formattaValore(valBiban, ing)}</td></tr>`;
         });
         html += `</tbody></table></div>`;
         cont.innerHTML = html;
+    }
+
+    function generaVistaArchivio() {
+        const dataScelta = document.getElementById('archiveDate').value;
+        if (!dataScelta) return;
+        const cont = document.getElementById('contenitore-lista');
+        cont.innerHTML = `<div class="archivio-header">📅 Consultazione dati del: <b>${dataScelta}</b></div>`;
+        
+        const datiCasta = JSON.parse(localStorage.getItem(`archive_CASTA_${dataScelta}`)) || null;
+        const datiSilea = JSON.parse(localStorage.getItem(`archive_SILEA_${dataScelta}`)) || null;
+        const datiBiban = JSON.parse(localStorage.getItem(`archive_BIBAN_${dataScelta}`)) || null;
+
+        if (!datiCasta && !datiSilea && !datiBiban) {
+            cont.innerHTML += `<div style="padding:20px; text-align:center; color:red;">NESSUN DATO SALVATO PER QUESTA DATA.</div>`;
+            return;
+        }
+
+        let currentCat = "";
+        let html = "";
+        ingredienti.forEach((ing) => {
+            if(ing.cat !== currentCat) {
+                if(currentCat !== "") html += `</tbody></table></div>`;
+                html += `<div class="categoria-header" style="background-color: ${ing.color}">${ing.cat}</div><div class="tabella-globale cat-group"><table><thead><tr><th>INGREDIENTE</th><th>Casta</th><th>Silea</th><th>Biban</th></tr></thead><tbody>`;
+                currentCat = ing.cat;
+            }
+            let valCasta = (datiCasta && datiCasta[ing.nome]) ? datiCasta[ing.nome] : "-";
+            let valSilea = (datiSilea && datiSilea[ing.nome]) ? datiSilea[ing.nome] : "-";
+            let valBiban = (datiBiban && datiBiban[ing.nome]) ? datiBiban[ing.nome] : "-";
+            if (ing.cat === "FREEZER") { valCasta = "-"; valSilea = "-"; }
+            html += `<tr class="ing-item" data-nome="${ing.nome.toLowerCase()}"><td>${ing.nome}</td><td>${valCasta}</td><td>${valSilea}</td><td>${valBiban}</td></tr>`;
+        });
+        html += `</tbody></table></div>`;
+        cont.innerHTML += html;
     }
 
     function creaLista() {
@@ -268,10 +294,20 @@
         const btnAzzera = document.getElementById('btn-azzera');
         const searchBox = document.getElementById('search-box');
         const footerBtns = document.getElementById('footer-btns');
+        const datePicker = document.getElementById('date-picker-container');
         const riepilogoDiv = document.getElementById('riepilogo-globale');
-        cont.innerHTML = ""; 
-        riepilogoDiv.innerHTML = "";
-        if (!pizzo) { btnAzzera.style.display = "none"; searchBox.style.display = "none"; footerBtns.style.display = "none"; return; }
+        cont.innerHTML = ""; riepilogoDiv.innerHTML = "";
+        
+        if (!pizzo) { btnAzzera.style.display = "none"; searchBox.style.display = "none"; footerBtns.style.display = "none"; datePicker.style.display = "none"; return; }
+        
+        if (pizzo === "ARCHIVIO") {
+            btnAzzera.style.display = "none"; footerBtns.style.display = "none"; searchBox.style.display = "block"; datePicker.style.display = "block";
+            document.getElementById('archiveDate').value = oggiString;
+            generaVistaArchivio();
+            return;
+        }
+
+        datePicker.style.display = "none";
         searchBox.style.display = "block";
         if (pizzo === "TUTTE") { btnAzzera.style.display = "none"; footerBtns.style.display = "none"; generaVistaTutte(); return; }
         btnAzzera.style.display = "block"; footerBtns.style.display = "flex";
@@ -309,12 +345,26 @@
         const box = document.getElementById(`box-${i}`);
         const facoltativo = ingredienti.find(ing => ing.nome === nomeIngrediente).noObbligo;
         if (testo.trim() === "") box.className = facoltativo ? "item no-obbligo ing-item" : "item vuoto ing-item";
-        else if (!contieneNumeri(testo) && !facoltativo) box.className = "item errore-testo ing-item";
+        else if (!/\d/.test(testo) && !facoltativo) box.className = "item errore-testo ing-item";
         else if (facoltativo) box.className = "item no-obbligo ing-item";
         else {
             const valore = estraiNumeroIntelligente(testo, nomeIngrediente);
             box.className = (valore < soglia) ? "item urgente ing-item" : "item ok ing-item";
         }
+    }
+
+    function salvaDati() {
+        const pizzo = document.getElementById('pizzeria').value;
+        if (!pizzo || pizzo === "TUTTE" || pizzo === "ARCHIVIO") return;
+        let datiDaSalvare = {};
+        ingredienti.forEach((ing, i) => {
+            const input = document.getElementById(`sel-${i}`);
+            if (input) datiDaSalvare[ing.nome] = input.value;
+        });
+        localStorage.setItem('inventario_dati_' + pizzo, JSON.stringify(datiDaSalvare));
+        localStorage.setItem(`archive_${pizzo}_${oggiString}`, JSON.stringify(datiDaSalvare)); // Salva in archivio con data odierna
+        localStorage.setItem('ultima_pizzeria', pizzo);
+        alert("✅ Dati salvati correttamente anche in ARCHIVIO per " + pizzo);
     }
 
     function generaTabellaRiepilogoBiban() {
@@ -338,31 +388,16 @@
         const tabelle = document.querySelectorAll('.cat-group');
         items.forEach(item => {
             const nome = item.getAttribute('data-nome');
-            if (query === "barbazza") item.style.display = listaBarbazza.includes(nome) ? (item.tagName === 'TR' ? 'table-row' : 'flex') : "none";
-            else item.style.display = nome.includes(query) ? (item.tagName === 'TR' ? 'table-row' : 'flex') : "none";
+            item.style.display = nome.includes(query) ? (item.tagName === 'TR' ? 'table-row' : 'flex') : "none";
         });
         headers.forEach(h => h.style.display = (query === "") ? "block" : "none");
         tabelle.forEach(t => t.style.display = (query === "") ? "block" : "none");
     }
 
-    function salvaDati() {
-        const pizzo = document.getElementById('pizzeria').value;
-        if (!pizzo || pizzo === "TUTTE") return;
-        let datiDaSalvare = {};
-        ingredienti.forEach((ing, i) => {
-            const input = document.getElementById(`sel-${i}`);
-            if (input) datiDaSalvare[ing.nome] = input.value;
-        });
-        localStorage.setItem('inventario_dati_' + pizzo, JSON.stringify(datiDaSalvare));
-        localStorage.setItem('ultima_pizzeria', pizzo);
-        alert("✅ Dati salvati correttamente per " + pizzo);
-    }
-
     function azzeraLista() {
-        if (confirm("⚠️ Vuoi davvero cancellare TUTTI i dati inseriti per questa pizzeria?")) {
+        if (confirm("⚠️ Vuoi cancellare i dati correnti? L'archivio storico rimarrà comunque salvato.")) {
             const pizzo = document.getElementById('pizzeria').value;
-            if (pizzo && pizzo !== "TUTTE") localStorage.removeItem('inventario_dati_' + pizzo);
-            document.getElementById('searchInput').value = "";
+            if (pizzo) localStorage.removeItem('inventario_dati_' + pizzo);
             creaLista();
         }
     }
@@ -379,17 +414,13 @@
         let msg = `🏪 *INV. ${pizzo}* - PER ${nomiGiorni[domaniIdx].toUpperCase()}\n\n`;
         let trovatiMancanti = false;
         let listaVuoti = [];
-        let listaErrori = [];
-        let crudeMsg = "";
         ingredienti.forEach((ing, i) => {
             const input = document.getElementById(`sel-${i}`);
             if (!input) return; 
             const testo = input.value.trim();
             const soglia = isWeekendDomani ? ing.we : ing.fer;
-            if (ing.noObbligo) { if (testo !== "" && isDomenicaOggi && pizzo === "CASTA") crudeMsg += `• ${ing.nome}: ${testo}\n`; }
-            else {
+            if (!ing.noObbligo) {
                 if (testo === "") listaVuoti.push(ing.nome);
-                else if (!contieneNumeri(testo)) listaErrori.push(ing.nome);
                 else {
                     const valore = estraiNumeroIntelligente(testo, ing.nome);
                     if (valore < soglia) { msg += `• *${ing.nome}*: ${testo} (Soglia: ${ing.nome.includes("Cipolla") ? "1/4" : soglia})\n`; trovatiMancanti = true; }
@@ -397,9 +428,7 @@
             }
         });
         if (listaVuoti.length > 0) { alert("⚠️ COMPILA TUTTO! Mancano:\n- " + listaVuoti.join("\n- ")); return; }
-        if (listaErrori.length > 0) { alert("⚠️ ERRORE! Devi inserire almeno un numero per:\n- " + listaErrori.join("\n- ")); return; }
         if (!trovatiMancanti) msg += "✅ Scorte OK!";
-        if (crudeMsg !== "") msg += `\n🥗 *VERDURE CRUDE*:\n${crudeMsg}`;
         window.location.href = "whatsapp://send?text=" + encodeURIComponent(msg);
     }
 </script>
