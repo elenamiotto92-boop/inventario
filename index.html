@@ -19,7 +19,8 @@
         
         select.pizzeria-select { width: 100%; padding: 12px; border-radius: 8px; border: 2px solid var(--gold); font-size: 18px; font-weight: bold; background: #fffcf5; margin-top: 10px; color: var(--dark); }
         
-        .btn-reset { background: var(--red); color: white; border: none; padding: 8px 15px; border-radius: 8px; font-size: 0.8em; font-weight: bold; margin-top: 10px; width: 100%; cursor: pointer; }
+        /* Modificato: inizialmente nascosto */
+        .btn-reset { display: none; background: var(--red); color: white; border: none; padding: 8px 15px; border-radius: 8px; font-size: 0.8em; font-weight: bold; margin-top: 10px; width: 100%; cursor: pointer; }
 
         .categoria-header { color: black; padding: 8px 12px; margin-top: 20px; border-radius: 8px 8px 0 0; font-size: 0.9em; font-weight: bold; text-transform: uppercase; text-align: center; border: 1px solid #999; }
         
@@ -41,11 +42,10 @@
         .warning-icon { color: var(--gold); font-weight: bold; font-size: 20px; margin-right: 8px; display: none; }
         .vuoto .warning-icon { display: block; }
         
-        /* FOOTER TASTI */
         .footer-controls { position: fixed; bottom: 0; left: 0; right: 0; background: white; padding: 15px 10px 25px 10px; box-shadow: 0 -5px 15px rgba(0,0,0,0.1); z-index: 1000; display: flex; flex-direction: column; gap: 10px; }
         
         .btn-wa { background: #25D366; color: white; border: none; padding: 15px; border-radius: 12px; font-size: 1.1em; font-weight: bold; cursor: pointer; flex: 1; }
-        .btn-save { background: var(--blue, #3498db); color: white; border: none; padding: 15px; border-radius: 12px; font-size: 1.1em; font-weight: bold; cursor: pointer; flex: 1; }
+        .btn-save { background: #3498db; color: white; border: none; padding: 15px; border-radius: 12px; font-size: 1.1em; font-weight: bold; cursor: pointer; flex: 1; }
     </style>
 </head>
 <body>
@@ -58,7 +58,7 @@
             <option value="SILEA">SILEA</option>
             <option value="BIBAN">BIBAN</option>
         </select>
-        <button class="btn-reset" onclick="azzeraLista()">🗑️ AZZERA LISTA</button>
+        <button id="btn-azzera" class="btn-reset" onclick="azzeraLista()">🗑️ AZZERA LISTA</button>
     </div>
 
     <div id="contenitore-lista"></div>
@@ -199,8 +199,16 @@
     function creaLista() {
         const cont = document.getElementById('contenitore-lista');
         const pizzo = document.getElementById('pizzeria').value;
+        const btnAzzera = document.getElementById('btn-azzera');
+        
         cont.innerHTML = ""; 
-        if (!pizzo) return; 
+        
+        if (!pizzo) {
+            btnAzzera.style.display = "none"; // Nasconde se non c'è pizzeria
+            return; 
+        }
+
+        btnAzzera.style.display = "block"; // Mostra se c'è pizzeria selezionata
 
         let currentCat = "";
         const salvati = JSON.parse(localStorage.getItem('inventario_dati_' + pizzo)) || {};
@@ -283,7 +291,6 @@
         creaLista();
     }
 
-    // Al caricamento, ripristina l'ultima pizzeria
     window.onload = function() {
         const ultimaPizzo = localStorage.getItem('ultima_pizzeria');
         if (ultimaPizzo) {
