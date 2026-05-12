@@ -50,6 +50,7 @@
             margin-top: 10px; 
             color: var(--primary); 
             box-sizing: border-box;
+            appearance: none; /* Uniforma stile iOS */
         }
 
         .search-input { 
@@ -72,18 +73,15 @@
             align-items: start; 
         }
 
-        /* Inserimento: 2 colonne su tablet, 3 su desktop */
         @media (min-width: 768px) { #contenitore-lista { grid-template-columns: repeat(2, 1fr); } }
         @media (min-width: 1200px) { #contenitore-lista { grid-template-columns: repeat(3, 1fr); } }
 
-        /* VISTA TUTTE (Tabellare): Categorie affiancate su desktop */
         @media (min-width: 1024px) { 
             #contenitore-lista.vista-tabellare { 
                 grid-template-columns: repeat(3, 1fr); 
             } 
         }
 
-        /* Stile Tabelle Sezione Visualizza */
         .cat-group-container { 
             background: var(--white); 
             border-radius: 12px; 
@@ -100,7 +98,6 @@
         td { padding: 10px 5px; border-bottom: 1px solid #eee; text-align: center; vertical-align: middle; }
         td:first-child { text-align: left; font-weight: bold; padding-left: 10px; background: #fafafa; }
 
-        /* Card Style per Inserimento Mobile */
         .item { 
             background: var(--white); 
             padding: 12px 15px; 
@@ -132,9 +129,9 @@
             text-align: center; 
             background: #fff;
             color: var(--primary);
+            -webkit-appearance: none;
         }
 
-        /* Colori Stati */
         .urgente { border-left: 6px solid var(--red) !important; background: #fff5f5 !important; }
         .ok { border-left: 6px solid var(--green) !important; background: #f1f8e9 !important; }
         .vuoto { border-left: 6px solid var(--gold) !important; background: #fffde7 !important; }
@@ -162,6 +159,25 @@
         .categoria-header { background: var(--primary); color: white; padding: 12px; font-size: 14px; font-weight: 700; text-transform: uppercase; text-align: center; grid-column: 1 / -1; margin-top: 10px; border-radius: 8px; }
         .alert-festivo { background: #ffecb3; color: #5d4037; padding: 8px; border-radius: 8px; font-weight: 700; font-size: 0.85em; margin-top: 10px; border: 1px solid #ffe082; }
         .archivio-header { background: var(--primary); color: white; padding: 10px; border-radius: 8px; margin-bottom: 15px; font-weight: bold; text-align: center; grid-column: 1 / -1; }
+        
+        /* Container Calendario per Mobile */
+        .date-picker-box {
+            position: relative;
+            margin-top: 10px;
+        }
+        .date-picker-box::before {
+            content: '📅';
+            position: absolute;
+            left: 12px;
+            top: 50%;
+            transform: translateY(-5%);
+            z-index: 5;
+            font-size: 18px;
+            pointer-events: none;
+        }
+        .date-input {
+            padding-left: 45px !important;
+        }
     </style>
 </head>
 <body>
@@ -181,14 +197,15 @@
             <input type="text" id="searchInput" class="search-input" placeholder="🔍 Cerca ingrediente..." oninput="filtraLista()">
         </div>
 
-        <div id="date-picker-container" style="display: none; margin-top:10px;">
-            <input type="date" id="archiveDate" class="date-input" onchange="generaVistaArchivio()">
+        <div id="date-picker-container" style="display: none;">
+            <div class="date-picker-box">
+                <input type="date" id="archiveDate" class="date-input" onchange="generaVistaArchivio()">
+            </div>
         </div>
 
         <button id="btn-azzera" class="btn-reset" onclick="azzeraLista()">🗑️ AZZERA LISTA ATTUALE</button>
     </div>
 
-    <div id="riepilogo-globale"></div>
     <div id="contenitore-lista"></div>
 
     <div class="footer-controls" id="footer-btns">
@@ -197,7 +214,7 @@
     </div>
 
 <script>
-    // --- DATI E LOGICA ---
+    // --- LOGICA DATE E FESTIVI ---
     function getPasqua(anno) {
         const a = anno % 19, b = Math.floor(anno / 100), c = anno % 100,
               d = Math.floor(b / 4), e = b % 4, f = Math.floor((b + 8) / 25),
@@ -224,7 +241,6 @@
     const oraAttuale = new Date();
     const domani = new Date(oraAttuale); domani.setDate(oraAttuale.getDate() + 1);
     const dopodomani = new Date(oraAttuale); dopodomani.setDate(oraAttuale.getDate() + 2);
-    const oggiString = oraAttuale.toISOString().split('T')[0];
     const nomiGiorni = ["Domenica", "Lunedì", "Martedì", "Mercoledì", "Giovedì", "Venerdì", "Sabato"];
     const isWeekendDomani = isFestivo(domani);
     const isPreFestivoOggi = isFestivo(dopodomani) && !isFestivo(domani);
@@ -354,7 +370,6 @@
 
     const listaBarbazza = ["brie", "gorgonzola", "asiago", "acciughe", "tonno (latte)", "salmone", "bresaola", "carciofi", "olive", "capperi", "semola", "carta mani", "pel.salsa", "cart.med", "cart.mezzi", "lievito"];
 
-    // --- FUNZIONI CORE ---
     function soloNumeri(e) {
         const charCode = (e.which) ? e.which : e.keyCode;
         const allowed = [47, 44, 46, 43];
@@ -408,13 +423,11 @@
     function generaVistaTutte() {
         const cont = document.getElementById('contenitore-lista');
         cont.innerHTML = "";
-        cont.classList.add("vista-tabellare"); // Applica il layout a 3 colonne desktop
-        
+        cont.classList.add("vista-tabellare");
         const dC = JSON.parse(localStorage.getItem('inventario_dati_CASTA')) || {};
         const dS = JSON.parse(localStorage.getItem('inventario_dati_SILEA')) || {};
         const dB = JSON.parse(localStorage.getItem('inventario_dati_BIBAN')) || {};
         let currentCat = ""; let html = "";
-        
         ingredienti.forEach((ing) => {
             const soglia = isWeekendDomani ? ing.we : ing.fer;
             const fmt = (v, ingrediente) => {
@@ -423,17 +436,14 @@
                 const num = estraiNumeroIntelligente(v);
                 return (!isNaN(num) && num < soglia) ? `<span style="color:var(--red); font-weight:bold;">${v}</span>` : v;
             };
-
             if(ing.cat !== currentCat) {
                 if(currentCat !== "") html += `</tbody></table></div></div>`;
                 html += `<div class="cat-group-container cat-section"><div class="categoria-header">${ing.cat}</div><div class="tabella-globale"><table><thead><tr><th>INGREDIENTE</th><th>Casta</th><th>Silea</th><th>Biban</th></tr></thead><tbody>`;
                 currentCat = ing.cat;
             }
-            
             let valCasta = (ing.cat === "FREEZER") ? "-" : (dC[ing.nome] || "-");
             let valSilea = (ing.cat === "FREEZER") ? "-" : (dS[ing.nome] || "-");
             let valBiban = dB[ing.nome] || "-";
-
             html += `<tr class="ing-item" data-nome="${ing.nome.toLowerCase()}"><td>${ing.nome}</td><td>${fmt(valCasta,ing)}</td><td>${fmt(valSilea,ing)}</td><td>${fmt(valBiban,ing)}</td></tr>`;
         });
         cont.innerHTML = html + "</tbody></table></div></div>";
@@ -448,7 +458,7 @@
         const dC = JSON.parse(localStorage.getItem(`archive_CASTA_${dataScelta}`)) || null;
         const dS = JSON.parse(localStorage.getItem(`archive_SILEA_${dataScelta}`)) || null;
         const dB = JSON.parse(localStorage.getItem(`archive_BIBAN_${dataScelta}`)) || null;
-        if (!dC && !dS && !dB) { cont.innerHTML += `<div style="grid-column:1/-1;text-align:center;padding:20px;">Nessun dato trovato.</div>`; return; }
+        if (!dC && !dS && !dB) { cont.innerHTML += `<div style="grid-column:1/-1;text-align:center;padding:20px;">Nessun dato trovato per questa data.</div>`; return; }
         let currentCat = ""; let html = "";
         ingredienti.forEach((ing) => {
             if(ing.cat !== currentCat) {
@@ -473,29 +483,24 @@
 
     function creaLista() {
         const cont = document.getElementById('contenitore-lista');
-        cont.classList.remove("vista-tabellare"); // Reset layout per inserimento
+        cont.classList.remove("vista-tabellare");
         const pizzo = document.getElementById('pizzeria').value;
         const btnAzzera = document.getElementById('btn-azzera');
         const searchBox = document.getElementById('search-box');
         const footerBtns = document.getElementById('footer-btns');
         const datePicker = document.getElementById('date-picker-container');
-        
         cont.innerHTML = "";
         if (!pizzo) { btnAzzera.style.display = "none"; searchBox.style.display = "none"; footerBtns.style.display = "none"; datePicker.style.display = "none"; return; }
-        if (pizzo === "ARCHIVIO") { btnAzzera.style.display = "none"; footerBtns.style.display = "none"; searchBox.style.display = "none"; datePicker.style.display = "block"; generaVistaArchivio(); return; }
+        if (pizzo === "ARCHIVIO") { btnAzzera.style.display = "none"; footerBtns.style.display = "none"; searchBox.style.display = "none"; datePicker.style.display = "block"; return; }
         if (pizzo === "TUTTE") { btnAzzera.style.display = "none"; footerBtns.style.display = "none"; searchBox.style.display = "block"; datePicker.style.display = "none"; generaVistaTutte(); return; }
-
         datePicker.style.display = "none"; searchBox.style.display = "block";
         btnAzzera.style.display = "block"; footerBtns.style.display = "flex";
-        
         let currentCat = "";
         const salvati = JSON.parse(localStorage.getItem('inventario_dati_' + pizzo)) || {};
-        
         ingredienti.forEach((ing, i) => {
             let daMostrare = true;
             if (ing.cat === "FREEZER" && pizzo !== "BIBAN") daMostrare = false;
             if (ing.cat === "VERDURE CRUDE" && (pizzo !== "CASTA" || oraAttuale.getDay() !== 0)) daMostrare = false;
-            
             if (daMostrare) {
                 if(ing.cat !== currentCat) {
                     cont.innerHTML += `<div class="categoria-header cat-section" style="grid-column: 1 / -1;">${ing.cat}</div>`;
@@ -503,16 +508,13 @@
                 }
                 const soglia = isWeekendDomani ? ing.we : ing.fer;
                 const vPrev = salvati[ing.nome] || "";
-                
                 let cardHtml = `<div class="nome-container"><div class="nome-ingrediente">${ing.nome}</div><div class="soglia-info">${ing.noObbligo ? '' : 'Min: ' + soglia}</div></div>`;
-                
                 let inputHtml = "";
                 if(ing.nome === "cass.Cipolla") {
                     inputHtml = `<div class="input-container"><div class="input-wrapper"><div class="sfuse-box"><span class="mini-label">N. sfuse</span><input type="text" class="qty-input" id="sfuse-${i}" inputmode="numeric" onkeypress="return soloNumeri(event)" oninput="calcolaCipollaSfusa(${i}, ${soglia})"></div><input type="text" class="qty-input" id="sel-${i}" placeholder="Cassa" value="${vPrev}" inputmode="decimal" onkeypress="return soloNumeri(event)" oninput="valuta(${i}, ${soglia}, '${ing.nome}')" onblur="finalizzaInput(this, ${soglia}, '${ing.nome}')"></div></div>`;
                 } else {
                     inputHtml = `<div class="input-container"><input type="text" class="qty-input" id="sel-${i}" placeholder="Qtà" value="${vPrev}" inputmode="decimal" onkeypress="return soloNumeri(event)" oninput="valuta(${i}, ${soglia}, '${ing.nome}')" onblur="finalizzaInput(this, ${soglia}, '${ing.nome}')"></div>`;
                 }
-                
                 cont.innerHTML += `<div class="item ${ing.noObbligo ? 'no-obbligo' : (vPrev===''?'vuoto':'')} ing-item" id="box-${i}" data-nome="${ing.nome.toLowerCase()}">${cardHtml}${inputHtml}</div>`;
                 if(vPrev !== "") valuta(i, soglia, ing.nome);
             }
@@ -524,21 +526,14 @@
         const items = document.querySelectorAll('.ing-item');
         const headers = document.querySelectorAll('.cat-section');
         const containers = document.querySelectorAll('.cat-group-container');
-
         items.forEach(item => {
             const nome = item.getAttribute('data-nome');
-            if (q === "barbazza") {
-                item.style.display = listaBarbazza.includes(nome) ? (item.tagName === 'TR' ? 'table-row' : 'flex') : "none";
-            } else {
-                item.style.display = nome.includes(q) ? (item.tagName === 'TR' ? 'table-row' : 'flex') : "none";
-            }
+            if (q === "barbazza") { item.style.display = listaBarbazza.includes(nome) ? (item.tagName === 'TR' ? 'table-row' : 'flex') : "none"; }
+            else { item.style.display = nome.includes(q) ? (item.tagName === 'TR' ? 'table-row' : 'flex') : "none"; }
         });
-
         if (q !== "") {
             headers.forEach(h => h.style.display = "none");
-            if (q === "barbazza") {
-                 containers.forEach(c => c.style.display = "flex"); 
-            }
+            if (q === "barbazza") { containers.forEach(c => c.style.display = "flex"); }
         } else {
             headers.forEach(h => h.style.display = "block");
             containers.forEach(c => c.style.display = "flex");
@@ -550,10 +545,11 @@
         if (!p || p === "TUTTE" || p === "ARCHIVIO") return;
         let dati = {};
         ingredienti.forEach((ing, i) => { const input = document.getElementById(`sel-${i}`); if (input) dati[ing.nome] = input.value; });
+        const oggi = new Date().toISOString().split('T')[0];
         localStorage.setItem('inventario_dati_' + p, JSON.stringify(dati));
-        localStorage.setItem(`archive_${p}_${oggiString}`, JSON.stringify(dati));
+        localStorage.setItem(`archive_${p}_${oggi}`, JSON.stringify(dati));
         localStorage.setItem('ultima_pizzeria', p);
-        alert("✅ Salvato!");
+        alert("✅ Salvato in archivio!");
     }
 
     function cambiaPizzeria() { document.getElementById('searchInput').value = ""; creaLista(); }
