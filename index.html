@@ -241,6 +241,30 @@
     const domani = new Date(oraAttuale); domani.setDate(oraAttuale.getDate() + 1);
     const isWeekendDomani = isFestivo(domani);
 
+    // FUNZIONE BLOCCO TASTIERA LETTERE E SIMBOLI NON PERMESSI
+    function bloccaNonNumerici(e) {
+        // Permette numeri, punto, virgola, slash (per frazioni) e tasti di controllo
+        const regex = /[0-9,./]/;
+        if (!regex.test(e.key) && e.key !== "Backspace" && e.key !== "Tab" && e.key !== "Delete" && !e.key.includes("Arrow")) {
+            e.preventDefault();
+        }
+    }
+
+    // FUNZIONE TRASFORMAZIONE FRAZIONI AUTOMATICA
+    function trasformaFrazione(input, soglia, index) {
+        let val = input.value.trim().replace(',', '.');
+        
+        // Mappatura frazioni
+        if (val === "1/3") val = "0.3";
+        else if (val === "1/2") val = "0.5";
+        else if (val === "2/3") val = "0.7";
+        else if (val === "1/4") val = "0.25";
+        else if (val === "3/4") val = "0.75";
+
+        input.value = val;
+        valuta(index, soglia);
+    }
+
     function estraiNumeroIntelligente(t) {
         if (!t) return NaN;
         t = t.toString().toLowerCase().trim().replace(',', '.');
@@ -310,7 +334,6 @@
         const cont = document.getElementById('contenitore-lista');
         cont.classList.add("vista-tabellare");
 
-        // Simula il recupero dei dati di quel giorno (se presenti nello storage locale sincronizzato)
         const d_casta = JSON.parse(localStorage.getItem(`inventario_dati_CASTA_${dataScelta}`)) || JSON.parse(localStorage.getItem(`inventario_dati_CASTA`)) || {};
         const d_silea = JSON.parse(localStorage.getItem(`inventario_dati_SILEA_${dataScelta}`)) || JSON.parse(localStorage.getItem(`inventario_dati_SILEA`)) || {};
         const d_biban = JSON.parse(localStorage.getItem(`inventario_dati_BIBAN_${dataScelta}`)) || JSON.parse(localStorage.getItem(`inventario_dati_BIBAN`)) || {};
@@ -369,10 +392,10 @@
             
             let inputHtml = isCipolla ? `
                 <div class="input-wrapper-cipolla">
-                    <div class="sfuse-row"><small>Sfuse</small><input type="text" class="qty-input" id="sfuse-${i}" oninput="document.getElementById('sel-${i}').value = (this.value/20).toFixed(2); valuta(${i}, ${soglia})"></div>
-                    <input type="text" class="qty-input" id="sel-${i}" placeholder="Qtà" value="${v}" oninput="valuta(${i}, ${soglia})">
+                    <div class="sfuse-row"><small>Sfuse</small><input type="text" class="qty-input" id="sfuse-${i}" onkeydown="bloccaNonNumerici(event)" onchange="trasformaFrazione(this, 0, ${i}); document.getElementById('sel-${i}').value = (this.value/20).toFixed(2); valuta(${i}, ${soglia})"></div>
+                    <input type="text" class="qty-input" id="sel-${i}" placeholder="Qtà" value="${v}" onkeydown="bloccaNonNumerici(event)" onchange="trasformaFrazione(this, ${soglia}, ${i})">
                 </div>` : `
-                <input type="text" class="qty-input" id="sel-${i}" placeholder="Qtà" value="${v}" oninput="valuta(${i}, ${soglia})">`;
+                <input type="text" class="qty-input" id="sel-${i}" placeholder="Qtà" value="${v}" onkeydown="bloccaNonNumerici(event)" onchange="trasformaFrazione(this, ${soglia}, ${i})">`;
 
             cont.innerHTML += `<div class="item ${v===''?'vuoto':''} ing-item" id="box-${i}" data-nome="${ing.nome.toLowerCase()}">
                 <div class="nome-container"><b>${ing.nome}</b><br><small>Min: ${soglia}</small></div>
@@ -413,7 +436,7 @@
         ingredienti.forEach((ing, i) => { const input = document.getElementById(`sel-${i}`); if(input) d[ing.nome] = input.value; });
         
         localStorage.setItem('inventario_dati_'+p, JSON.stringify(d));
-        localStorage.setItem(`inventario_dati_${p}_${oggiStr}`, JSON.stringify(d)); // Salvataggio per archivio
+        localStorage.setItem(`inventario_dati_${p}_${oggiStr}`, JSON.stringify(d)); 
         
         const cloud = {}; for(let i=0; i<localStorage.length; i++) cloud[localStorage.key(i)] = localStorage.getItem(localStorage.key(i));
         await syncCloud(cloud);
@@ -444,10 +467,14 @@
     }
 
     function cambiaPizzeria() { localStorage.setItem('ultima_pizzeria', document.getElementById('pizzeria').value); creaLista(); }
+    
     function valuta(i, s) {
-        const v = estraiNumeroIntelligente(document.getElementById(`sel-${i}`).value);
+        const input = document.getElementById(`sel-${i}`);
+        if(!input) return;
+        const v = estraiNumeroIntelligente(input.value);
         document.getElementById(`box-${i}`).className = `item ${isNaN(v) ? 'vuoto' : (v < s ? 'urgente' : 'ok')} ing-item`;
     }
+
     function azzeraLista() { if(confirm("Azzera dati?")) { localStorage.removeItem('inventario_dati_'+document.getElementById('pizzeria').value); creaLista(); } }
 
     function inviaWhatsApp() {
