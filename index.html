@@ -46,10 +46,11 @@
         .vuoti-list { text-align: left; max-height: 200px; overflow-y: auto; margin: 15px 0; font-size: 0.9em; color: var(--red); border: 1px solid #eee; padding: 10px; }
 
         /* Stili Tabella Riepilogo */
-        .tabella-tutte { width: 100%; border-collapse: collapse; background: white; border-radius: 12px; overflow: hidden; font-size: 13px; }
+        .tabella-tutte { width: 100%; border-collapse: collapse; background: white; border-radius: 12px; overflow: hidden; font-size: 13px; margin-bottom: 20px; }
         .tabella-tutte th { background: var(--primary); color: white; padding: 12px 5px; text-align: center; }
         .tabella-tutte td { padding: 10px 5px; border-bottom: 1px solid #eee; text-align: center; font-weight: bold; }
         .td-nome { text-align: left !important; padding-left: 10px !important; font-weight: normal !important; }
+        .tr-cat { background: #f0f0f0; text-align: left !important; font-weight: bold !important; font-size: 11px; color: var(--primary); }
     </style>
 </head>
 <body>
@@ -263,11 +264,18 @@
         const d_silea = JSON.parse(localStorage.getItem('inventario_dati_SILEA')) || {};
         const d_biban = JSON.parse(localStorage.getItem('inventario_dati_BIBAN')) || {};
 
+        let currentCat = "";
         let h = `<table class="tabella-tutte" style="grid-column: 1 / -1;">
             <thead><tr><th>Ingrediente</th><th>Casta</th><th>Silea</th><th>Biban</th></tr></thead><tbody>`;
         
         ingredienti.forEach(ing => {
-            if (ing.cat === "VERDURE CRUDE") return; // Non mostrate nel riepilogo
+            if (ing.cat === "VERDURE CRUDE") return; 
+
+            if (ing.cat !== currentCat) {
+                h += `<tr class="tr-cat"><td colspan="4">${ing.cat}</td></tr>`;
+                currentCat = ing.cat;
+            }
+
             const vC = d_casta[ing.nome] || "-";
             const vS = d_silea[ing.nome] || "-";
             const vB = d_biban[ing.nome] || "-";
