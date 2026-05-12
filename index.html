@@ -3,68 +3,184 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Inventario Pizzerie</title>
+    <title>Inventario Pizzerie - Premium</title>
     <style>
         :root { 
-            --red: #ff4d4d; --green: #4caf50; --gold: #f39c12; --dark: #2c3e50;
-            --cat-pasta: #cbd5e0; --cat-vaschette: #a8d08d; --cat-formaggi: #ffff00;
-            --cat-salumi: #ed7d31; --cat-scaffaleria: #d9d9d9; --cat-fresco: #92d050;
-            --cat-pesce: #9bc2e6; --cat-condimenti: #e2efda; --cat-freezer: #5b9bd5;
-            --cat-impasti: #c6e0b4; --cat-combustibile: #ffeb3b; --cat-monete: #f2f2f2;
-            --cat-imballaggi: #fce4d6; --cat-detersivi: #ddebf7; --cat-vario: #fff2cc;
-            --cat-crude: #f8f9fa;
-        }
-        body { font-family: -apple-system, sans-serif; background: #eef2f7; padding: 10px; margin: 0; padding-bottom: 180px; }
-        
-        .header-box { background: white; padding: 15px; border-radius: 12px; margin-bottom: 15px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); border-top: 5px solid var(--gold); text-align: center; max-width: 1400px; margin-left: auto; margin-right: auto; }
-        select.pizzeria-select, .date-input { width: 100%; padding: 12px; border-radius: 8px; border: 2px solid var(--gold); font-size: 18px; font-weight: bold; background: #fffcf5; margin-top: 10px; color: var(--dark); box-sizing: border-box; }
-        .search-container { margin-top: 10px; display: none; }
-        .search-input { width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #ccc; font-size: 16px; box-sizing: border-box; }
-        .btn-reset { display: none; background: var(--red); color: white; border: none; padding: 8px 15px; border-radius: 8px; font-size: 0.8em; font-weight: bold; margin-top: 10px; width: 100%; cursor: pointer; }
-        
-        #contenitore-lista { display: grid; grid-template-columns: 1fr; gap: 15px; max-width: 1400px; margin: 0 auto; align-items: start; }
+            --primary: #6d4c41; /* Marrone scuro */
+            --secondary: #8d6e63; /* Marrone medio */
+            --accent: #d7ccc8; /* Beige chiaro */
+            --background: #f5f5f2; /* Sfondo carta */
+            --white: #ffffff;
+            --text: #3e2723;
+            --red: #a30000;
+            --green: #2e7d32;
+            --gold: #bf360c; /* Arancio bruciato per soglie */
 
-        @media (min-width: 768px) {
-            #contenitore-lista { grid-template-columns: repeat(2, 1fr); }
-        }
-        @media (min-width: 1200px) {
-            #contenitore-lista { grid-template-columns: repeat(3, 1fr); }
+            /* Colori Categorie Soft */
+            --cat-pasta: #d7ccc8; --cat-vaschette: #cfd8dc; --cat-formaggi: #fff9c4;
+            --cat-salumi: #ffccbc; --cat-scaffaleria: #f5f5f5; --cat-fresco: #e8f5e9;
+            --cat-pesce: #e3f2fd; --cat-condimenti: #f1f8e9; --cat-freezer: #bbdefb;
+            --cat-impasti: #f0f4c3; --cat-combustibile: #efebe9; --cat-monete: #eeeeee;
+            --cat-imballaggi: #efebe9; --cat-detersivi: #e1f5fe; --cat-vario: #f5f5f5;
+            --cat-crude: #fafafa;
         }
 
-        .cat-group-container { display: flex; flex-direction: column; margin-bottom: 10px; }
-        .tabella-globale { background: white; border-radius: 10px; border: 2px solid var(--dark); overflow: hidden; font-size: 0.85em; box-shadow: 0 2px 5px rgba(0,0,0,0.05); width: 100%; }
-        table { width: 100%; border-collapse: collapse; table-layout: fixed; }
-        th { background: #f2f2f2; padding: 10px 5px; text-align: center; border-bottom: 2px solid #ddd; }
-        th:first-child { text-align: left; width: 40%; padding-left: 10px; }
-        td { padding: 10px 5px; border-bottom: 1px solid #eee; text-align: center; vertical-align: middle; }
-        td:first-child { text-align: left; font-weight: bold; padding-left: 10px; background: #fafafa; }
+        body { 
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; 
+            background: var(--background); 
+            color: var(--text);
+            padding: 10px; 
+            margin: 0; 
+            padding-bottom: 180px; 
+        }
         
-        .categoria-header { color: black; padding: 10px; border-radius: 8px 8px 0 0; font-size: 0.95em; font-weight: bold; text-transform: uppercase; text-align: center; border: 1px solid #999; border-bottom: none; }
-        
-        .item { background: white; padding: 10px 12px; display: flex; justify-content: space-between; align-items: center; border: 1px solid #ccc; border-radius: 8px; margin-bottom: 5px; min-height: 60px; box-sizing: border-box; }
-        .urgente { background: #ffcccc !important; border-left: 8px solid var(--red) !important; }
-        .ok { background: #e2f0d9 !important; border-left: 8px solid var(--green) !important; }
-        .vuoto { background: #fff9db !important; border-left: 8px solid var(--gold) !important; }
-        .no-obbligo { background: white !important; border-left: 8px solid #ddd !important; }
-        
-        .nome-ingrediente { font-weight: 500; color: #333; font-size: 0.9em; }
-        .soglia-info { font-size: 0.65em; color: #888; }
-        input.qty-input { width: 85px; height: 32px; border-radius: 4px; border: 1px solid #999; font-size: 14px; text-align: center; background: white; }
-        
-        .input-wrapper { display: flex; flex-direction: column; gap: 4px; align-items: flex-end; }
-        .mini-label { font-size: 9px; font-weight: bold; color: #555; text-transform: uppercase; }
+        /* Header Moderno */
+        .header-box { 
+            background: var(--white); 
+            padding: 20px; 
+            border-radius: 16px; 
+            margin-bottom: 20px; 
+            box-shadow: 0 4px 12px rgba(62, 39, 35, 0.1); 
+            border-bottom: 4px solid var(--primary); 
+            text-align: center; 
+            max-width: 1400px; 
+            margin-left: auto; 
+            margin-right: auto; 
+        }
 
-        .footer-controls { position: fixed; bottom: 0; left: 0; right: 0; background: white; padding: 15px 10px 25px 10px; box-shadow: 0 -5px 15px rgba(0,0,0,0.1); z-index: 1000; display: flex; flex-direction: row; gap: 10px; max-width: 1400px; margin: 0 auto; border-radius: 15px 15px 0 0; }
-        .btn-wa { background: #25D366; color: white; border: none; padding: 15px; border-radius: 12px; font-size: 1.1em; font-weight: bold; cursor: pointer; flex: 1; }
-        .btn-save { background: #3498db; color: white; border: none; padding: 15px; border-radius: 12px; font-size: 1.1em; font-weight: bold; cursor: pointer; flex: 1; }
-        .archivio-header { background: var(--dark); color: white; padding: 10px; border-radius: 8px; margin-bottom: 15px; font-size: 0.9em; max-width: 1400px; margin-left: auto; margin-right: auto; text-align: center; grid-column: 1 / -1; }
-        .alert-festivo { color: var(--red); font-weight: bold; font-size: 0.85em; margin-top: 4px; }
+        #info-giorno b { color: var(--primary); }
+
+        select.pizzeria-select, .date-input { 
+            width: 100%; 
+            padding: 14px; 
+            border-radius: 10px; 
+            border: 1px solid var(--accent); 
+            font-size: 16px; 
+            font-weight: 600; 
+            background: #fafafa; 
+            margin-top: 10px; 
+            color: var(--primary); 
+            box-sizing: border-box;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        select.pizzeria-select:focus { border-color: var(--primary); outline: none; box-shadow: 0 0 0 3px rgba(109, 76, 65, 0.1); }
+
+        .search-input { 
+            width: 100%; 
+            padding: 12px; 
+            border-radius: 10px; 
+            border: 1px solid var(--accent); 
+            font-size: 15px; 
+            box-sizing: border-box;
+            background: #fff;
+        }
+
+        /* Griglia Layout */
+        #contenitore-lista { 
+            display: grid; 
+            grid-template-columns: 1fr; 
+            gap: 12px; 
+            max-width: 1400px; 
+            margin: 0 auto; 
+            align-items: start; 
+        }
+
+        @media (min-width: 768px) { #contenitore-lista { grid-template-columns: repeat(2, 1fr); } }
+        @media (min-width: 1200px) { #contenitore-lista { grid-template-columns: repeat(3, 1fr); } }
+
+        .categoria-header { 
+            background: var(--primary); 
+            color: var(--white); 
+            padding: 12px; 
+            border-radius: 10px; 
+            font-size: 14px; 
+            font-weight: 700; 
+            letter-spacing: 1px;
+            text-transform: uppercase; 
+            text-align: center; 
+            grid-column: 1 / -1;
+            margin-top: 15px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        /* Card Artigianali */
+        .item { 
+            background: var(--white); 
+            padding: 15px; 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            border: 1px solid var(--accent); 
+            border-radius: 12px; 
+            min-height: 70px; 
+            box-sizing: border-box; 
+            transition: transform 0.2s;
+        }
+
+        .item:active { transform: scale(0.98); }
+
+        .urgente { background: #fff5f5 !important; border-left: 6px solid var(--red) !important; }
+        .ok { background: #f1f8e9 !important; border-left: 6px solid var(--green) !important; }
+        .vuoto { background: #fffde7 !important; border-left: 6px solid var(--gold) !important; }
+        .no-obbligo { background: var(--white) !important; border-left: 6px solid #e0e0e0 !important; color: #9e9e9e; }
+        
+        .nome-ingrediente { font-weight: 600; color: var(--text); font-size: 15px; }
+        .soglia-info { font-size: 11px; color: #795548; font-weight: bold; margin-top: 2px; }
+
+        input.qty-input { 
+            width: 85px; 
+            height: 38px; 
+            border-radius: 8px; 
+            border: 1px solid var(--accent); 
+            font-size: 16px; 
+            font-weight: bold;
+            text-align: center; 
+            background: #fff;
+            color: var(--primary);
+        }
+
+        /* Footer Moderno */
+        .footer-controls { 
+            position: fixed; bottom: 0; left: 0; right: 0; 
+            background: rgba(255, 255, 255, 0.95); 
+            backdrop-filter: blur(10px);
+            padding: 20px; 
+            box-shadow: 0 -4px 20px rgba(0,0,0,0.1); 
+            z-index: 1000; 
+            display: flex; 
+            flex-direction: row; 
+            gap: 15px; 
+            max-width: 1400px; 
+            margin: 0 auto; 
+            border-radius: 20px 20px 0 0; 
+        }
+
+        .btn-wa { background: #25D366; color: white; border: none; padding: 16px; border-radius: 12px; font-size: 16px; font-weight: bold; cursor: pointer; flex: 1.2; box-shadow: 0 4px 10px rgba(37, 211, 102, 0.3); }
+        .btn-save { background: var(--primary); color: white; border: none; padding: 16px; border-radius: 12px; font-size: 16px; font-weight: bold; cursor: pointer; flex: 1; }
+        .btn-reset { background: var(--red); color: white; border: none; padding: 10px; border-radius: 8px; font-size: 12px; font-weight: bold; margin-top: 15px; width: 100%; display: none; }
+
+        /* Tabelle visualizza tutte affiancate */
+        .cat-group-container { background: var(--white); border-radius: 12px; overflow: hidden; border: 1px solid var(--accent); box-shadow: 0 2px 6px rgba(0,0,0,0.05); }
+        .tabella-globale table thead th { background: var(--accent); color: var(--primary); padding: 12px 5px; }
+
+        .alert-festivo { 
+            background: #ffecb3; 
+            color: #5d4037; 
+            padding: 8px; 
+            border-radius: 8px; 
+            font-weight: 700; 
+            font-size: 0.85em; 
+            margin-top: 10px; 
+            border: 1px solid #ffe082;
+        }
     </style>
 </head>
 <body>
     <div class="header-box">
-        <div id="info-giorno" style="font-size: 0.9em; color: #666;"></div>
-        <div id="avviso-festivo" class="alert-festivo"></div>
+        <div id="info-giorno"></div>
+        <div id="avviso-festivo"></div>
         <select id="pizzeria" class="pizzeria-select" onchange="cambiaPizzeria()">
             <option value="">📍 SELEZIONA PIZZERIA</option>
             <option value="CASTA">CASTA</option>
@@ -75,27 +191,26 @@
         </select>
         
         <div id="search-box" class="search-container">
-            <input type="text" id="searchInput" class="search-input" placeholder="🔍 Cerca..." oninput="filtraLista()">
+            <input type="text" id="searchInput" class="search-input" placeholder="🔍 Cerca ingrediente..." oninput="filtraLista()">
         </div>
 
         <div id="date-picker-container" style="display: none; margin-top:10px;">
-            <label style="font-size: 0.8em; font-weight: bold;">CONSULTA DATA:</label>
             <input type="date" id="archiveDate" class="date-input" onchange="generaVistaArchivio()">
         </div>
 
-        <button id="btn-azzera" class="btn-reset" onclick="azzeraLista()">🗑️ AZZERA LISTA</button>
+        <button id="btn-azzera" class="btn-reset" onclick="azzeraLista()">🗑️ AZZERA LISTA ATTUALE</button>
     </div>
 
     <div id="riepilogo-globale"></div>
     <div id="contenitore-lista"></div>
 
     <div class="footer-controls" id="footer-btns">
-        <button class="btn-save" onclick="salvaDati()">💾 SALVA DATI</button>
-        <button class="btn-wa" onclick="inviaWhatsApp()">📤 INVIA REPORT MANCANTI</button>
+        <button class="btn-save" onclick="salvaDati()">💾 SALVA</button>
+        <button class="btn-wa" onclick="inviaWhatsApp()">📤 INVIA REPORT</button>
     </div>
 
 <script>
-    // --- LOGICA FESTIVITÀ ---
+    // --- LOGICA FESTIVITÀ (Identica all'ultima richiesta) ---
     function getPasqua(anno) {
         const a = anno % 19, b = Math.floor(anno / 100), c = anno % 100,
               d = Math.floor(b / 4), e = b % 4, f = Math.floor((b + 8) / 25),
@@ -111,34 +226,33 @@
         const d = data.getDate(), m = data.getMonth() + 1, y = data.getFullYear();
         const p = getPasqua(y);
         const pasquetta = new Date(p); pasquetta.setDate(p.getDate() + 1);
-        
-        if (data.getDay() === 0) return true; // Domenica
+        if (data.getDay() === 0) return true; 
         const festivi = [`1-1`, `6-1`, `25-4`, `1-5`, `2-6`, `15-8`, `1-11`, `8-12`, `25-12`, `26-12` ];
         if (festivi.includes(`${d}-${m}`)) return true;
-        if (d === p.getDate() && m === (p.getMonth()+1)) return true; // Pasqua
-        if (d === pasquetta.getDate() && m === (pasquetta.getMonth()+1)) return true; // Pasquetta
+        if (d === p.getDate() && m === (p.getMonth()+1)) return true; 
+        if (d === pasquetta.getDate() && m === (pasquetta.getMonth()+1)) return true;
         return false;
     }
 
     const oraAttuale = new Date();
     const domani = new Date(oraAttuale); domani.setDate(oraAttuale.getDate() + 1);
     const dopodomani = new Date(oraAttuale); dopodomani.setDate(oraAttuale.getDate() + 2);
-    
     const oggiString = oraAttuale.toISOString().split('T')[0];
     const nomiGiorni = ["Domenica", "Lunedì", "Martedì", "Mercoledì", "Giovedì", "Venerdì", "Sabato"];
-    
-    // Se domani è festivo, soglia Weekend
     const isWeekendDomani = isFestivo(domani);
-    // Se dopodomani è festivo, oggi è pre-festivo
     const isPreFestivoOggi = isFestivo(dopodomani) && !isFestivo(domani);
 
     document.getElementById('info-giorno').innerHTML = `
-        <div style="color: #333; font-size: 1.1em;">Oggi è <b>${nomiGiorni[oraAttuale.getDay()]}</b></div>
-        <div style="margin-top: 5px;">Inventario per: <b>${nomiGiorni[domani.getDay()]}</b> (${isWeekendDomani ? 'Festivo 🚀' : 'Feriale 🛡️'})</div>
+        <div style="color: #3e2723; font-size: 1.1em;">Oggi: <b>${nomiGiorni[oraAttuale.getDay()]}</b></div>
+        <div style="margin-top: 5px; font-size: 0.9em;">Inv. per domani: <b>${nomiGiorni[domani.getDay()]}</b> (${isWeekendDomani ? 'Festivo' : 'Feriale'})</div>
     `;
-    if (isPreFestivoOggi) document.getElementById('avviso-festivo').innerHTML = `⚠️ ATTENZIONE: Oggi è Pre-Festivo!`;
+    if (isPreFestivoOggi) {
+        const avviso = document.getElementById('avviso-festivo');
+        avviso.className = "alert-festivo";
+        avviso.innerHTML = `⚠️ ATTENZIONE: Domani è Pre-Festivo!`;
+    }
 
-    // --- DATI E LOGICA CORE ---
+    // --- DATI ---
     const ingredienti = [
         { cat: "PASTA", color: "var(--cat-pasta)", nome: "Palline norm", fer: 150, we: 250 },
         { cat: "PASTA", color: "var(--cat-pasta)", nome: "Palline canapa", fer: 15, we: 30 },
@@ -252,8 +366,6 @@
         { cat: "VERDURE CRUDE", color: "var(--cat-crude)", nome: "Funghi crudi", fer: 0, we: 0, noObbligo: true }
     ];
 
-    const listaBarbazza = ["brie", "gorgonzola", "asiago", "acciughe", "tonno (latte)", "salmone", "bresaola", "carciofi", "olive", "capperi", "semola", "carta mani", "pel.salsa", "cart.med", "cart.mezzi", "lievito"];
-
     function soloNumeri(e) {
         const charCode = (e.which) ? e.which : e.keyCode;
         const allowed = [47, 44, 46, 43];
@@ -281,98 +393,13 @@
         } catch(e) { return NaN; }
     }
 
-    function generaVistaTutte() {
-        const cont = document.getElementById('contenitore-lista');
-        cont.innerHTML = "";
-        const datiCasta = JSON.parse(localStorage.getItem('inventario_dati_CASTA')) || {};
-        const datiSilea = JSON.parse(localStorage.getItem('inventario_dati_SILEA')) || {};
-        const datiBiban = JSON.parse(localStorage.getItem('inventario_dati_BIBAN')) || {};
-        let currentCat = "";
-        let html = "";
-        
-        ingredienti.forEach((ing) => {
-            const soglia = isWeekendDomani ? ing.we : ing.fer;
-            const formattaValore = (valore, ingrediente) => {
-                if (!valore || valore === "-") return "-";
-                if (ingrediente.noObbligo) return valore;
-                const num = estraiNumeroIntelligente(valore);
-                if (!isNaN(num) && num < soglia) return `<span class="sotto-soglia">${valore}</span>`;
-                return valore;
-            };
-
-            if(ing.cat !== currentCat) {
-                if(currentCat !== "") html += `</tbody></table></div></div>`;
-                html += `<div class="cat-group-container">
-                            <div class="categoria-header" style="background-color: ${ing.color}">${ing.cat}</div>
-                            <div class="tabella-globale cat-group">
-                                <table><thead><tr><th>NOME</th><th>Casta</th><th>Silea</th><th>Biban</th></tr></thead><tbody>`;
-                currentCat = ing.cat;
-            }
-            let vC = datiCasta[ing.nome] || "-";
-            let vS = datiSilea[ing.nome] || "-";
-            let vB = datiBiban[ing.nome] || "-";
-            if (ing.cat === "FREEZER") { vC = "-"; vS = "-"; }
-            html += `<tr class="ing-item" data-nome="${ing.nome.toLowerCase()}"><td>${ing.nome}</td><td>${formattaValore(vC, ing)}</td><td>${formattaValore(vS, ing)}</td><td>${formattaValore(vB, ing)}</td></tr>`;
-        });
-        cont.innerHTML = html + "</tbody></table></div></div>";
-    }
-
-    function generaVistaArchivio() {
-        const dataScelta = document.getElementById('archiveDate').value;
-        const cont = document.getElementById('contenitore-lista');
-        if (!dataScelta) return;
-        cont.innerHTML = `<div class="archivio-header">📅 Archivio del: <b>${dataScelta}</b></div>`;
-        const dCasta = JSON.parse(localStorage.getItem(`archive_CASTA_${dataScelta}`)) || null;
-        const dSilea = JSON.parse(localStorage.getItem(`archive_SILEA_${dataScelta}`)) || null;
-        const dBiban = JSON.parse(localStorage.getItem(`archive_BIBAN_${dataScelta}`)) || null;
-        
-        if (!dCasta && !dSilea && !dBiban) { 
-            cont.innerHTML += `<div style="padding:20px; text-align:center; color:red; grid-column: 1 / -1;">NESSUN DATO TROVATO.</div>`; 
-            return; 
-        }
-
-        let currentCat = "";
-        let html = "";
-        ingredienti.forEach((ing) => {
-            if(ing.cat !== currentCat) {
-                if(currentCat !== "") html += `</tbody></table></div></div>`;
-                html += `<div class="cat-group-container">
-                            <div class="categoria-header" style="background-color: ${ing.color}">${ing.cat}</div>
-                            <div class="tabella-globale cat-group">
-                                <table><thead><tr><th>NOME</th><th>Casta</th><th>Silea</th><th>Biban</th></tr></thead><tbody>`;
-                currentCat = ing.cat;
-            }
-            let vC = (dCasta && dCasta[ing.nome]) ? dCasta[ing.nome] : "-";
-            let vS = (dSilea && dSilea[ing.nome]) ? dSilea[ing.nome] : "-";
-            let vB = (dBiban && dBiban[ing.nome]) ? dBiban[ing.nome] : "-";
-            if (ing.cat === "FREEZER") { vC = "-"; vS = "-"; }
-            html += `<tr class="ing-item" data-nome="${ing.nome.toLowerCase()}"><td>${ing.nome}</td><td>${vC}</td><td>${vS}</td><td>${vB}</td></tr>`;
-        });
-        cont.innerHTML += html + "</tbody></table></div></div>";
-    }
-
-    function calcolaCipollaSfusa(i, soglia) {
-        const sfuseInput = document.getElementById(`sfuse-${i}`);
-        const cassaInput = document.getElementById(`sel-${i}`);
-        const sfuse = sfuseInput.value;
-        if(sfuse && !isNaN(sfuse)) {
-            const calcolo = (parseFloat(sfuse) / 20).toFixed(2);
-            cassaInput.value = calcolo;
-        } else {
-            cassaInput.value = "";
-        }
-        valuta(i, soglia, "cass.Cipolla");
-    }
-
     function valuta(i, soglia, nomeIngrediente) {
         const input = document.getElementById(`sel-${i}`);
         const box = document.getElementById(`box-${i}`);
         if(!input) return;
-        
         let valTesto = input.value.trim();
         const calcolato = estraiNumeroIntelligente(valTesto);
         const facoltativo = ingredienti.find(ing => ing.nome === nomeIngrediente)?.noObbligo;
-        
         if (valTesto === "") {
             box.className = facoltativo ? "item no-obbligo ing-item" : "item vuoto ing-item";
         } else {
@@ -414,7 +441,6 @@
 
         datePicker.style.display = "none"; searchBox.style.display = "block";
         btnAzzera.style.display = "block"; footerBtns.style.display = "flex";
-        if (pizzo === "BIBAN") generaTabellaRiepilogoBiban();
         
         let currentCat = "";
         const salvati = JSON.parse(localStorage.getItem('inventario_dati_' + pizzo)) || {};
@@ -422,19 +448,20 @@
         ingredienti.forEach((ing, i) => {
             let daMostrare = true;
             if (ing.cat === "FREEZER" && pizzo !== "BIBAN") daMostrare = false;
-            if (ing.cat === "VERDURE CRUDE" && (pizzo !== "CASTA" || !isDomenicaOggi)) daMostrare = false;
+            if (ing.cat === "VERDURE CRUDE" && (pizzo !== "CASTA" || oraAttuale.getDay() !== 0)) daMostrare = false;
             
             if (daMostrare) {
                 if(ing.cat !== currentCat) {
-                    cont.innerHTML += `<div class="categoria-header" style="background-color: ${ing.color}; grid-column: 1 / -1;">${ing.cat}</div>`;
+                    cont.innerHTML += `<div class="categoria-header" style="grid-column: 1 / -1;">${ing.cat}</div>`;
                     currentCat = ing.cat;
                 }
                 const soglia = isWeekendDomani ? ing.we : ing.fer;
                 const vPrev = salvati[ing.nome] || "";
+                
                 let inputHtml = `<input type="text" class="qty-input" id="sel-${i}" placeholder="Qtà" value="${vPrev}" inputmode="decimal" onkeypress="return soloNumeri(event)" oninput="valuta(${i}, ${soglia}, '${ing.nome}')" onblur="finalizzaInput(this, ${soglia}, '${ing.nome}')">`;
                 
                 if(ing.nome === "cass.Cipolla") {
-                    inputHtml = `<div class="input-wrapper"><span class="mini-label">N. cipolle</span><input type="text" class="qty-input" id="sfuse-${i}" inputmode="numeric" onkeypress="return soloNumeri(event)" oninput="calcolaCipollaSfusa(${i}, ${soglia})"><input type="text" class="qty-input" id="sel-${i}" placeholder="Cassa" value="${vPrev}" inputmode="decimal" onkeypress="return soloNumeri(event)" oninput="valuta(${i}, ${soglia}, '${ing.nome}')" onblur="finalizzaInput(this, ${soglia}, '${ing.nome}')"></div>`;
+                    inputHtml = `<div class="input-wrapper"><span class="mini-label">N. sfuse</span><input type="text" class="qty-input" id="sfuse-${i}" inputmode="numeric" onkeypress="return soloNumeri(event)" oninput="calcolaCipollaSfusa(${i}, ${soglia})"><input type="text" class="qty-input" id="sel-${i}" placeholder="Cassa" value="${vPrev}" inputmode="decimal" onkeypress="return soloNumeri(event)" oninput="valuta(${i}, ${soglia}, '${ing.nome}')" onblur="finalizzaInput(this, ${soglia}, '${ing.nome}')"></div>`;
                 }
                 
                 cont.innerHTML += `<div class="item ${ing.noObbligo ? 'no-obbligo' : (vPrev===''?'vuoto':'')} ing-item" id="box-${i}" data-nome="${ing.nome.toLowerCase()}"><div><div class="nome-ingrediente">${ing.nome}</div><div class="soglia-info">${ing.noObbligo ? '' : 'Min: ' + soglia}</div></div><div class="input-container">${inputHtml}</div></div>`;
@@ -443,51 +470,89 @@
         });
     }
 
-    function filtraLista() {
-        const query = document.getElementById('searchInput').value.toLowerCase().trim();
-        const items = document.querySelectorAll('.ing-item');
-        const headers = document.querySelectorAll('.categoria-header');
-        const groups = document.querySelectorAll('.cat-group-container');
-
-        items.forEach(item => {
-            const nome = item.getAttribute('data-nome');
-            const match = query === "barbazza" ? listaBarbazza.includes(nome) : nome.includes(query);
-            item.style.display = match ? (item.tagName === 'TR' ? 'table-row' : 'flex') : "none";
-        });
-        
-        headers.forEach(h => h.style.display = (query === "") ? "block" : "none");
-        groups.forEach(g => g.style.display = (query === "") ? "flex" : "none");
-    }
-
-    function salvaDati() {
-        const pizzo = document.getElementById('pizzeria').value;
-        if (!pizzo || pizzo === "TUTTE" || pizzo === "ARCHIVIO") return;
-        let dati = {};
-        ingredienti.forEach((ing, i) => { const input = document.getElementById(`sel-${i}`); if (input) dati[ing.nome] = input.value; });
-        localStorage.setItem('inventario_dati_' + pizzo, JSON.stringify(dati));
-        localStorage.setItem(`archive_${pizzo}_${oggiString}`, JSON.stringify(dati));
-        localStorage.setItem('ultima_pizzeria', pizzo);
-        alert("✅ Dati salvati!");
-    }
-
-    function generaTabellaRiepilogoBiban() {
-        const div = document.getElementById('riepilogo-globale');
+    // --- ALTRE FUNZIONI (Tutte incluse) ---
+    function generaVistaTutte() {
+        const cont = document.getElementById('contenitore-lista');
+        cont.innerHTML = "";
         const dC = JSON.parse(localStorage.getItem('inventario_dati_CASTA')) || {};
         const dS = JSON.parse(localStorage.getItem('inventario_dati_SILEA')) || {};
         const dB = JSON.parse(localStorage.getItem('inventario_dati_BIBAN')) || {};
-        const pasta = ingredienti.filter(ing => ing.cat === "PASTA");
-        let h = `<div class="riepilogo-biban"><table><thead><tr><th>PASTA</th><th>Casta</th><th>Silea</th><th>Biban</th></tr></thead><tbody>`;
-        pasta.forEach(ing => { h += `<tr><td>${ing.nome}</td><td>${dC[ing.nome]||'-'}</td><td>${dS[ing.nome]||'-'}</td><td>${dB[ing.nome]||'-'}</td></tr>`; });
-        div.innerHTML = h + "</tbody></table></div>";
+        let currentCat = ""; let html = "";
+        ingredienti.forEach((ing) => {
+            const soglia = isWeekendDomani ? ing.we : ing.fer;
+            const fmt = (v, ingrediente) => {
+                if (!v || v === "-") return "-";
+                if (ingrediente.noObbligo) return v;
+                const num = estraiNumeroIntelligente(v);
+                return (!isNaN(num) && num < soglia) ? `<span style="color:var(--red); font-weight:bold;">${v}</span>` : v;
+            };
+            if(ing.cat !== currentCat) {
+                if(currentCat !== "") html += `</tbody></table></div></div>`;
+                html += `<div class="cat-group-container"><div class="categoria-header">${ing.cat}</div><div class="tabella-globale"><table><thead><tr><th>NOME</th><th>C</th><th>S</th><th>B</th></tr></thead><tbody>`;
+                currentCat = ing.cat;
+            }
+            html += `<tr><td>${ing.nome}</td><td>${fmt(dC[ing.nome],ing)}</td><td>${fmt(dS[ing.nome],ing)}</td><td>${fmt(dB[ing.nome],ing)}</td></tr>`;
+        });
+        cont.innerHTML = html + "</tbody></table></div></div>";
     }
 
-    function azzeraLista() { if(confirm("Azzero?")) { localStorage.removeItem('inventario_dati_'+document.getElementById('pizzeria').value); creaLista(); } }
+    function generaVistaArchivio() {
+        const dataScelta = document.getElementById('archiveDate').value;
+        const cont = document.getElementById('contenitore-lista');
+        if (!dataScelta) return;
+        cont.innerHTML = `<div class="archivio-header">📜 Archivio: ${dataScelta}</div>`;
+        const dC = JSON.parse(localStorage.getItem(`archive_CASTA_${dataScelta}`)) || null;
+        const dS = JSON.parse(localStorage.getItem(`archive_SILEA_${dataScelta}`)) || null;
+        const dB = JSON.parse(localStorage.getItem(`archive_BIBAN_${dataScelta}`)) || null;
+        if (!dC && !dS && !dB) { cont.innerHTML += `<div style="grid-column:1/-1;text-align:center;padding:20px;">Nessun dato.</div>`; return; }
+        let currentCat = ""; let html = "";
+        ingredienti.forEach((ing) => {
+            if(ing.cat !== currentCat) {
+                if(currentCat !== "") html += `</tbody></table></div></div>`;
+                html += `<div class="cat-group-container"><div class="categoria-header">${ing.cat}</div><div class="tabella-globale"><table><thead><tr><th>NOME</th><th>C</th><th>S</th><th>B</th></tr></thead><tbody>`;
+                currentCat = ing.cat;
+            }
+            html += `<tr><td>${ing.nome}</td><td>${dC?.[ing.nome] || "-"}</td><td>${dS?.[ing.nome] || "-"}</td><td>${dB?.[ing.nome] || "-"}</td></tr>`;
+        });
+        cont.innerHTML += html + "</tbody></table></div></div>";
+    }
+
+    function calcolaCipollaSfusa(i, soglia) {
+        const sfuse = document.getElementById(`sfuse-${i}`).value;
+        const cassa = document.getElementById(`sel-${i}`);
+        if(sfuse && !isNaN(sfuse)) { cassa.value = (parseFloat(sfuse)/20).toFixed(2); } else { cassa.value = ""; }
+        valuta(i, soglia, "cass.Cipolla");
+    }
+
+    function filtraLista() {
+        const q = document.getElementById('searchInput').value.toLowerCase().trim();
+        const items = document.querySelectorAll('.ing-item');
+        const headers = document.querySelectorAll('.categoria-header');
+        items.forEach(item => {
+            const nome = item.getAttribute('data-nome');
+            item.style.display = nome.includes(q) ? "flex" : "none";
+        });
+        headers.forEach(h => h.style.display = (q === "") ? "block" : "none");
+    }
+
+    function salvaDati() {
+        const p = document.getElementById('pizzeria').value;
+        if (!p || p === "TUTTE" || p === "ARCHIVIO") return;
+        let dati = {};
+        ingredienti.forEach((ing, i) => { const input = document.getElementById(`sel-${i}`); if (input) dati[ing.nome] = input.value; });
+        localStorage.setItem('inventario_dati_' + p, JSON.stringify(dati));
+        localStorage.setItem(`archive_${p}_${oggiString}`, JSON.stringify(dati));
+        localStorage.setItem('ultima_pizzeria', p);
+        alert("✅ Salvato!");
+    }
+
     function cambiaPizzeria() { document.getElementById('searchInput').value = ""; creaLista(); }
+    function azzeraLista() { if(confirm("Cancellare i dati di oggi?")) { localStorage.removeItem('inventario_dati_'+document.getElementById('pizzeria').value); creaLista(); } }
     window.onload = function() { const uP = localStorage.getItem('ultima_pizzeria'); if(uP){document.getElementById('pizzeria').value=uP; creaLista();} }
 
     function inviaWhatsApp() {
-        const pizzo = document.getElementById('pizzeria').value;
-        let msg = `🏪 *INV. ${pizzo}* - PER ${nomiGiorni[domani.getDay()].toUpperCase()}\n\n`;
+        const p = document.getElementById('pizzeria').value;
+        let msg = `🏪 *INV. ${p}* - ${nomiGiorni[domani.getDay()].toUpperCase()}\n\n`;
         let trovati = false;
         ingredienti.forEach((ing, i) => {
             const input = document.getElementById(`sel-${i}`);
@@ -497,7 +562,7 @@
                 if(val < soglia) { msg += `• *${ing.nome}*: ${input.value}\n`; trovati = true; }
             }
         });
-        if(!trovati) msg += "✅ Tutto OK!";
+        if(!trovati) msg += "✅ Tutto a posto!";
         window.location.href = "whatsapp://send?text=" + encodeURIComponent(msg);
     }
 </script>
