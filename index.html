@@ -23,12 +23,18 @@
         .search-input { width: 100%; padding: 12px; border-radius: 10px; border: 1px solid var(--accent); font-size: 15px; box-sizing: border-box; background: #fff; }
         
         #contenitore-lista { display: grid; grid-template-columns: 1fr; gap: 15px; max-width: 1400px; margin: 0 auto; align-items: start; }
+        
+        /* Layout Griglia per Desktop nel Visualizza Tutte */
+        .grid-vista-tutte { display: grid; grid-template-columns: 1fr; gap: 15px; width: 100%; }
+        @media (min-width: 768px) { .grid-vista-tutte { grid-template-columns: repeat(2, 1fr); } }
+        @media (min-width: 1200px) { .grid-vista-tutte { grid-template-columns: repeat(3, 1fr); } }
+        @media (min-width: 1600px) { .grid-vista-tutte { grid-template-columns: repeat(4, 1fr); } }
+
         @media (min-width: 768px) { #contenitore-lista:not(.vista-tabellare) { grid-template-columns: repeat(2, 1fr); } }
         @media (min-width: 1200px) { #contenitore-lista:not(.vista-tabellare) { grid-template-columns: repeat(3, 1fr); } }
         
         .categoria-header { background: var(--primary); color: white; padding: 12px; font-size: 14px; font-weight: 700; text-transform: uppercase; text-align: center; grid-column: 1 / -1; margin-top: 10px; border-radius: 8px; }
         
-        /* RIPRISTINO STILE SCHEDE GRANDI */
         .item { background: var(--white); padding: 15px; display: flex; justify-content: space-between; align-items: center; border: 1px solid var(--accent); border-radius: 12px; min-height: 85px; box-sizing: border-box; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
         .nome-container { flex: 1; padding-right: 10px; }
         .nome-container b { font-size: 16px; display: block; margin-bottom: 4px; }
@@ -53,12 +59,11 @@
         #overlay { display: none; position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:1999; }
         .vuoti-list { text-align: left; max-height: 200px; overflow-y: auto; margin: 15px 0; font-size: 0.9em; color: var(--red); border: 1px solid #eee; padding: 10px; }
 
-        /* Stili per Vista Tutte/Archivio */
-        .container-cat-tutte { background: white; border-radius: 12px; overflow: hidden; border: 1px solid var(--accent); margin-bottom: 10px; }
+        .container-cat-tutte { background: white; border-radius: 12px; overflow: hidden; border: 1px solid var(--accent); box-shadow: 0 2px 6px rgba(0,0,0,0.05); align-self: start; }
         .tabella-tutte { width: 100%; border-collapse: collapse; font-size: 13px; }
-        .tabella-tutte th { background: var(--primary); color: white; padding: 8px; }
-        .tabella-tutte td { padding: 8px; border-bottom: 1px solid #eee; text-align: center; }
-        .td-nome { text-align: left !important; font-weight: bold; }
+        .tabella-tutte th { background: var(--primary); color: white; padding: 8px 4px; font-size: 11px; }
+        .tabella-tutte td { padding: 8px 4px; border-bottom: 1px solid #eee; text-align: center; }
+        .td-nome { text-align: left !important; padding-left: 8px !important; font-weight: bold; width: 40%; }
     </style>
 </head>
 <body>
@@ -294,7 +299,7 @@
             if (!raggruppati[ing.cat]) raggruppati[ing.cat] = { color: ing.color, items: [] };
             raggruppati[ing.cat].items.push(ing);
         });
-        let h = `<div style="grid-column: 1/-1">`;
+        let h = `<div class="grid-vista-tutte">`;
         for (const cat in raggruppati) {
             h += `<div class="container-cat-tutte">
                 <div class="header-cat-tabella" style="background:${raggruppati[cat].color}; padding: 10px; font-weight: bold; text-align: center; color: #3e2723">${cat}</div>
@@ -329,7 +334,7 @@
             if (!raggruppati[ing.cat]) raggruppati[ing.cat] = { color: ing.color, items: [] };
             raggruppati[ing.cat].items.push(ing);
         });
-        let h = `<div style="grid-column: 1/-1; text-align:center; padding:10px; font-weight:bold; color:var(--primary)">Dati del: ${dataScelta}</div>`;
+        let h = `<div style="grid-column: 1/-1; text-align:center; padding:10px; font-weight:bold; color:var(--primary)">Dati del: ${dataScelta}</div><div class="grid-vista-tutte">`;
         for (const cat in raggruppati) {
             h += `<div class="container-cat-tutte">
                 <div class="header-cat-tabella" style="background:${raggruppati[cat].color}; padding: 10px; font-weight: bold; text-align: center; color: #3e2723">${cat}</div>
@@ -338,6 +343,7 @@
             raggruppati[cat].items.forEach(ing => { h += `<tr><td class="td-nome">${ing.nome}</td><td>${d_casta[ing.nome] || "-"}</td><td>${d_silea[ing.nome] || "-"}</td><td>${d_biban[ing.nome] || "-"}</td></tr>`; });
             h += `</tbody></table></div>`;
         }
+        h += `</div>`;
         cont.innerHTML = h;
     }
 
