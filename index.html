@@ -181,7 +181,7 @@
             <option value="ARCHIVIO">📜 ARCHIVIO STORICO</option>
         </select>
         
-        <div id="search-box" style="margin-top: 10px;">
+        <div id="search-box" style="margin-top: 10px; display: none;">
             <input type="text" id="searchInput" class="search-input" placeholder="🔍 Cerca ingrediente..." oninput="filtraLista()">
         </div>
 
@@ -353,11 +353,17 @@
     function creaLista() {
         const cont = document.getElementById('contenitore-lista');
         const p = document.getElementById('pizzeria').value;
+        const searchBox = document.getElementById('search-box');
+        
         cont.innerHTML = ""; cont.classList.remove("vista-tabellare");
         document.getElementById('btn-azzera').style.display = (p && p !== "TUTTE" && p !== "ARCHIVIO") ? "block" : "none";
         document.getElementById('footer-btns').style.display = (p && p !== "TUTTE" && p !== "ARCHIVIO") ? "flex" : "none";
         document.getElementById('date-picker-container').style.display = p === "ARCHIVIO" ? "block" : "none";
         
+        // MOSTRA RICERCA SOLO PER PIZZERIE SINGOLE
+        searchBox.style.display = (p && p !== "TUTTE" && p !== "ARCHIVIO") ? "block" : "none";
+        document.getElementById('searchInput').value = "";
+
         if (p === "TUTTE") { generaVistaTutte(); return; }
         if (p === "ARCHIVIO" || !p) return;
 
@@ -365,7 +371,7 @@
         let currentCat = "";
         ingredienti.forEach((ing, i) => {
             if (ing.cat !== currentCat) {
-                cont.innerHTML += `<div class="categoria-header">${ing.cat}</div>`;
+                cont.innerHTML += `<div class="categoria-header cat-title" data-cat="${ing.cat}">${ing.cat}</div>`;
                 currentCat = ing.cat;
             }
             const soglia = isWeekendDomani ? ing.we : ing.fer;
@@ -405,8 +411,24 @@
     }
     
     function filtraLista() {
-        const q = document.getElementById('searchInput').value.toLowerCase();
-        document.querySelectorAll('.ing-item').forEach(it => it.style.display = it.dataset.nome.includes(q) ? "flex" : "none");
+        const q = document.getElementById('searchInput').value.toLowerCase().trim();
+        const items = document.querySelectorAll('.ing-item');
+        const catTitles = document.querySelectorAll('.cat-title');
+        
+        items.forEach(it => {
+            const nome = it.dataset.nome;
+            // Mostra l'elemento solo se il nome contiene la ricerca
+            if (q === "" || nome.includes(q)) {
+                it.style.display = "flex";
+            } else {
+                it.style.display = "none";
+            }
+        });
+
+        // Nascondi i titoli delle categorie se stiamo cercando
+        catTitles.forEach(title => {
+            title.style.display = (q === "") ? "block" : "none";
+        });
     }
     
     function valuta(i, s) {
