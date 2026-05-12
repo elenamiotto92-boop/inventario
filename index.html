@@ -6,16 +6,8 @@
     <title>Inventario Pizzerie - Cloud Sync</title>
     <style>
         :root { 
-            --primary: #6d4c41; 
-            --secondary: #8d6e63; 
-            --accent: #d7ccc8; 
-            --background: #f5f5f2; 
-            --white: #ffffff;
-            --text: #3e2723;
-            --red: #a30000;
-            --green: #2e7d32;
-            --gold: #bf360c;
-            /* Colori Categorie */
+            --primary: #6d4c41; --secondary: #8d6e63; --accent: #d7ccc8; --background: #f5f5f2; 
+            --white: #ffffff; --text: #3e2723; --red: #a30000; --green: #2e7d32; --gold: #bf360c;
             --cat-pasta: #d7ccc8; --cat-vaschette: #f5f5f2; --cat-formaggi: #fff9c4;
             --cat-salumi: #ffccbc; --cat-scaffaleria: #e1f5fe; --cat-fresco: #f1f8e9;
             --cat-pesce: #e0f7fa; --cat-condimenti: #f3e5f5; --cat-freezer: #e3f2fd;
@@ -24,87 +16,50 @@
             --cat-crude: #e8f5e9;
         }
 
-        body { 
-            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; 
-            background: var(--background); 
-            color: var(--text);
-            padding: 10px; margin: 0; padding-bottom: 180px; 
-        }
-        
-        .header-box { 
-            background: var(--white); padding: 20px; border-radius: 16px; 
-            margin-bottom: 20px; box-shadow: 0 4px 12px rgba(62, 39, 35, 0.1); 
-            border-bottom: 4px solid var(--primary); text-align: center; 
-            max-width: 1400px; margin-left: auto; margin-right: auto; 
-        }
-
-        select.pizzeria-select, .date-input { 
-            width: 100%; padding: 14px; border-radius: 10px; border: 1px solid var(--accent); 
-            font-size: 16px; font-weight: 600; background: #fafafa; margin-top: 10px; color: var(--primary); box-sizing: border-box;
-        }
-
-        .search-input { 
-            width: 100%; padding: 12px; border-radius: 10px; border: 1px solid var(--accent); 
-            font-size: 15px; box-sizing: border-box; background: #fff;
-        }
-
-        #contenitore-lista { 
-            display: grid; grid-template-columns: 1fr; gap: 15px; 
-            max-width: 1400px; margin: 0 auto; align-items: start; 
-        }
-
+        body { font-family: 'Segoe UI', Roboto, Arial, sans-serif; background: var(--background); color: var(--text); padding: 10px; margin: 0; padding-bottom: 180px; }
+        .header-box { background: var(--white); padding: 20px; border-radius: 16px; margin-bottom: 20px; box-shadow: 0 4px 12px rgba(62, 39, 35, 0.1); border-bottom: 4px solid var(--primary); text-align: center; max-width: 1400px; margin-left: auto; margin-right: auto; }
+        select.pizzeria-select, .date-input { width: 100%; padding: 14px; border-radius: 10px; border: 1px solid var(--accent); font-size: 16px; font-weight: 600; background: #fafafa; margin-top: 10px; color: var(--primary); box-sizing: border-box; }
+        .search-input { width: 100%; padding: 12px; border-radius: 10px; border: 1px solid var(--accent); font-size: 15px; box-sizing: border-box; background: #fff; }
+        #contenitore-lista { display: grid; grid-template-columns: 1fr; gap: 15px; max-width: 1400px; margin: 0 auto; align-items: start; }
         @media (min-width: 768px) { #contenitore-lista { grid-template-columns: repeat(2, 1fr); } }
         @media (min-width: 1200px) { #contenitore-lista { grid-template-columns: repeat(3, 1fr); } }
-
-        .cat-group-container { 
-            background: var(--white); border-radius: 12px; overflow: hidden; 
-            border: 1px solid var(--accent); box-shadow: 0 2px 6px rgba(0,0,0,0.05); margin-bottom: 10px;
-        }
-
-        .tabella-globale { width: 100%; font-size: 0.85em; }
-        table { width: 100%; border-collapse: collapse; table-layout: fixed; }
-        th { background: var(--accent); color: var(--primary); padding: 10px 5px; text-align: center; border-bottom: 2px solid var(--primary); }
-        th:first-child { text-align: left; width: 40%; padding-left: 10px; }
-        td { padding: 10px 5px; border-bottom: 1px solid #eee; text-align: center; vertical-align: middle; }
-        td:first-child { text-align: left; font-weight: bold; padding-left: 10px; background: #fafafa; }
-
-        .item { 
-            background: var(--white); padding: 12px 15px; display: flex; 
-            justify-content: space-between; align-items: center; border: 1px solid var(--accent); 
-            border-radius: 12px; min-height: 85px; box-sizing: border-box; 
-        }
-
+        
+        .categoria-header { background: var(--primary); color: white; padding: 12px; font-size: 14px; font-weight: 700; text-transform: uppercase; text-align: center; grid-column: 1 / -1; margin-top: 10px; border-radius: 8px; }
+        .item { background: var(--white); padding: 12px 15px; display: flex; justify-content: space-between; align-items: center; border: 1px solid var(--accent); border-radius: 12px; min-height: 85px; box-sizing: border-box; }
         .nome-container { flex: 1; padding-right: 10px; }
         .input-container { display: flex; align-items: center; justify-content: flex-end; gap: 8px; }
-        
         .input-wrapper-cipolla { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; }
         .sfuse-row { display: flex; align-items: center; gap: 5px; }
-
-        input.qty-input { 
-            width: 80px; height: 36px; border-radius: 8px; border: 1px solid var(--accent); 
-            font-size: 16px; font-weight: bold; text-align: center; background: #fff; color: var(--primary);
-        }
-
+        input.qty-input { width: 80px; height: 36px; border-radius: 8px; border: 1px solid var(--accent); font-size: 16px; font-weight: bold; text-align: center; background: #fff; color: var(--primary); }
+        
         .urgente { border-left: 6px solid var(--red) !important; background: #fff5f5 !important; }
         .ok { border-left: 6px solid var(--green) !important; background: #f1f8e9 !important; }
         .vuoto { border-left: 6px solid var(--gold) !important; background: #fffde7 !important; }
 
-        .footer-controls { 
-            position: fixed; bottom: 0; left: 0; right: 0; background: rgba(255, 255, 255, 0.95); 
-            backdrop-filter: blur(10px); padding: 20px; box-shadow: 0 -4px 20px rgba(0,0,0,0.1); 
-            z-index: 1000; display: flex; flex-direction: row; gap: 15px; max-width: 1400px; 
-            margin: 0 auto; border-radius: 20px 20px 0 0; 
-        }
-
+        .footer-controls { position: fixed; bottom: 0; left: 0; right: 0; background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); padding: 20px; box-shadow: 0 -4px 20px rgba(0,0,0,0.1); z-index: 1000; display: flex; flex-direction: row; gap: 15px; max-width: 1400px; margin: 0 auto; border-radius: 20px 20px 0 0; }
         .btn-wa { background: #25D366; color: white; border: none; padding: 16px; border-radius: 12px; font-size: 16px; font-weight: bold; flex: 1.2; }
         .btn-save { background: var(--primary); color: white; border: none; padding: 16px; border-radius: 12px; font-size: 16px; font-weight: bold; flex: 1; }
         .btn-reset { background: var(--red); color: white; border: none; padding: 10px; border-radius: 8px; font-size: 12px; font-weight: bold; margin-top: 15px; width: 100%; }
 
-        .categoria-header { background: var(--primary); color: white; padding: 12px; font-size: 14px; font-weight: 700; text-transform: uppercase; text-align: center; grid-column: 1 / -1; margin-top: 10px; border-radius: 8px; }
-        #sync-status { font-size: 10px; color: var(--secondary); margin-bottom: 5px; }
+        /* Dialog Campi Vuoti */
+        #dialog-vuoti { display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; padding: 25px; border-radius: 20px; box-shadow: 0 0 50px rgba(0,0,0,0.5); z-index: 2000; width: 90%; max-width: 400px; text-align: center; }
+        #overlay { display: none; position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:1999; }
+        .vuoti-list { text-align: left; max-height: 200px; overflow-y: auto; margin: 15px 0; font-size: 0.9em; color: var(--red); border: 1px solid #eee; padding: 10px; }
     </style>
 </head>
 <body>
+
+    <div id="overlay"></div>
+    <div id="dialog-vuoti">
+        <h3>⚠️ Campi incompleti</h3>
+        <p>I seguenti ingredienti non hanno una quantità:</p>
+        <div class="vuoti-list" id="lista-nomi-vuoti"></div>
+        <div style="display:flex; gap:10px;">
+            <button class="btn-save" style="background:#888; font-size:12px;" onclick="chiudiDialog()">MODIFICA</button>
+            <button class="btn-wa" style="font-size:12px; background:var(--gold);" onclick="eseguiSalva(true)">SALVA COMUNQUE</button>
+        </div>
+    </div>
+
     <div class="header-box">
         <div id="sync-status">☁️ Controllo Cloud...</div>
         <div id="info-giorno"></div>
@@ -120,18 +75,14 @@
         <div id="search-box" style="margin-top: 10px; display: none;">
             <input type="text" id="searchInput" class="search-input" placeholder="🔍 Cerca ingrediente..." oninput="filtraLista()">
         </div>
-
-        <div id="date-picker-container" style="display: none; margin-top:10px;">
-            <input type="date" id="archiveDate" class="date-input" onchange="generaVistaArchivio()">
-        </div>
-        
+        <div id="date-picker-container" style="display: none; margin-top:10px;"><input type="date" id="archiveDate" class="date-input" onchange="generaVistaArchivio()"></div>
         <button id="btn-azzera" class="btn-reset" onclick="azzeraLista()" style="display:none;">🗑️ AZZERA LISTA ATTUALE</button>
     </div>
 
     <div id="contenitore-lista"></div>
 
     <div class="footer-controls" id="footer-btns" style="display:none;">
-        <button class="btn-save" id="save-btn" onclick="salvaDati()">💾 SALVA</button>
+        <button class="btn-save" id="save-btn" onclick="controllaESalva()">💾 SALVA</button>
         <button class="btn-wa" onclick="inviaWhatsApp()">📤 INVIA REPORT</button>
     </div>
 
@@ -251,44 +202,26 @@
         { cat: "VERDURE CRUDE", color: "var(--cat-crude)", nome: "Basilico crudo", fer: 0, we: 0, noObbligo: true },
         { cat: "VERDURE CRUDE", color: "var(--cat-crude)", nome: "Funghi crudi", fer: 0, we: 0, noObbligo: true }
     ];
-    const listaBarbazza = ["brie", "gorgonzola", "asiago", "acciughe", "tonno (latte)", "salmone", "bresaola", "carciofi", "olive", "capperi", "semola", "carta mani", "pel.salsa", "cart.med", "cart.mezzi", "lievito"];
 
-    async function syncCloud(data = null) {
-        const status = document.getElementById('sync-status');
-        try {
-            if (data) {
-                status.innerText = '⏳ Sincronizzazione...';
-                await fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}`, {
-                    method: 'PUT',
-                    headers: { 'Content-Type': 'application/json', 'X-Master-Key': API_KEY },
-                    body: JSON.stringify(data)
-                });
-                status.innerText = '✅ Cloud Aggiornato';
-            } else {
-                status.innerText = '⏳ Caricamento...';
-                const res = await fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}/latest`, {
-                    headers: { 'X-Master-Key': API_KEY }
-                });
-                const cloudData = await res.json();
-                if(cloudData.record) {
-                    Object.keys(cloudData.record).forEach(key => localStorage.setItem(key, cloudData.record[key]));
-                    status.innerText = '✅ Dati Sincronizzati';
-                    creaLista();
-                }
-            }
-        } catch (e) { status.innerText = '❌ Errore Cloud'; }
+    function getPasqua(anno) {
+        const a = anno % 19, b = Math.floor(anno / 100), c = anno % 100, d = Math.floor(b / 4), e = b % 4, f = Math.floor((b + 8) / 25), g = Math.floor((b - f + 1) / 3), h = (19 * a + b - d - g + 15) % 30, i = Math.floor(c / 4), k = c % 4, l = (32 + 2 * e + 2 * i - h - k) % 7, m = Math.floor((a + 11 * h + 22 * l) / 451), n = h + l - 7 * m + 114;
+        const mese = Math.floor(n / 31), giorno = (n % 31) + 1;
+        const p = new Date(anno, mese - 1, giorno);
+        const lund = new Date(p); lund.setDate(p.getDate() + 1);
+        return { pasqua: p.toDateString(), pasquetta: lund.toDateString() };
+    }
+
+    function isFestivo(data) {
+        if (data.getDay() === 0) return true;
+        const day = data.getDate(), month = data.getMonth() + 1;
+        const festiviFissi = ["1-1", "6-1", "25-4", "1-5", "2-6", "15-8", "1-11", "8-12", "25-12", "26-12"];
+        if (festiviFissi.includes(`${day}-${month}`)) return true;
+        const { pasqua, pasquetta } = getPasqua(data.getFullYear());
+        return data.toDateString() === pasqua || data.toDateString() === pasquetta;
     }
 
     const oraAttuale = new Date();
     const domani = new Date(oraAttuale); domani.setDate(oraAttuale.getDate() + 1);
-    const oggiString = oraAttuale.toISOString().split('T')[0];
-    const nomiGiorni = ["Domenica", "Lunedì", "Martedì", "Mercoledì", "Giovedì", "Venerdì", "Sabato"];
-    
-    function isFestivo(data) {
-        if (data.getDay() === 0) return true;
-        const festivi = [`1-1`, `6-1`, `25-4`, `1-5`, `2-6`, `15-8`, `1-11`, `8-12`, `25-12`, `26-12` ];
-        return festivi.includes(`${data.getDate()}-${data.getMonth()+1}`);
-    }
     const isWeekendDomani = isFestivo(domani);
 
     function estraiNumeroIntelligente(t) {
@@ -297,34 +230,19 @@
         try { return eval(t.replace(/(\d+)\/(\d+)/g, (m, n, d) => n/d)); } catch(e) { return parseFloat(t); }
     }
 
-    function filtraLista() {
-        const q = document.getElementById('searchInput').value.toLowerCase().trim();
-        const items = document.querySelectorAll('.ing-item');
-        const catTitles = document.querySelectorAll('.cat-title');
-        items.forEach(it => {
-            const nome = it.dataset.nome;
-            it.style.display = (q === "barbazza" && listaBarbazza.includes(nome)) || (q === "" || nome.includes(q)) ? "flex" : "none";
-        });
-        catTitles.forEach(title => title.style.display = (q === "") ? "block" : "none");
-    }
-
     function creaLista() {
         const cont = document.getElementById('contenitore-lista');
         const p = document.getElementById('pizzeria').value;
-        const searchBox = document.getElementById('search-box');
-        cont.innerHTML = ""; cont.classList.remove("vista-tabellare");
+        cont.innerHTML = "";
         document.getElementById('btn-azzera').style.display = (p && p !== "TUTTE" && p !== "ARCHIVIO") ? "block" : "none";
         document.getElementById('footer-btns').style.display = (p && p !== "TUTTE" && p !== "ARCHIVIO") ? "flex" : "none";
-        document.getElementById('date-picker-container').style.display = p === "ARCHIVIO" ? "block" : "none";
-        searchBox.style.display = (p && p !== "TUTTE" && p !== "ARCHIVIO") ? "block" : "none";
-
+        document.getElementById('search-box').style.display = (p && p !== "TUTTE" && p !== "ARCHIVIO") ? "block" : "none";
         if (p === "TUTTE") { generaVistaTutte(); return; }
-        if (p === "ARCHIVIO" || !p) return;
+        if (!p || p === "ARCHIVIO") return;
 
         const s = JSON.parse(localStorage.getItem('inventario_dati_'+p)) || {};
         let currentCat = "";
         ingredienti.forEach((ing, i) => {
-            // Filtri specifici richiesti
             if (ing.nome === "Lievito" && p !== "BIBAN") return;
             if (ing.nome === "Pel.Salsa" && p !== "CASTA") return;
             if (ing.cat === "VERDURE CRUDE" && (p !== "CASTA" || oraAttuale.getDay() !== 0)) return;
@@ -344,63 +262,71 @@
                 </div>` : `
                 <input type="text" class="qty-input" id="sel-${i}" placeholder="Qtà" value="${v}" oninput="valuta(${i}, ${soglia})">`;
 
-            cont.innerHTML += `
-                <div class="item ${v===''?'vuoto':''} ing-item" id="box-${i}" data-nome="${ing.nome.toLowerCase()}">
-                    <div class="nome-container"><b>${ing.nome}</b><br><small>Min: ${soglia}</small></div>
-                    <div class="input-container">${inputHtml}</div>
-                </div>`;
+            cont.innerHTML += `<div class="item ${v===''?'vuoto':''} ing-item" id="box-${i}" data-nome="${ing.nome.toLowerCase()}">
+                <div class="nome-container"><b>${ing.nome}</b><br><small>Min: ${soglia}</small></div>
+                <div class="input-container">${inputHtml}</div></div>`;
             if(v !== "") valuta(i, soglia);
         });
     }
 
-    function generaVistaTutte() {
-        const cont = document.getElementById('contenitore-lista');
-        cont.classList.add("vista-tabellare");
-        const d = ["CASTA", "SILEA", "BIBAN"].map(p => JSON.parse(localStorage.getItem('inventario_dati_'+p)) || {});
-        let html = ""; let currentCat = "";
-        ingredienti.forEach(ing => {
-            if(ing.cat !== currentCat) {
-                if(currentCat !== "") html += `</tbody></table></div></div>`;
-                html += `<div class="cat-group-container"><div class="categoria-header" style="background:${ing.color}; color:#3e2723">${ing.cat}</div><div class="tabella-globale"><table><thead><tr><th>NOME</th><th>Casta</th><th>Silea</th><th>Biban</th></tr></thead><tbody>`;
-                currentCat = ing.cat;
-            }
-            const soglia = isWeekendDomani ? ing.we : ing.fer;
-            const vals = d.map(p => {
-                const v = p[ing.nome] || "-";
-                return (!isNaN(estraiNumeroIntelligente(v)) && estraiNumeroIntelligente(v) < soglia) ? `<span style="color:var(--red);font-weight:bold;">${v}</span>` : v;
-            });
-            html += `<tr><td>${ing.nome}</td><td>${vals[0]}</td><td>${vals[1]}</td><td>${vals[2]}</td></tr>`;
-        });
-        cont.innerHTML = html + "</tbody></table></div></div>";
-    }
-
-    function generaVistaArchivio() {
-        const date = document.getElementById('archiveDate').value;
-        const cont = document.getElementById('contenitore-lista');
-        if (!date) return;
-        cont.innerHTML = `<div class="archivio-header">📜 Archivio: ${date}</div>`;
-        const d = ["CASTA", "SILEA", "BIBAN"].map(p => JSON.parse(localStorage.getItem(`archive_${p}_${date}`)) || null);
-        let html = ""; let currentCat = "";
-        ingredienti.forEach(ing => {
-            if(ing.cat !== currentCat) {
-                if(currentCat !== "") html += `</tbody></table></div></div>`;
-                html += `<div class="cat-group-container"><div class="categoria-header" style="background:${ing.color}; color:#3e2723">${ing.cat}</div><div class="tabella-globale"><table><thead><tr><th>NOME</th><th>Casta</th><th>Silea</th><th>Biban</th></tr></thead><tbody>`;
-                currentCat = ing.cat;
-            }
-            html += `<tr><td>${ing.nome}</td><td>${d[0]?.[ing.nome] || "-"}</td><td>${d[1]?.[ing.nome] || "-"}</td><td>${d[2]?.[ing.nome] || "-"}</td></tr>`;
-        });
-        cont.innerHTML += html + "</tbody></table></div></div>";
-    }
-
-    async function salvaDati() {
+    function controllaESalva() {
         const p = document.getElementById('pizzeria').value;
-        if(!p) return;
+        const vuoti = [];
+        ingredienti.forEach((ing, i) => {
+            const input = document.getElementById(`sel-${i}`);
+            if (input && input.value.trim() === "") {
+                // Filtro visibilità per non segnalare come vuoti quelli nascosti
+                if (!(ing.nome === "Lievito" && p !== "BIBAN") && !(ing.nome === "Pel.Salsa" && p !== "CASTA")) {
+                   vuoti.push(ing.nome);
+                }
+            }
+        });
+
+        if (vuoti.length > 0) {
+            document.getElementById('lista-nomi-vuoti').innerHTML = vuoti.join(", ");
+            document.getElementById('overlay').style.display = 'block';
+            document.getElementById('dialog-vuoti').style.display = 'block';
+        } else {
+            eseguiSalva();
+        }
+    }
+
+    function chiudiDialog() {
+        document.getElementById('overlay').style.display = 'none';
+        document.getElementById('dialog-vuoti').style.display = 'none';
+    }
+
+    async function eseguiSalva(forza = false) {
+        const p = document.getElementById('pizzeria').value;
         const d = {};
         ingredienti.forEach((ing, i) => { const input = document.getElementById(`sel-${i}`); if(input) d[ing.nome] = input.value; });
         localStorage.setItem('inventario_dati_'+p, JSON.stringify(d));
-        localStorage.setItem(`archive_${p}_${oggiString}`, JSON.stringify(d));
         const cloud = {}; for(let i=0; i<localStorage.length; i++) cloud[localStorage.key(i)] = localStorage.getItem(localStorage.key(i));
-        await syncCloud(cloud); alert("✅ Salvato!");
+        await syncCloud(cloud);
+        chiudiDialog();
+        alert("✅ Salvato!");
+    }
+
+    async function syncCloud(data = null) {
+        const status = document.getElementById('sync-status');
+        try {
+            if (data) {
+                await fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json', 'X-Master-Key': API_KEY },
+                    body: JSON.stringify(data)
+                });
+                status.innerText = '✅ Cloud Aggiornato';
+            } else {
+                const res = await fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}/latest`, { headers: { 'X-Master-Key': API_KEY } });
+                const cloudData = await res.json();
+                if(cloudData.record) {
+                    Object.keys(cloudData.record).forEach(key => localStorage.setItem(key, cloudData.record[key]));
+                    status.innerText = '✅ Dati Sincronizzati';
+                    creaLista();
+                }
+            }
+        } catch (e) { status.innerText = '❌ Errore Cloud'; }
     }
 
     function cambiaPizzeria() { localStorage.setItem('ultima_pizzeria', document.getElementById('pizzeria').value); creaLista(); }
@@ -409,6 +335,13 @@
         document.getElementById(`box-${i}`).className = `item ${isNaN(v) ? 'vuoto' : (v < s ? 'urgente' : 'ok')} ing-item`;
     }
     function azzeraLista() { if(confirm("Azzera dati?")) { localStorage.removeItem('inventario_dati_'+document.getElementById('pizzeria').value); creaLista(); } }
+    function filtraLista() {
+        const q = document.getElementById('searchInput').value.toLowerCase();
+        document.querySelectorAll('.ing-item').forEach(it => {
+            it.style.display = (it.dataset.nome.includes(q)) ? "flex" : "none";
+        });
+    }
+
     function inviaWhatsApp() {
         const p = document.getElementById('pizzeria').value;
         let msg = `🏪 *INV. ${p}*\n\n`;
@@ -424,9 +357,10 @@
     }
 
     window.onload = async function() {
+        const nomiGiorni = ["Domenica", "Lunedì", "Martedì", "Mercoledì", "Giovedì", "Venerdì", "Sabato"];
+        document.getElementById('info-giorno').innerHTML = `Oggi: <b>${nomiGiorni[oraAttuale.getDay()]}</b> | Domani: <b>${nomiGiorni[domani.getDay()]}</b> ${isWeekendDomani?'(FESTIVO)':''}`;
         const uP = localStorage.getItem('ultima_pizzeria');
         if(uP) document.getElementById('pizzeria').value = uP;
-        document.getElementById('info-giorno').innerHTML = `Oggi: <b>${nomiGiorni[oraAttuale.getDay()]}</b> | Domani: <b>${nomiGiorni[domani.getDay()]}</b>`;
         await syncCloud();
     };
 </script>
