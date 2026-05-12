@@ -75,8 +75,11 @@
         }
 
         .nome-container { flex: 1; padding-right: 10px; }
-        .input-container { display: flex; align-items: center; justify-content: flex-end; }
+        .input-container { display: flex; align-items: center; justify-content: flex-end; gap: 8px; }
         
+        .input-wrapper-cipolla { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; }
+        .sfuse-row { display: flex; align-items: center; gap: 5px; }
+
         input.qty-input { 
             width: 80px; height: 36px; border-radius: 8px; border: 1px solid var(--accent); 
             font-size: 16px; font-weight: bold; text-align: center; background: #fff; color: var(--primary);
@@ -136,7 +139,6 @@
     const BIN_ID = '6a032c1ec0954111d81145d6'; 
     const API_KEY = '$2a$10$n74BprduBaxkWLZ72Jok.uusA4D.MrzIci5phXRfa71Kr5fsLBJQu';
 
-    // --- DATI COMPLETI ---
     const ingredienti = [
         { cat: "PASTA", color: "var(--cat-pasta)", nome: "Palline norm", fer: 150, we: 250 },
         { cat: "PASTA", color: "var(--cat-pasta)", nome: "Palline canapa", fer: 15, we: 30 },
@@ -251,7 +253,6 @@
     ];
     const listaBarbazza = ["brie", "gorgonzola", "asiago", "acciughe", "tonno (latte)", "salmone", "bresaola", "carciofi", "olive", "capperi", "semola", "carta mani", "pel.salsa", "cart.med", "cart.mezzi", "lievito"];
 
-    // --- FUNZIONI CORE ---
     async function syncCloud(data = null) {
         const status = document.getElementById('sync-status');
         try {
@@ -278,27 +279,16 @@
         } catch (e) { status.innerText = '❌ Errore Cloud'; }
     }
 
-    function getPasqua(anno) {
-        const a = anno % 19, b = Math.floor(anno / 100), c = anno % 100,
-              d = Math.floor(b / 4), e = b % 4, f = Math.floor((b + 8) / 25),
-              g = Math.floor((b - f + 1) / 3), h = (19 * a + b - d - g + 15) % 30,
-              i = Math.floor(c / 4), k = c % 4, l = (32 + 2 * e + 2 * i - h - k) % 7,
-              m = Math.floor((a + 11 * h + 22 * l) / 451),
-              mese = Math.floor((h + l - 7 * m + 114) / 31),
-              giorno = ((h + l - 7 * m + 114) % 31) + 1;
-        return new Date(anno, mese - 1, giorno);
-    }
-
+    const oraAttuale = new Date();
+    const domani = new Date(oraAttuale); domani.setDate(oraAttuale.getDate() + 1);
+    const oggiString = oraAttuale.toISOString().split('T')[0];
+    const nomiGiorni = ["Domenica", "Lunedì", "Martedì", "Mercoledì", "Giovedì", "Venerdì", "Sabato"];
+    
     function isFestivo(data) {
         if (data.getDay() === 0) return true;
         const festivi = [`1-1`, `6-1`, `25-4`, `1-5`, `2-6`, `15-8`, `1-11`, `8-12`, `25-12`, `26-12` ];
         return festivi.includes(`${data.getDate()}-${data.getMonth()+1}`);
     }
-
-    const oraAttuale = new Date();
-    const domani = new Date(oraAttuale); domani.setDate(oraAttuale.getDate() + 1);
-    const oggiString = oraAttuale.toISOString().split('T')[0];
-    const nomiGiorni = ["Domenica", "Lunedì", "Martedì", "Mercoledì", "Giovedì", "Venerdì", "Sabato"];
     const isWeekendDomani = isFestivo(domani);
 
     function estraiNumeroIntelligente(t) {
@@ -311,16 +301,9 @@
         const q = document.getElementById('searchInput').value.toLowerCase().trim();
         const items = document.querySelectorAll('.ing-item');
         const catTitles = document.querySelectorAll('.cat-title');
-        
         items.forEach(it => {
             const nome = it.dataset.nome;
-            if (q === "barbazza") {
-                it.style.display = listaBarbazza.includes(nome) ? "flex" : "none";
-            } else if (q === "" || nome.includes(q)) {
-                it.style.display = "flex";
-            } else {
-                it.style.display = "none";
-            }
+            it.style.display = (q === "barbazza" && listaBarbazza.includes(nome)) || (q === "" || nome.includes(q)) ? "flex" : "none";
         });
         catTitles.forEach(title => title.style.display = (q === "") ? "block" : "none");
     }
@@ -341,6 +324,11 @@
         const s = JSON.parse(localStorage.getItem('inventario_dati_'+p)) || {};
         let currentCat = "";
         ingredienti.forEach((ing, i) => {
+            // Filtri specifici richiesti
+            if (ing.nome === "Lievito" && p !== "BIBAN") return;
+            if (ing.nome === "Pel.Salsa" && p !== "CASTA") return;
+            if (ing.cat === "VERDURE CRUDE" && (p !== "CASTA" || oraAttuale.getDay() !== 0)) return;
+
             if (ing.cat !== currentCat) {
                 cont.innerHTML += `<div class="categoria-header cat-title" style="background:${ing.color}; color:#3e2723">${ing.cat}</div>`;
                 currentCat = ing.cat;
@@ -348,13 +336,18 @@
             const soglia = isWeekendDomani ? ing.we : ing.fer;
             const v = s[ing.nome] || "";
             const isCipolla = ing.nome === "cass.Cipolla";
+            
+            let inputHtml = isCipolla ? `
+                <div class="input-wrapper-cipolla">
+                    <div class="sfuse-row"><small>Sfuse</small><input type="text" class="qty-input" id="sfuse-${i}" oninput="document.getElementById('sel-${i}').value = (this.value/20).toFixed(2); valuta(${i}, ${soglia})"></div>
+                    <input type="text" class="qty-input" id="sel-${i}" placeholder="Qtà" value="${v}" oninput="valuta(${i}, ${soglia})">
+                </div>` : `
+                <input type="text" class="qty-input" id="sel-${i}" placeholder="Qtà" value="${v}" oninput="valuta(${i}, ${soglia})">`;
+
             cont.innerHTML += `
                 <div class="item ${v===''?'vuoto':''} ing-item" id="box-${i}" data-nome="${ing.nome.toLowerCase()}">
                     <div class="nome-container"><b>${ing.nome}</b><br><small>Min: ${soglia}</small></div>
-                    <div class="input-container">
-                        ${isCipolla ? `<div class="input-wrapper"><div class="sfuse-box"><small>Sfuse</small><input type="text" class="qty-input" id="sfuse-${i}" oninput="document.getElementById('sel-${i}').value = (this.value/20).toFixed(2); valuta(${i}, ${soglia})"></div>` : ''}
-                        <input type="text" class="qty-input" id="sel-${i}" placeholder="Qtà" value="${v}" oninput="valuta(${i}, ${soglia})">
-                    </div>
+                    <div class="input-container">${inputHtml}</div>
                 </div>`;
             if(v !== "") valuta(i, soglia);
         });
@@ -410,12 +403,12 @@
         await syncCloud(cloud); alert("✅ Salvato!");
     }
 
-    function cambiaPizzeria() { creaLista(); }
+    function cambiaPizzeria() { localStorage.setItem('ultima_pizzeria', document.getElementById('pizzeria').value); creaLista(); }
     function valuta(i, s) {
         const v = estraiNumeroIntelligente(document.getElementById(`sel-${i}`).value);
         document.getElementById(`box-${i}`).className = `item ${isNaN(v) ? 'vuoto' : (v < s ? 'urgente' : 'ok')} ing-item`;
     }
-    function azzeraLista() { if(confirm("Azzera dati di oggi?")) { localStorage.removeItem('inventario_dati_'+document.getElementById('pizzeria').value); creaLista(); } }
+    function azzeraLista() { if(confirm("Azzera dati?")) { localStorage.removeItem('inventario_dati_'+document.getElementById('pizzeria').value); creaLista(); } }
     function inviaWhatsApp() {
         const p = document.getElementById('pizzeria').value;
         let msg = `🏪 *INV. ${p}*\n\n`;
