@@ -44,6 +44,12 @@
         #dialog-vuoti { display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; padding: 25px; border-radius: 20px; box-shadow: 0 0 50px rgba(0,0,0,0.5); z-index: 2000; width: 90%; max-width: 400px; text-align: center; }
         #overlay { display: none; position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:1999; }
         .vuoti-list { text-align: left; max-height: 200px; overflow-y: auto; margin: 15px 0; font-size: 0.9em; color: var(--red); border: 1px solid #eee; padding: 10px; }
+
+        /* Stili Tabella Riepilogo */
+        .tabella-tutte { width: 100%; border-collapse: collapse; background: white; border-radius: 12px; overflow: hidden; font-size: 13px; }
+        .tabella-tutte th { background: var(--primary); color: white; padding: 12px 5px; text-align: center; }
+        .tabella-tutte td { padding: 10px 5px; border-bottom: 1px solid #eee; text-align: center; font-weight: bold; }
+        .td-nome { text-align: left !important; padding-left: 10px !important; font-weight: normal !important; }
     </style>
 </head>
 <body>
@@ -251,6 +257,26 @@
         });
     }
 
+    function generaVistaTutte() {
+        const cont = document.getElementById('contenitore-lista');
+        const d_casta = JSON.parse(localStorage.getItem('inventario_dati_CASTA')) || {};
+        const d_silea = JSON.parse(localStorage.getItem('inventario_dati_SILEA')) || {};
+        const d_biban = JSON.parse(localStorage.getItem('inventario_dati_BIBAN')) || {};
+
+        let h = `<table class="tabella-tutte" style="grid-column: 1 / -1;">
+            <thead><tr><th>Ingrediente</th><th>Casta</th><th>Silea</th><th>Biban</th></tr></thead><tbody>`;
+        
+        ingredienti.forEach(ing => {
+            if (ing.cat === "VERDURE CRUDE") return; // Non mostrate nel riepilogo
+            const vC = d_casta[ing.nome] || "-";
+            const vS = d_silea[ing.nome] || "-";
+            const vB = d_biban[ing.nome] || "-";
+            h += `<tr><td class="td-nome">${ing.nome}</td><td>${vC}</td><td>${vS}</td><td>${vB}</td></tr>`;
+        });
+        h += `</tbody></table>`;
+        cont.innerHTML = h;
+    }
+
     function creaLista() {
         const cont = document.getElementById('contenitore-lista');
         const p = document.getElementById('pizzeria').value;
@@ -258,6 +284,7 @@
         document.getElementById('btn-azzera').style.display = (p && p !== "TUTTE" && p !== "ARCHIVIO") ? "block" : "none";
         document.getElementById('footer-btns').style.display = (p && p !== "TUTTE" && p !== "ARCHIVIO") ? "flex" : "none";
         document.getElementById('search-box').style.display = (p && p !== "TUTTE" && p !== "ARCHIVIO") ? "block" : "none";
+        
         if (p === "TUTTE") { generaVistaTutte(); return; }
         if (!p || p === "ARCHIVIO") return;
 
