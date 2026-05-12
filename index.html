@@ -351,6 +351,8 @@
         { cat: "VERDURE CRUDE", color: "var(--cat-crude)", nome: "Funghi crudi", fer: 0, we: 0, noObbligo: true }
     ];
 
+    const listaBarbazza = ["brie", "gorgonzola", "asiago", "acciughe", "tonno (latte)", "salmone", "bresaola", "carciofi", "olive", "capperi", "semola", "carta mani", "pel.salsa", "cart.med", "cart.mezzi", "lievito"];
+
     function soloNumeri(e) {
         const charCode = (e.which) ? e.which : e.keyCode;
         const allowed = [47, 44, 46, 43];
@@ -423,7 +425,7 @@
                 html += `<div class="cat-group-container"><div class="categoria-header">${ing.cat}</div><div class="tabella-globale"><table><thead><tr><th>INGREDIENTE</th><th>Casta</th><th>Silea</th><th>Biban</th></tr></thead><tbody>`;
                 currentCat = ing.cat;
             }
-            html += `<tr><td>${ing.nome}</td><td>${fmt(dC[ing.nome],ing)}</td><td>${fmt(dS[ing.nome],ing)}</td><td>${fmt(dB[ing.nome],ing)}</td></tr>`;
+            html += `<tr class="ing-item" data-nome="${ing.nome.toLowerCase()}"><td>${ing.nome}</td><td>${fmt(dC[ing.nome],ing)}</td><td>${fmt(dS[ing.nome],ing)}</td><td>${fmt(dB[ing.nome],ing)}</td></tr>`;
         });
         cont.innerHTML = html + "</tbody></table></div></div>";
     }
@@ -444,7 +446,7 @@
                 html += `<div class="cat-group-container"><div class="categoria-header">${ing.cat}</div><div class="tabella-globale"><table><thead><tr><th>INGREDIENTE</th><th>Casta</th><th>Silea</th><th>Biban</th></tr></thead><tbody>`;
                 currentCat = ing.cat;
             }
-            html += `<tr><td>${ing.nome}</td><td>${dC?.[ing.nome] || "-"}</td><td>${dS?.[ing.nome] || "-"}</td><td>${dB?.[ing.nome] || "-"}</td></tr>`;
+            html += `<tr class="ing-item" data-nome="${ing.nome.toLowerCase()}"><td>${ing.nome}</td><td>${dC?.[ing.nome] || "-"}</td><td>${dS?.[ing.nome] || "-"}</td><td>${dB?.[ing.nome] || "-"}</td></tr>`;
         });
         cont.innerHTML += html + "</tbody></table></div></div>";
     }
@@ -467,8 +469,8 @@
         cont.innerHTML = "";
         
         if (!pizzo) { btnAzzera.style.display = "none"; searchBox.style.display = "none"; footerBtns.style.display = "none"; datePicker.style.display = "none"; return; }
-        if (pizzo === "ARCHIVIO") { btnAzzera.style.display = "none"; footerBtns.style.display = "none"; searchBox.style.display = "none"; datePicker.style.display = "block"; generaVistaArchivio(); return; }
-        if (pizzo === "TUTTE") { btnAzzera.style.display = "none"; footerBtns.style.display = "none"; searchBox.style.display = "none"; datePicker.style.display = "none"; generaVistaTutte(); return; }
+        if (pizzo === "ARCHIVIO") { btnAzzera.style.display = "none"; footerBtns.style.display = "none"; searchBox.style.display = "block"; datePicker.style.display = "block"; generaVistaArchivio(); return; }
+        if (pizzo === "TUTTE") { btnAzzera.style.display = "none"; footerBtns.style.display = "none"; searchBox.style.display = "block"; datePicker.style.display = "none"; generaVistaTutte(); return; }
 
         datePicker.style.display = "none"; searchBox.style.display = "block";
         btnAzzera.style.display = "block"; footerBtns.style.display = "flex";
@@ -505,11 +507,22 @@
         const q = document.getElementById('searchInput').value.toLowerCase().trim();
         const items = document.querySelectorAll('.ing-item');
         const headers = document.querySelectorAll('.categoria-header');
+        const containers = document.querySelectorAll('.cat-group-container');
+
         items.forEach(item => {
             const nome = item.getAttribute('data-nome');
-            item.style.display = nome.includes(q) ? "flex" : "none";
+            const match = q === "barbazza" ? listaBarbazza.includes(nome) : nome.includes(q);
+            item.style.display = match ? (item.tagName === 'TR' ? 'table-row' : 'flex') : "none";
         });
-        headers.forEach(h => h.style.display = (q === "") ? "block" : "none");
+
+        // Nasconde le categorie se non ci sono elementi visibili (solo per ricerca testo, non per barbazza)
+        if (q !== "" && q !== "barbazza") {
+            headers.forEach(h => h.style.display = "none");
+            containers.forEach(c => c.style.display = "none"); // Nasconde le tabelle globali per pulizia
+        } else {
+            headers.forEach(h => h.style.display = "block");
+            containers.forEach(c => c.style.display = "flex");
+        }
     }
 
     function salvaDati() {
