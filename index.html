@@ -22,10 +22,8 @@
         .search-input { width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #ccc; font-size: 16px; box-sizing: border-box; }
         .btn-reset { display: none; background: var(--red); color: white; border: none; padding: 8px 15px; border-radius: 8px; font-size: 0.8em; font-weight: bold; margin-top: 10px; width: 100%; cursor: pointer; }
         
-        /* Griglia principale per colmare lo spazio vuoto */
         #contenitore-lista { display: grid; grid-template-columns: 1fr; gap: 15px; max-width: 1400px; margin: 0 auto; align-items: start; }
 
-        /* Adattamento Tablet e Desktop per affiancare le categorie */
         @media (min-width: 768px) {
             #contenitore-lista { grid-template-columns: repeat(2, 1fr); }
         }
@@ -33,9 +31,7 @@
             #contenitore-lista { grid-template-columns: repeat(3, 1fr); }
         }
 
-        /* Stile per i gruppi delle tabelle (Tutte/Archivio) */
         .cat-group-container { display: flex; flex-direction: column; margin-bottom: 10px; }
-
         .tabella-globale { background: white; border-radius: 10px; border: 2px solid var(--dark); overflow: hidden; font-size: 0.85em; box-shadow: 0 2px 5px rgba(0,0,0,0.05); width: 100%; }
         table { width: 100%; border-collapse: collapse; table-layout: fixed; }
         th { background: #f2f2f2; padding: 10px 5px; text-align: center; border-bottom: 2px solid #ddd; }
@@ -45,7 +41,6 @@
         
         .categoria-header { color: black; padding: 10px; border-radius: 8px 8px 0 0; font-size: 0.95em; font-weight: bold; text-transform: uppercase; text-align: center; border: 1px solid #999; border-bottom: none; }
         
-        /* Stile per input singoli (Pizzerie specifiche) */
         .item { background: white; padding: 10px 12px; display: flex; justify-content: space-between; align-items: center; border: 1px solid #ccc; border-radius: 8px; margin-bottom: 5px; min-height: 60px; box-sizing: border-box; }
         .urgente { background: #ffcccc !important; border-left: 8px solid var(--red) !important; }
         .ok { background: #e2f0d9 !important; border-left: 8px solid var(--green) !important; }
@@ -63,11 +58,13 @@
         .btn-wa { background: #25D366; color: white; border: none; padding: 15px; border-radius: 12px; font-size: 1.1em; font-weight: bold; cursor: pointer; flex: 1; }
         .btn-save { background: #3498db; color: white; border: none; padding: 15px; border-radius: 12px; font-size: 1.1em; font-weight: bold; cursor: pointer; flex: 1; }
         .archivio-header { background: var(--dark); color: white; padding: 10px; border-radius: 8px; margin-bottom: 15px; font-size: 0.9em; max-width: 1400px; margin-left: auto; margin-right: auto; text-align: center; grid-column: 1 / -1; }
+        .alert-festivo { color: var(--red); font-weight: bold; font-size: 0.85em; margin-top: 4px; }
     </style>
 </head>
 <body>
     <div class="header-box">
         <div id="info-giorno" style="font-size: 0.9em; color: #666;"></div>
+        <div id="avviso-festivo" class="alert-festivo"></div>
         <select id="pizzeria" class="pizzeria-select" onchange="cambiaPizzeria()">
             <option value="">📍 SELEZIONA PIZZERIA</option>
             <option value="CASTA">CASTA</option>
@@ -98,6 +95,50 @@
     </div>
 
 <script>
+    // --- LOGICA FESTIVITÀ ---
+    function getPasqua(anno) {
+        const a = anno % 19, b = Math.floor(anno / 100), c = anno % 100,
+              d = Math.floor(b / 4), e = b % 4, f = Math.floor((b + 8) / 25),
+              g = Math.floor((b - f + 1) / 3), h = (19 * a + b - d - g + 15) % 30,
+              i = Math.floor(c / 4), k = c % 4, l = (32 + 2 * e + 2 * i - h - k) % 7,
+              m = Math.floor((a + 11 * h + 22 * l) / 451),
+              mese = Math.floor((h + l - 7 * m + 114) / 31),
+              giorno = ((h + l - 7 * m + 114) % 31) + 1;
+        return new Date(anno, mese - 1, giorno);
+    }
+
+    function isFestivo(data) {
+        const d = data.getDate(), m = data.getMonth() + 1, y = data.getFullYear();
+        const p = getPasqua(y);
+        const pasquetta = new Date(p); pasquetta.setDate(p.getDate() + 1);
+        
+        if (data.getDay() === 0) return true; // Domenica
+        const festivi = [`1-1`, `6-1`, `25-4`, `1-5`, `2-6`, `15-8`, `1-11`, `8-12`, `25-12`, `26-12` ];
+        if (festivi.includes(`${d}-${m}`)) return true;
+        if (d === p.getDate() && m === (p.getMonth()+1)) return true; // Pasqua
+        if (d === pasquetta.getDate() && m === (pasquetta.getMonth()+1)) return true; // Pasquetta
+        return false;
+    }
+
+    const oraAttuale = new Date();
+    const domani = new Date(oraAttuale); domani.setDate(oraAttuale.getDate() + 1);
+    const dopodomani = new Date(oraAttuale); dopodomani.setDate(oraAttuale.getDate() + 2);
+    
+    const oggiString = oraAttuale.toISOString().split('T')[0];
+    const nomiGiorni = ["Domenica", "Lunedì", "Martedì", "Mercoledì", "Giovedì", "Venerdì", "Sabato"];
+    
+    // Se domani è festivo, soglia Weekend
+    const isWeekendDomani = isFestivo(domani);
+    // Se dopodomani è festivo, oggi è pre-festivo
+    const isPreFestivoOggi = isFestivo(dopodomani) && !isFestivo(domani);
+
+    document.getElementById('info-giorno').innerHTML = `
+        <div style="color: #333; font-size: 1.1em;">Oggi è <b>${nomiGiorni[oraAttuale.getDay()]}</b></div>
+        <div style="margin-top: 5px;">Inventario per: <b>${nomiGiorni[domani.getDay()]}</b> (${isWeekendDomani ? 'Festivo 🚀' : 'Feriale 🛡️'})</div>
+    `;
+    if (isPreFestivoOggi) document.getElementById('avviso-festivo').innerHTML = `⚠️ ATTENZIONE: Oggi è Pre-Festivo!`;
+
+    // --- DATI E LOGICA CORE ---
     const ingredienti = [
         { cat: "PASTA", color: "var(--cat-pasta)", nome: "Palline norm", fer: 150, we: 250 },
         { cat: "PASTA", color: "var(--cat-pasta)", nome: "Palline canapa", fer: 15, we: 30 },
@@ -224,13 +265,11 @@
     function estraiNumeroIntelligente(testo) {
         if (!testo) return NaN;
         testo = testo.toString().toLowerCase().trim().replace(',', '.');
-        
         if (testo === "1/4") return 0.2;
         if (testo === "1/3") return 0.3;
         if (testo === "1/2") return 0.5;
         if (testo === "2/3") return 0.7;
         if (testo === "3/4") return 0.7;
-
         try {
             if (testo.includes('+') || testo.includes('/')) {
                 let espressione = testo.replace(/(\d+)\/(\d+)/g, (match, num, den) => {
@@ -241,18 +280,6 @@
             return parseFloat(testo);
         } catch(e) { return NaN; }
     }
-
-    const oraAttuale = new Date();
-    const oggiString = oraAttuale.toISOString().split('T')[0];
-    const nomiGiorni = ["Domenica", "Lunedì", "Martedì", "Mercoledì", "Giovedì", "Venerdì", "Sabato"];
-    const oggiIdx = oraAttuale.getDay();
-    const domaniIdx = (oggiIdx + 1) % 7;
-    const isWeekendDomani = (domaniIdx === 0 || domaniIdx === 5 || domaniIdx === 6);
-
-    document.getElementById('info-giorno').innerHTML = `
-        <div style="color: #333; font-size: 1.1em;">Oggi è <b>${nomiGiorni[oggiIdx]}</b></div>
-        <div style="margin-top: 5px;">Inventario per: <b>${nomiGiorni[domaniIdx]}</b> (${isWeekendDomani ? 'Weekend 🚀' : 'Feriale 🛡️'})</div>
-    `;
 
     function generaVistaTutte() {
         const cont = document.getElementById('contenitore-lista');
@@ -376,11 +403,16 @@
         cont.innerHTML = ""; riepilogoDiv.innerHTML = "";
         
         if (!pizzo) { btnAzzera.style.display = "none"; searchBox.style.display = "none"; footerBtns.style.display = "none"; datePicker.style.display = "none"; return; }
-        if (pizzo === "ARCHIVIO") { btnAzzera.style.display = "none"; footerBtns.style.display = "none"; searchBox.style.display = "block"; datePicker.style.display = "block"; generaVistaArchivio(); return; }
         
+        if (pizzo === "ARCHIVIO") { 
+            btnAzzera.style.display = "none"; footerBtns.style.display = "none"; searchBox.style.display = "none"; datePicker.style.display = "block"; generaVistaArchivio(); return; 
+        }
+        
+        if (pizzo === "TUTTE") { 
+            btnAzzera.style.display = "none"; footerBtns.style.display = "none"; searchBox.style.display = "none"; datePicker.style.display = "none"; generaVistaTutte(); return; 
+        }
+
         datePicker.style.display = "none"; searchBox.style.display = "block";
-        if (pizzo === "TUTTE") { btnAzzera.style.display = "none"; footerBtns.style.display = "none"; generaVistaTutte(); return; }
-        
         btnAzzera.style.display = "block"; footerBtns.style.display = "flex";
         if (pizzo === "BIBAN") generaTabellaRiepilogoBiban();
         
@@ -455,7 +487,7 @@
 
     function inviaWhatsApp() {
         const pizzo = document.getElementById('pizzeria').value;
-        let msg = `🏪 *INV. ${pizzo}* - PER ${nomiGiorni[domaniIdx].toUpperCase()}\n\n`;
+        let msg = `🏪 *INV. ${pizzo}* - PER ${nomiGiorni[domani.getDay()].toUpperCase()}\n\n`;
         let trovati = false;
         ingredienti.forEach((ing, i) => {
             const input = document.getElementById(`sel-${i}`);
