@@ -111,16 +111,43 @@
         td { padding: 10px 5px; border-bottom: 1px solid #eee; text-align: center; vertical-align: middle; }
         td:first-child { text-align: left; font-weight: bold; padding-left: 10px; background: #fafafa; }
         
+        /* NUOVI STILI PER CENTRAMENTO SMARTPHONE */
         .item { 
             background: var(--white); 
-            padding: 15px; 
+            padding: 12px 15px; 
             display: flex; 
             justify-content: space-between; 
-            align-items: center; 
+            align-items: center; /* Centra verticalmente il testo e gli input */
             border: 1px solid var(--accent); 
             border-radius: 12px; 
-            min-height: 70px; 
+            min-height: 80px; 
             box-sizing: border-box; 
+            transition: transform 0.2s;
+        }
+
+        .input-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-width: 90px;
+        }
+
+        .input-wrapper { 
+            display: flex; 
+            flex-direction: column; 
+            gap: 5px; 
+            align-items: center; /* Centra orizzontalmente le caselle doppie */
+            justify-content: center;
+        }
+
+        .mini-label { 
+            font-size: 10px; 
+            font-weight: bold; 
+            color: var(--primary); 
+            text-transform: uppercase;
+            text-align: center;
+            width: 100%;
+            margin-bottom: -2px;
         }
 
         .urgente { border-left: 6px solid var(--red) !important; background: #fff5f5 !important; }
@@ -128,7 +155,7 @@
         .vuoto { border-left: 6px solid var(--gold) !important; background: #fffde7 !important; }
         .no-obbligo { border-left: 6px solid #e0e0e0 !important; color: #9e9e9e; }
         
-        .nome-ingrediente { font-weight: 600; color: var(--text); font-size: 15px; }
+        .nome-ingrediente { font-weight: 600; color: var(--text); font-size: 15px; line-height: 1.2; }
         .soglia-info { font-size: 11px; color: #795548; font-weight: bold; }
 
         input.qty-input { 
@@ -139,6 +166,9 @@
             font-size: 16px; 
             font-weight: bold;
             text-align: center; 
+            background: #fff;
+            color: var(--primary);
+            -webkit-appearance: none;
         }
 
         .footer-controls { 
@@ -239,7 +269,6 @@
         avviso.innerHTML = `⚠️ ATTENZIONE: Domani è Pre-Festivo!`;
     }
 
-    // --- DATI ---
     const ingredienti = [
         { cat: "PASTA", nome: "Palline norm", fer: 150, we: 250 },
         { cat: "PASTA", nome: "Palline canapa", fer: 15, we: 30 },
@@ -517,7 +546,6 @@
             }
         });
 
-        // Gestione testate categorie durante la ricerca
         if (q !== "") {
             headers.forEach(h => h.style.display = "none");
             if (q === "barbazza") {
