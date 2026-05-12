@@ -41,7 +41,6 @@
         .btn-save { background: var(--primary); color: white; border: none; padding: 16px; border-radius: 12px; font-size: 16px; font-weight: bold; flex: 1; }
         .btn-reset { background: var(--red); color: white; border: none; padding: 10px; border-radius: 8px; font-size: 12px; font-weight: bold; margin-top: 15px; width: 100%; }
 
-        /* Dialog Campi Vuoti */
         #dialog-vuoti { display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; padding: 25px; border-radius: 20px; box-shadow: 0 0 50px rgba(0,0,0,0.5); z-index: 2000; width: 90%; max-width: 400px; text-align: center; }
         #overlay { display: none; position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:1999; }
         .vuoti-list { text-align: left; max-height: 200px; overflow-y: auto; margin: 15px 0; font-size: 0.9em; color: var(--red); border: 1px solid #eee; padding: 10px; }
@@ -202,6 +201,7 @@
         { cat: "VERDURE CRUDE", color: "var(--cat-crude)", nome: "Basilico crudo", fer: 0, we: 0, noObbligo: true },
         { cat: "VERDURE CRUDE", color: "var(--cat-crude)", nome: "Funghi crudi", fer: 0, we: 0, noObbligo: true }
     ];
+    const listaBarbazza = ["brie", "gorgonzola", "asiago", "acciughe", "tonno (latte)", "salmone", "bresaola", "carciofi", "olive", "capperi", "semola", "carta mani", "pel.salsa", "cart.med", "cart.mezzi", "lievito"];
 
     function getPasqua(anno) {
         const a = anno % 19, b = Math.floor(anno / 100), c = anno % 100, d = Math.floor(b / 4), e = b % 4, f = Math.floor((b + 8) / 25), g = Math.floor((b - f + 1) / 3), h = (19 * a + b - d - g + 15) % 30, i = Math.floor(c / 4), k = c % 4, l = (32 + 2 * e + 2 * i - h - k) % 7, m = Math.floor((a + 11 * h + 22 * l) / 451), n = h + l - 7 * m + 114;
@@ -228,6 +228,27 @@
         if (!t) return NaN;
         t = t.toString().toLowerCase().trim().replace(',', '.');
         try { return eval(t.replace(/(\d+)\/(\d+)/g, (m, n, d) => n/d)); } catch(e) { return parseFloat(t); }
+    }
+
+    function filtraLista() {
+        const q = document.getElementById('searchInput').value.toLowerCase().trim();
+        const items = document.querySelectorAll('.ing-item');
+        const catTitles = document.querySelectorAll('.cat-title');
+        
+        items.forEach(it => {
+            const nome = it.dataset.nome;
+            if (q === "barbazza") {
+                it.style.display = listaBarbazza.includes(nome) ? "flex" : "none";
+            } else if (q === "" || nome.includes(q)) {
+                it.style.display = "flex";
+            } else {
+                it.style.display = "none";
+            }
+        });
+
+        catTitles.forEach(title => {
+            title.style.display = (q === "") ? "block" : "none";
+        });
     }
 
     function creaLista() {
@@ -275,7 +296,6 @@
         ingredienti.forEach((ing, i) => {
             const input = document.getElementById(`sel-${i}`);
             if (input && input.value.trim() === "") {
-                // Filtro visibilità per non segnalare come vuoti quelli nascosti
                 if (!(ing.nome === "Lievito" && p !== "BIBAN") && !(ing.nome === "Pel.Salsa" && p !== "CASTA")) {
                    vuoti.push(ing.nome);
                 }
@@ -335,12 +355,6 @@
         document.getElementById(`box-${i}`).className = `item ${isNaN(v) ? 'vuoto' : (v < s ? 'urgente' : 'ok')} ing-item`;
     }
     function azzeraLista() { if(confirm("Azzera dati?")) { localStorage.removeItem('inventario_dati_'+document.getElementById('pizzeria').value); creaLista(); } }
-    function filtraLista() {
-        const q = document.getElementById('searchInput').value.toLowerCase();
-        document.querySelectorAll('.ing-item').forEach(it => {
-            it.style.display = (it.dataset.nome.includes(q)) ? "flex" : "none";
-        });
-    }
 
     function inviaWhatsApp() {
         const p = document.getElementById('pizzeria').value;
