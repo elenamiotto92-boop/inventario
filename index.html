@@ -62,7 +62,7 @@
             background: #fff;
         }
 
-        /* Layout Liste Pizzerie Singole */
+        /* --- LAYOUT GRIGLIA --- */
         #contenitore-lista { 
             display: grid; 
             grid-template-columns: 1fr; 
@@ -72,18 +72,25 @@
             align-items: start; 
         }
 
+        /* Inserimento: 2 colonne su tablet, 3 su desktop */
         @media (min-width: 768px) { #contenitore-lista { grid-template-columns: repeat(2, 1fr); } }
         @media (min-width: 1200px) { #contenitore-lista { grid-template-columns: repeat(3, 1fr); } }
 
-        /* Stile Tabelle Sezione Visualizza (Ripristinato) */
+        /* VISTA TUTTE (Tabellare): Categorie affiancate su desktop */
+        @media (min-width: 1024px) { 
+            #contenitore-lista.vista-tabellare { 
+                grid-template-columns: repeat(3, 1fr); 
+            } 
+        }
+
+        /* Stile Tabelle Sezione Visualizza */
         .cat-group-container { 
             background: var(--white); 
             border-radius: 12px; 
             overflow: hidden; 
             border: 1px solid var(--accent); 
             box-shadow: 0 2px 6px rgba(0,0,0,0.05);
-            margin-bottom: 20px;
-            grid-column: 1 / -1; /* Occupa tutta la larghezza in vista tabella */
+            margin-bottom: 10px;
         }
 
         .tabella-globale { width: 100%; font-size: 0.85em; }
@@ -181,6 +188,7 @@
         <button id="btn-azzera" class="btn-reset" onclick="azzeraLista()">🗑️ AZZERA LISTA ATTUALE</button>
     </div>
 
+    <div id="riepilogo-globale"></div>
     <div id="contenitore-lista"></div>
 
     <div class="footer-controls" id="footer-btns">
@@ -189,7 +197,7 @@
     </div>
 
 <script>
-    // --- DATI E LOGICA (INVARIATI) ---
+    // --- DATI E LOGICA ---
     function getPasqua(anno) {
         const a = anno % 19, b = Math.floor(anno / 100), c = anno % 100,
               d = Math.floor(b / 4), e = b % 4, f = Math.floor((b + 8) / 25),
@@ -346,7 +354,7 @@
 
     const listaBarbazza = ["brie", "gorgonzola", "asiago", "acciughe", "tonno (latte)", "salmone", "bresaola", "carciofi", "olive", "capperi", "semola", "carta mani", "pel.salsa", "cart.med", "cart.mezzi", "lievito"];
 
-    // --- FUNZIONI LOGICHE ---
+    // --- FUNZIONI CORE ---
     function soloNumeri(e) {
         const charCode = (e.which) ? e.which : e.keyCode;
         const allowed = [47, 44, 46, 43];
@@ -400,6 +408,8 @@
     function generaVistaTutte() {
         const cont = document.getElementById('contenitore-lista');
         cont.innerHTML = "";
+        cont.classList.add("vista-tabellare"); // Applica il layout a 3 colonne desktop
+        
         const dC = JSON.parse(localStorage.getItem('inventario_dati_CASTA')) || {};
         const dS = JSON.parse(localStorage.getItem('inventario_dati_SILEA')) || {};
         const dB = JSON.parse(localStorage.getItem('inventario_dati_BIBAN')) || {};
@@ -433,6 +443,7 @@
         const dataScelta = document.getElementById('archiveDate').value;
         const cont = document.getElementById('contenitore-lista');
         if (!dataScelta) return;
+        cont.classList.add("vista-tabellare");
         cont.innerHTML = `<div class="archivio-header">📜 Archivio: ${dataScelta}</div>`;
         const dC = JSON.parse(localStorage.getItem(`archive_CASTA_${dataScelta}`)) || null;
         const dS = JSON.parse(localStorage.getItem(`archive_SILEA_${dataScelta}`)) || null;
@@ -462,6 +473,7 @@
 
     function creaLista() {
         const cont = document.getElementById('contenitore-lista');
+        cont.classList.remove("vista-tabellare"); // Reset layout per inserimento
         const pizzo = document.getElementById('pizzeria').value;
         const btnAzzera = document.getElementById('btn-azzera');
         const searchBox = document.getElementById('search-box');
