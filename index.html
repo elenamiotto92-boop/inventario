@@ -366,12 +366,15 @@
             const soglia = isWeekendDomani ? ing.we : ing.fer;
             const v = s[ing.nome] || "";
             const isCipolla = ing.nome === "cass.Cipolla";
+            
+            // UTILIZZO DI TYPE="TEL" PER FORZARE TASTIERINO NUMERICO SU MOBILE
             let inputHtml = isCipolla ? `
                 <div class="input-wrapper-cipolla">
-                    <div class="sfuse-row"><small>Sfuse</small><input type="text" class="qty-input" id="sfuse-${i}" onkeydown="bloccaNonNumerici(event)" onchange="trasformaECalcola(this, 0, ${i}); document.getElementById('sel-${i}').value = (this.value/20).toFixed(2); valuta(${i}, ${soglia})"></div>
-                    <input type="text" class="qty-input" id="sel-${i}" placeholder="Qtà" value="${v}" onkeydown="bloccaNonNumerici(event)" onchange="trasformaECalcola(this, ${soglia}, ${i})">
+                    <div class="sfuse-row"><small>Sfuse</small><input type="tel" class="qty-input" id="sfuse-${i}" onkeydown="bloccaNonNumerici(event)" onchange="trasformaECalcola(this, 0, ${i}); document.getElementById('sel-${i}').value = (this.value/20).toFixed(2); valuta(${i}, ${soglia})"></div>
+                    <input type="tel" class="qty-input" id="sel-${i}" placeholder="Qtà" value="${v}" onkeydown="bloccaNonNumerici(event)" onchange="trasformaECalcola(this, ${soglia}, ${i})">
                 </div>` : `
-                <input type="text" class="qty-input" id="sel-${i}" placeholder="Qtà" value="${v}" onkeydown="bloccaNonNumerici(event)" onchange="trasformaECalcola(this, ${soglia}, ${i})">`;
+                <input type="tel" class="qty-input" id="sel-${i}" placeholder="Qtà" value="${v}" onkeydown="bloccaNonNumerici(event)" onchange="trasformaECalcola(this, ${soglia}, ${i})">`;
+
             cont.innerHTML += `<div class="item ${v===''?'vuoto':''} ing-item" id="box-${i}" data-nome="${ing.nome.toLowerCase()}">
                 <div class="nome-container"><b>${ing.nome}</b><br><small>Min: ${soglia}</small></div>
                 <div class="input-container">${inputHtml}</div></div>`;
