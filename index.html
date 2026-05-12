@@ -21,8 +21,15 @@
         select.pizzeria-select, .date-input { width: 100%; padding: 14px; border-radius: 10px; border: 1px solid var(--accent); font-size: 16px; font-weight: 600; background: #fafafa; margin-top: 10px; color: var(--primary); box-sizing: border-box; }
         .search-input { width: 100%; padding: 12px; border-radius: 10px; border: 1px solid var(--accent); font-size: 15px; box-sizing: border-box; background: #fff; }
         #contenitore-lista { display: grid; grid-template-columns: 1fr; gap: 15px; max-width: 1400px; margin: 0 auto; align-items: start; }
-        @media (min-width: 768px) { #contenitore-lista { grid-template-columns: repeat(2, 1fr); } }
-        @media (min-width: 1200px) { #contenitore-lista { grid-template-columns: repeat(3, 1fr); } }
+        
+        /* Layout per Vista Tutte (Grid a colonne su Desktop) */
+        .grid-vista-tutte { display: grid; grid-template-columns: 1fr; gap: 20px; grid-column: 1 / -1; }
+        @media (min-width: 768px) { .grid-vista-tutte { grid-template-columns: repeat(2, 1fr); } }
+        @media (min-width: 1200px) { .grid-vista-tutte { grid-template-columns: repeat(3, 1fr); } }
+
+        /* Layout standard per singola pizzeria */
+        @media (min-width: 768px) { #contenitore-lista:not(.vista-tabellare) { grid-template-columns: repeat(2, 1fr); } }
+        @media (min-width: 1200px) { #contenitore-lista:not(.vista-tabellare) { grid-template-columns: repeat(3, 1fr); } }
         
         .categoria-header { background: var(--primary); color: white; padding: 12px; font-size: 14px; font-weight: 700; text-transform: uppercase; text-align: center; grid-column: 1 / -1; margin-top: 10px; border-radius: 8px; }
         .item { background: var(--white); padding: 12px 15px; display: flex; justify-content: space-between; align-items: center; border: 1px solid var(--accent); border-radius: 12px; min-height: 85px; box-sizing: border-box; }
@@ -46,11 +53,12 @@
         .vuoti-list { text-align: left; max-height: 200px; overflow-y: auto; margin: 15px 0; font-size: 0.9em; color: var(--red); border: 1px solid #eee; padding: 10px; }
 
         /* Stili Tabella Riepilogo */
-        .tabella-tutte { width: 100%; border-collapse: collapse; background: white; border-radius: 12px; overflow: hidden; font-size: 13px; margin-bottom: 20px; }
-        .tabella-tutte th { background: var(--primary); color: white; padding: 12px 5px; text-align: center; }
-        .tabella-tutte td { padding: 10px 5px; border-bottom: 1px solid #eee; text-align: center; font-weight: bold; }
-        .td-nome { text-align: left !important; padding-left: 10px !important; font-weight: normal !important; }
-        .tr-cat { background: #f0f0f0; text-align: left !important; font-weight: bold !important; font-size: 11px; color: var(--primary); }
+        .container-cat-tutte { background: white; border-radius: 12px; overflow: hidden; border: 1px solid var(--accent); box-shadow: 0 2px 6px rgba(0,0,0,0.05); }
+        .tabella-tutte { width: 100%; border-collapse: collapse; font-size: 13px; }
+        .tabella-tutte th { background: var(--primary); color: white; padding: 10px 2px; text-align: center; font-size: 11px; }
+        .tabella-tutte td { padding: 8px 4px; border-bottom: 1px solid #eee; text-align: center; font-weight: bold; }
+        .td-nome { text-align: left !important; padding-left: 8px !important; font-weight: normal !important; width: 40%; }
+        .header-cat-tabella { font-weight: bold; padding: 10px; text-align: center; text-transform: uppercase; font-size: 12px; border-bottom: 2px solid var(--primary); }
     </style>
 </head>
 <body>
@@ -260,28 +268,45 @@
 
     function generaVistaTutte() {
         const cont = document.getElementById('contenitore-lista');
+        cont.classList.add("vista-tabellare");
         const d_casta = JSON.parse(localStorage.getItem('inventario_dati_CASTA')) || {};
         const d_silea = JSON.parse(localStorage.getItem('inventario_dati_SILEA')) || {};
         const d_biban = JSON.parse(localStorage.getItem('inventario_dati_BIBAN')) || {};
 
-        let currentCat = "";
-        let h = `<table class="tabella-tutte" style="grid-column: 1 / -1;">
-            <thead><tr><th>Ingrediente</th><th>Casta</th><th>Silea</th><th>Biban</th></tr></thead><tbody>`;
-        
+        // Raggruppa ingredienti per categoria
+        const raggruppati = {};
         ingredienti.forEach(ing => {
             if (ing.cat === "VERDURE CRUDE") return; 
-
-            if (ing.cat !== currentCat) {
-                h += `<tr class="tr-cat"><td colspan="4">${ing.cat}</td></tr>`;
-                currentCat = ing.cat;
-            }
-
-            const vC = d_casta[ing.nome] || "-";
-            const vS = d_silea[ing.nome] || "-";
-            const vB = d_biban[ing.nome] || "-";
-            h += `<tr><td class="td-nome">${ing.nome}</td><td>${vC}</td><td>${vS}</td><td>${vB}</td></tr>`;
+            if (!raggruppati[ing.cat]) raggruppati[ing.cat] = { color: ing.color, items: [] };
+            raggruppati[ing.cat].items.push(ing);
         });
-        h += `</tbody></table>`;
+
+        let h = `<div class="grid-vista-tutte">`;
+        
+        for (const cat in raggruppati) {
+            h += `<div class="container-cat-tutte">
+                <div class="header-cat-tabella" style="background:${raggruppati[cat].color}">${cat}</div>
+                <table class="tabella-tutte">
+                <thead><tr><th>Ingrediente</th><th>Casta</th><th>Silea</th><th>Biban</th></tr></thead><tbody>`;
+            
+            raggruppati[cat].items.forEach(ing => {
+                const soglia = isWeekendDomani ? ing.we : ing.fer;
+                
+                const processaValore = (val) => {
+                    const n = estraiNumeroIntelligente(val);
+                    if (!isNaN(n) && n < soglia) return `<span style="color:var(--red)">${val}</span>`;
+                    return val || "-";
+                };
+
+                const vC = processaValore(d_casta[ing.nome]);
+                const vS = processaValore(d_silea[ing.nome]);
+                const vB = processaValore(d_biban[ing.nome]);
+                
+                h += `<tr><td class="td-nome">${ing.nome}</td><td>${vC}</td><td>${vS}</td><td>${vB}</td></tr>`;
+            });
+            h += `</tbody></table></div>`;
+        }
+        h += `</div>`;
         cont.innerHTML = h;
     }
 
@@ -289,6 +314,7 @@
         const cont = document.getElementById('contenitore-lista');
         const p = document.getElementById('pizzeria').value;
         cont.innerHTML = "";
+        cont.classList.remove("vista-tabellare");
         document.getElementById('btn-azzera').style.display = (p && p !== "TUTTE" && p !== "ARCHIVIO") ? "block" : "none";
         document.getElementById('footer-btns').style.display = (p && p !== "TUTTE" && p !== "ARCHIVIO") ? "flex" : "none";
         document.getElementById('search-box').style.display = (p && p !== "TUTTE" && p !== "ARCHIVIO") ? "block" : "none";
