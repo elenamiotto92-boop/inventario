@@ -38,10 +38,11 @@
         .errore-testo { background: #6c757d !important; border-left: 8px solid black !important; color: white !important; }
         .nome-ingrediente { font-weight: 500; color: #333; font-size: 0.9em; }
         .soglia-info { font-size: 0.65em; color: #888; }
-        input.qty-input { width: 90px; height: 32px; border-radius: 4px; border: 1px solid #999; font-size: 14px; text-align: center; background: white; }
-        /* Nuovi stili per cipolla sfusa */
-        .input-group { display: flex; flex-direction: column; gap: 5px; align-items: flex-end; }
-        .label-sfuse { font-size: 10px; color: #666; font-weight: bold; }
+        input.qty-input { width: 75px; height: 32px; border-radius: 4px; border: 1px solid #999; font-size: 14px; text-align: center; background: white; }
+        
+        /* Stili per doppia casella cipolla */
+        .input-wrapper { display: flex; flex-direction: column; gap: 4px; align-items: flex-end; }
+        .mini-label { font-size: 9px; font-weight: bold; color: #555; text-transform: uppercase; }
 
         .footer-controls { position: fixed; bottom: 0; left: 0; right: 0; background: white; padding: 15px 10px 25px 10px; box-shadow: 0 -5px 15px rgba(0,0,0,0.1); z-index: 1000; display: flex; flex-direction: column; gap: 10px; }
         .btn-wa { background: #25D366; color: white; border: none; padding: 15px; border-radius: 12px; font-size: 1.1em; font-weight: bold; cursor: pointer; flex: 1; }
@@ -60,8 +61,9 @@
             <option value="TUTTE">📊 TUTTE (VISUALIZZA)</option>
             <option value="ARCHIVIO">📜 ARCHIVIO STORICO</option>
         </select>
+        
         <div id="search-box" class="search-container">
-            <input type="text" id="searchInput" class="search-input" placeholder="🔍 Cerca..." oninput="filtraLista()">
+            <input type="text" id="searchInput" class="search-input" placeholder="🔍 Cerca o digita BARBAZZA..." oninput="filtraLista()">
         </div>
 
         <div id="date-picker-container" style="display: none; margin-top:10px;">
@@ -71,8 +73,10 @@
 
         <button id="btn-azzera" class="btn-reset" onclick="azzeraLista()">🗑️ AZZERA LISTA</button>
     </div>
+
     <div id="riepilogo-globale"></div>
     <div id="contenitore-lista"></div>
+
     <div class="footer-controls" id="footer-btns">
         <button class="btn-save" onclick="salvaDati()">💾 SALVA DATI</button>
         <button class="btn-wa" onclick="inviaWhatsApp()">📤 INVIA REPORT MANCANTI</button>
@@ -124,4 +128,282 @@
         { cat: "SCAFFALERIA", color: "var(--cat-scaffaleria)", nome: "Carciofi", fer: 2, we: 4 },
         { cat: "SCAFFALERIA", color: "var(--cat-scaffaleria)", nome: "Olive", fer: 1, we: 1 },
         { cat: "SCAFFALERIA", color: "var(--cat-scaffaleria)", nome: "Capperi", fer: 1, we: 1 },
-        { cat: "SCAFFALERIA", color: "var(--cat-scaffaleria)", nome: "Mais", fer:
+        { cat: "SCAFFALERIA", color: "var(--cat-scaffaleria)", nome: "Mais", fer: 1, we: 1 },
+        { cat: "SCAFFALERIA", color: "var(--cat-scaffaleria)", nome: "Miele", fer: 1, we: 1 },
+        { cat: "SCAFFALERIA", color: "var(--cat-scaffaleria)", nome: "Pel.Salsa", fer: 1, we: 1 },
+        { cat: "FRESCO", color: "var(--cat-fresco)", nome: "Datterino", fer: 1, we: 2 },
+        { cat: "FRESCO", color: "var(--cat-fresco)", nome: "Datt giallo", fer: 1, we: 1 },
+        { cat: "FRESCO", color: "var(--cat-fresco)", nome: "Cipolla", fer: 1, we: 2 },
+        { cat: "FRESCO", color: "var(--cat-fresco)", nome: "Rucola", fer: 1, we: 2 },
+        { cat: "FRESCO", color: "var(--cat-fresco)", nome: "cass. Datt.", fer: 0.5, we: 1 },
+        { cat: "FRESCO", color: "var(--cat-fresco)", nome: "casse D. Giallo", fer: 0.25, we: 0.5 },
+        { cat: "FRESCO", color: "var(--cat-fresco)", nome: "cass.Cipolla", fer: 0.25, we: 0.25 },
+        { cat: "FRESCO", color: "var(--cat-fresco)", nome: "Basilico", fer: 1, we: 2 },
+        { cat: "FRESCO", color: "var(--cat-fresco)", nome: "Menta", fer: 1, we: 1 },
+        { cat: "FRESCO", color: "var(--cat-fresco)", nome: "Pere", fer: 1, we: 2 },
+        { cat: "PESCE", color: "var(--cat-pesce)", nome: "Acciughe", fer: 1, we: 1 },
+        { cat: "PESCE", color: "var(--cat-pesce)", nome: "Tonno (latte)", fer: 1, we: 1 },
+        { cat: "PESCE", color: "var(--cat-pesce)", nome: "Salmone", fer: 3, we: 5 },
+        { cat: "PESCE", color: "var(--cat-pesce)", nome: "Baccalà", fer: 1, we: 1 },
+        { cat: "CONDIMENTI", color: "var(--cat-condimenti)", nome: "Aceto", fer: 1, we: 1 },
+        { cat: "CONDIMENTI", color: "var(--cat-condimenti)", nome: "Origano", fer: 1, we: 1 },
+        { cat: "CONDIMENTI", color: "var(--cat-condimenti)", nome: "Sale", fer: 1, we: 1 },
+        { cat: "CONDIMENTI", color: "var(--cat-condimenti)", nome: "Olio EVO", fer: 2, we: 1 },
+        { cat: "CONDIMENTI", color: "var(--cat-condimenti)", nome: "Olio Aglio", fer: 1, we: 1 },
+        { cat: "CONDIMENTI", color: "var(--cat-condimenti)", nome: "Olio Piccante", fer: 1, we: 1 },
+        { cat: "CONDIMENTI", color: "var(--cat-condimenti)", nome: "Olio Fritte", fer: 1, we: 2 },
+        { cat: "FREEZER", color: "var(--cat-freezer)", nome: "Fritte", fer: 2, we: 5 },
+        { cat: "FREEZER", color: "var(--cat-freezer)", nome: "Forno", fer: 1, we: 3 },
+        { cat: "FREEZER", color: "var(--cat-freezer)", nome: "Ghiaccio", fer: 2, we: 5 },
+        { cat: "IMPASTI", color: "var(--cat-impasti)", nome: "Canapa", fer: 1, we: 2 },
+        { cat: "IMPASTI", color: "var(--cat-impasti)", nome: "Semola", fer: 1, we: 2 },
+        { cat: "IMPASTI", color: "var(--cat-impasti)", nome: "Lievito", fer: 1, we: 2 },
+        { cat: "COMBUSTIBILE", color: "var(--cat-combustibile)", nome: "Legna", fer: 1, we: 2 },
+        { cat: "MONETE", color: "var(--cat-monete)", nome: "Rotoli 0,50 €", fer: 1, we: 1 },
+        { cat: "MONETE", color: "var(--cat-monete)", nome: "Rotoli 1 €", fer: 1, we: 1 },
+        { cat: "MONETE", color: "var(--cat-monete)", nome: "Rotoli 2 €", fer: 1, we: 1 },
+        { cat: "MONETE", color: "var(--cat-monete)", nome: "Banc. 5 €", fer: 150, we: 150 },
+        { cat: "MONETE", color: "var(--cat-monete)", nome: "Banc. 10 €", fer: 150, we: 150 },
+        { cat: "IMBALLAGGI", color: "var(--cat-imballaggi)", nome: "Pellicola", fer: 1, we: 1 },
+        { cat: "IMBALLAGGI", color: "var(--cat-imballaggi)", nome: "Carta mani", fer: 2, we: 2 },
+        { cat: "IMBALLAGGI", color: "var(--cat-imballaggi)", nome: "Cart.med", fer: 1, we: 2 },
+        { cat: "IMBALLAGGI", color: "var(--cat-imballaggi)", nome: "Cart.mezzi", fer: 1, we: 1 },
+        { cat: "IMBALLAGGI", color: "var(--cat-imballaggi)", nome: "Cart.pers.", fer: 0, we: 0 },
+        { cat: "DETERSIVI", color: "var(--cat-detersivi)", nome: "Detergente", fer: 1, we: 1 },
+        { cat: "DETERSIVI", color: "var(--cat-detersivi)", nome: "Napisan", fer: 1, we: 1 },
+        { cat: "DETERSIVI", color: "var(--cat-detersivi)", nome: "Det. piatti", fer: 1, we: 1 },
+        { cat: "DETERSIVI", color: "var(--cat-detersivi)", nome: "Sapone mani", fer: 1, we: 1 },
+        { cat: "DETERSIVI", color: "var(--cat-detersivi)", nome: "Ric. scopa", fer: 1, we: 1 },
+        { cat: "DETERSIVI", color: "var(--cat-detersivi)", nome: "Stracci", fer: 1, we: 1 },
+        { cat: "DETERSIVI", color: "var(--cat-detersivi)", nome: "Spugne", fer: 1, we: 1 },
+        { cat: "DETERSIVI", color: "var(--cat-detersivi)", nome: "Spugne ferro", fer: 1, we: 1 },
+        { cat: "VARIO", color: "var(--cat-vario)", nome: "Rot. comande", fer: 5, we: 10 },
+        { cat: "VARIO", color: "var(--cat-vario)", nome: "Rotoli pos", fer: 2, we: 5 },
+        { cat: "VARIO", color: "var(--cat-vario)", nome: "Rotoli scontrini", fer: 2, we: 5 },
+        { cat: "VARIO", color: "var(--cat-vario)", nome: "Spazzolaforno", fer: 1, we: 1 },
+        { cat: "VARIO", color: "var(--cat-vario)", nome: "Sacchi plastica", fer: 1, we: 2 },
+        { cat: "VARIO", color: "var(--cat-vario)", nome: "Sacc. plas picc", fer: 1, we: 1 },
+        { cat: "VARIO", color: "var(--cat-vario)", nome: "Sacchi umido", fer: 1, we: 2 },
+        { cat: "VARIO", color: "var(--cat-vario)", nome: "Sacc. umi. picc", fer: 1, we: 1 },
+        { cat: "VERDURE CRUDE", color: "var(--cat-crude)", nome: "Melanzane crude", fer: 0, we: 0, noObbligo: true },
+        { cat: "VERDURE CRUDE", color: "var(--cat-crude)", nome: "Zucchine crude", fer: 0, we: 0, noObbligo: true },
+        { cat: "VERDURE CRUDE", color: "var(--cat-crude)", nome: "Peperoni crudi", fer: 0, we: 0, noObbligo: true },
+        { cat: "VERDURE CRUDE", color: "var(--cat-crude)", nome: "Asparagi crudi", fer: 0, we: 0, noObbligo: true },
+        { cat: "VERDURE CRUDE", color: "var(--cat-crude)", nome: "Datterino crudo", fer: 0, we: 0, noObbligo: true },
+        { cat: "VERDURE CRUDE", color: "var(--cat-crude)", nome: "Datt. Giallo crudo", fer: 0, we: 0, noObbligo: true },
+        { cat: "VERDURE CRUDE", color: "var(--cat-crude)", nome: "Rucola cruda", fer: 0, we: 0, noObbligo: true },
+        { cat: "VERDURE CRUDE", color: "var(--cat-crude)", nome: "Basilico crudo", fer: 0, we: 0, noObbligo: true },
+        { cat: "VERDURE CRUDE", color: "var(--cat-crude)", nome: "Funghi crudi", fer: 0, we: 0, noObbligo: true }
+    ];
+
+    const listaBarbazza = ["brie", "gorgonzola", "asiago", "acciughe", "tonno (latte)", "salmone", "bresaola", "carciofi", "olive", "capperi", "semola", "carta mani", "pel.salsa", "cart.med", "cart.mezzi", "lievito"];
+
+    function soloNumeri(e) {
+        const charCode = (e.which) ? e.which : e.keyCode;
+        if (charCode == 47 || charCode == 44 || charCode == 46) return true;
+        if (charCode > 31 && (charCode < 48 || charCode > 57)) return false;
+        return true;
+    }
+
+    function estraiNumeroIntelligente(testo, nomeIngrediente = "") {
+        if (!testo) return NaN;
+        testo = testo.toString().toLowerCase().trim().replace(',', '.');
+        if (testo === "1/4") return 0.2;
+        if (testo === "1/3") return 0.3;
+        if (testo === "1/2") return 0.5;
+        if (testo === "2/3") return 0.7;
+        let valore = NaN;
+        const match = testo.match(/(\d+(\.\d+)?)/);
+        valore = match ? parseFloat(match[0]) : NaN;
+        return valore;
+    }
+
+    const oraAttuale = new Date();
+    const oggiString = oraAttuale.toISOString().split('T')[0];
+    const nomiGiorni = ["Domenica", "Lunedì", "Martedì", "Mercoledì", "Giovedì", "Venerdì", "Sabato"];
+    const oggiIdx = oraAttuale.getDay();
+    const domaniIdx = (oggiIdx + 1) % 7;
+    const isWeekendDomani = (domaniIdx === 0 || domaniIdx === 5 || domaniIdx === 6);
+    const isDomenicaOggi = (oggiIdx === 0);
+
+    document.getElementById('info-giorno').innerHTML = `
+        <div style="color: #333; font-size: 1.1em;">Oggi è <b>${nomiGiorni[oggiIdx]}</b></div>
+        <div style="margin-top: 5px;">Inventario per: <b>${nomiGiorni[domaniIdx]}</b> (${isWeekendDomani ? 'Weekend 🚀' : 'Feriale 🛡️'})</div>
+    `;
+
+    function generaVistaTutte() {
+        const cont = document.getElementById('contenitore-lista');
+        cont.innerHTML = "";
+        const datiCasta = JSON.parse(localStorage.getItem('inventario_dati_CASTA')) || {};
+        const datiSilea = JSON.parse(localStorage.getItem('inventario_dati_SILEA')) || {};
+        const datiBiban = JSON.parse(localStorage.getItem('inventario_dati_BIBAN')) || {};
+        let currentCat = "";
+        let html = "";
+        ingredienti.forEach((ing) => {
+            const soglia = isWeekendDomani ? ing.we : ing.fer;
+            const formattaValore = (valore, ingrediente) => {
+                if (!valore || valore === "-") return "-";
+                if (ingrediente.noObbligo) return valore;
+                const num = estraiNumeroIntelligente(valore, ingrediente.nome);
+                if (!isNaN(num) && num < soglia) return `<span class="sotto-soglia">${valore}</span>`;
+                return valore;
+            };
+            if(ing.cat !== currentCat) {
+                if(currentCat !== "") html += `</tbody></table></div>`;
+                html += `<div class="categoria-header" style="background-color: ${ing.color}">${ing.cat}</div><div class="tabella-globale cat-group"><table><thead><tr><th>NOME</th><th>Casta</th><th>Silea</th><th>Biban</th></tr></thead><tbody>`;
+                currentCat = ing.cat;
+            }
+            let vC = datiCasta[ing.nome] || "-";
+            let vS = datiSilea[ing.nome] || "-";
+            let vB = datiBiban[ing.nome] || "-";
+            if (ing.cat === "FREEZER") { vC = "-"; vS = "-"; }
+            html += `<tr class="ing-item" data-nome="${ing.nome.toLowerCase()}"><td>${ing.nome}</td><td>${formattaValore(vC, ing)}</td><td>${formattaValore(vS, ing)}</td><td>${formattaValore(vB, ing)}</td></tr>`;
+        });
+        cont.innerHTML = html + "</tbody></table></div>";
+    }
+
+    function generaVistaArchivio() {
+        const dataScelta = document.getElementById('archiveDate').value;
+        const cont = document.getElementById('contenitore-lista');
+        if (!dataScelta) return;
+        cont.innerHTML = `<div class="archivio-header">📅 Archivio del: <b>${dataScelta}</b></div>`;
+        const datiCasta = JSON.parse(localStorage.getItem(`archive_CASTA_${dataScelta}`)) || null;
+        const datiSilea = JSON.parse(localStorage.getItem(`archive_SILEA_${dataScelta}`)) || null;
+        const datiBiban = JSON.parse(localStorage.getItem(`archive_BIBAN_${dataScelta}`)) || null;
+        if (!datiCasta && !datiSilea && !datiBiban) { cont.innerHTML += `<div style="padding:20px; text-align:center; color:red;">NESSUN DATO TROVATO.</div>`; return; }
+        let currentCat = "";
+        let html = "";
+        ingredienti.forEach((ing) => {
+            if(ing.cat !== currentCat) {
+                if(currentCat !== "") html += `</tbody></table></div>`;
+                html += `<div class="categoria-header" style="background-color: ${ing.color}">${ing.cat}</div><div class="tabella-globale cat-group"><table><thead><tr><th>NOME</th><th>Casta</th><th>Silea</th><th>Biban</th></tr></thead><tbody>`;
+                currentCat = ing.cat;
+            }
+            let vC = (datiCasta && datiCasta[ing.nome]) ? datiCasta[ing.nome] : "-";
+            let vS = (datiSilea && datiSilea[ing.nome]) ? datiSilea[ing.nome] : "-";
+            let vB = (datiBiban && datiBiban[ing.nome]) ? datiBiban[ing.nome] : "-";
+            if (ing.cat === "FREEZER") { vC = "-"; vS = "-"; }
+            html += `<tr class="ing-item" data-nome="${ing.nome.toLowerCase()}"><td>${ing.nome}</td><td>${vC}</td><td>${vS}</td><td>${vB}</td></tr>`;
+        });
+        cont.innerHTML += html + "</tbody></table></div>";
+    }
+
+    function calcolaCipollaSfusa(i, soglia) {
+        const sfuse = document.getElementById(`sfuse-${i}`).value;
+        const inputCassa = document.getElementById(`sel-${i}`);
+        if(sfuse && !isNaN(sfuse)) { inputCassa.value = (parseFloat(sfuse) / 20).toFixed(2); } 
+        else { inputCassa.value = ""; }
+        valuta(i, soglia, "cass.Cipolla");
+    }
+
+    function valuta(i, soglia, nomeIngrediente) {
+        const input = document.getElementById(`sel-${i}`);
+        const box = document.getElementById(`box-${i}`);
+        if(!input) return;
+        let valTesto = input.value;
+        if (valTesto === "1/4") valTesto = "0.2";
+        if (valTesto === "1/3") valTesto = "0.3";
+        if (valTesto === "1/2") valTesto = "0.5";
+        if (valTesto === "2/3") valTesto = "0.7";
+        input.value = valTesto;
+        const facoltativo = ingredienti.find(ing => ing.nome === nomeIngrediente)?.noObbligo;
+        if (input.value.trim() === "") box.className = facoltativo ? "item no-obbligo ing-item" : "item vuoto ing-item";
+        else {
+            const val = estraiNumeroIntelligente(input.value);
+            box.className = (val < soglia) ? "item urgente ing-item" : "item ok ing-item";
+        }
+    }
+
+    function creaLista() {
+        const cont = document.getElementById('contenitore-lista');
+        const pizzo = document.getElementById('pizzeria').value;
+        const btnAzzera = document.getElementById('btn-azzera');
+        const searchBox = document.getElementById('search-box');
+        const footerBtns = document.getElementById('footer-btns');
+        const datePicker = document.getElementById('date-picker-container');
+        const riepilogoDiv = document.getElementById('riepilogo-globale');
+        cont.innerHTML = ""; riepilogoDiv.innerHTML = "";
+        if (!pizzo) { btnAzzera.style.display = "none"; searchBox.style.display = "none"; footerBtns.style.display = "none"; datePicker.style.display = "none"; return; }
+        if (pizzo === "ARCHIVIO") { btnAzzera.style.display = "none"; footerBtns.style.display = "none"; searchBox.style.display = "block"; datePicker.style.display = "block"; generaVistaArchivio(); return; }
+        datePicker.style.display = "none"; searchBox.style.display = "block";
+        if (pizzo === "TUTTE") { btnAzzera.style.display = "none"; footerBtns.style.display = "none"; generaVistaTutte(); return; }
+        btnAzzera.style.display = "block"; footerBtns.style.display = "flex";
+        if (pizzo === "BIBAN") generaTabellaRiepilogoBiban();
+        let currentCat = "";
+        const salvati = JSON.parse(localStorage.getItem('inventario_dati_' + pizzo)) || {};
+        ingredienti.forEach((ing, i) => {
+            let daMostrare = true;
+            if (ing.cat === "FREEZER" && pizzo !== "BIBAN") daMostrare = false;
+            if (ing.cat === "VERDURE CRUDE" && (pizzo !== "CASTA" || !isDomenicaOggi)) daMostrare = false;
+            if (daMostrare) {
+                if(ing.cat !== currentCat) {
+                    cont.innerHTML += `<div class="categoria-header" style="background-color: ${ing.color}">${ing.cat}</div>`;
+                    currentCat = ing.cat;
+                }
+                const soglia = isWeekendDomani ? ing.we : ing.fer;
+                const vPrev = salvati[ing.nome] || "";
+                let inputHtml = `<input type="text" class="qty-input" id="sel-${i}" placeholder="Qtà" value="${vPrev}" inputmode="decimal" onkeypress="return soloNumeri(event)" oninput="valuta(${i}, ${soglia}, '${ing.nome}')">`;
+                if(ing.nome === "cass.Cipolla") {
+                    inputHtml = `<div class="input-wrapper"><span class="mini-label">N. cipolle</span><input type="text" class="qty-input" id="sfuse-${i}" inputmode="numeric" onkeypress="return soloNumeri(event)" oninput="calcolaCipollaSfusa(${i}, ${soglia})"><input type="text" class="qty-input" id="sel-${i}" placeholder="Cassa" value="${vPrev}" inputmode="decimal" onkeypress="return soloNumeri(event)" oninput="valuta(${i}, ${soglia}, '${ing.nome}')"></div>`;
+                }
+                cont.innerHTML += `<div class="item ${ing.noObbligo ? 'no-obbligo' : (vPrev===''?'vuoto':'')} ing-item" id="box-${i}" data-nome="${ing.nome.toLowerCase()}"><div><div class="nome-ingrediente">${ing.nome}</div><div class="soglia-info">${ing.noObbligo ? '' : 'Min: ' + soglia}</div></div><div class="input-container">${inputHtml}</div></div>`;
+                if(vPrev !== "") valuta(i, soglia, ing.nome);
+            }
+        });
+    }
+
+    function filtraLista() {
+        const query = document.getElementById('searchInput').value.toLowerCase().trim();
+        const items = document.querySelectorAll('.ing-item');
+        const headers = document.querySelectorAll('.categoria-header');
+        items.forEach(item => {
+            const nome = item.getAttribute('data-nome');
+            if (query === "barbazza") item.style.display = listaBarbazza.includes(nome) ? (item.tagName==='TR'?'table-row':'flex') : "none";
+            else item.style.display = nome.includes(query) ? (item.tagName==='TR'?'table-row':'flex') : "none";
+        });
+        headers.forEach(h => h.style.display = (query === "") ? "block" : "none");
+    }
+
+    function salvaDati() {
+        const pizzo = document.getElementById('pizzeria').value;
+        if (!pizzo || pizzo === "TUTTE" || pizzo === "ARCHIVIO") return;
+        let dati = {};
+        ingredienti.forEach((ing, i) => { const input = document.getElementById(`sel-${i}`); if (input) dati[ing.nome] = input.value; });
+        localStorage.setItem('inventario_dati_' + pizzo, JSON.stringify(dati));
+        localStorage.setItem(`archive_${pizzo}_${oggiString}`, JSON.stringify(dati));
+        alert("✅ Salvato!");
+    }
+
+    function generaTabellaRiepilogoBiban() {
+        const div = document.getElementById('riepilogo-globale');
+        const dC = JSON.parse(localStorage.getItem('inventario_dati_CASTA')) || {};
+        const dS = JSON.parse(localStorage.getItem('inventario_dati_SILEA')) || {};
+        const dB = JSON.parse(localStorage.getItem('inventario_dati_BIBAN')) || {};
+        const pasta = ingredienti.filter(ing => ing.cat === "PASTA");
+        let h = `<div class="riepilogo-biban"><table><thead><tr><th>PASTA</th><th>Casta</th><th>Silea</th><th>Biban</th></tr></thead><tbody>`;
+        pasta.forEach(ing => { h += `<tr><td>${ing.nome}</td><td>${dC[ing.nome]||'-'}</td><td>${dS[ing.nome]||'-'}</td><td>${dB[ing.nome]||'-'}</td></tr>`; });
+        div.innerHTML = h + "</tbody></table></div>";
+    }
+
+    function azzeraLista() { if(confirm("Azzero?")) { localStorage.removeItem('inventario_dati_'+document.getElementById('pizzeria').value); creaLista(); } }
+    function cambiaPizzeria() { document.getElementById('searchInput').value = ""; creaLista(); }
+    window.onload = function() { const uP = localStorage.getItem('ultima_pizzeria'); if(uP){document.getElementById('pizzeria').value=uP; creaLista();} }
+
+    function inviaWhatsApp() {
+        const pizzo = document.getElementById('pizzeria').value;
+        let msg = `🏪 *INV. ${pizzo}* - PER ${nomiGiorni[domaniIdx].toUpperCase()}\n\n`;
+        let trovati = false;
+        ingredienti.forEach((ing, i) => {
+            const input = document.getElementById(`sel-${i}`);
+            if (input && input.value !== "") {
+                const val = estraiNumeroIntelligente(input.value);
+                const soglia = isWeekendDomani ? ing.we : ing.fer;
+                if(val < soglia) { msg += `• *${ing.nome}*: ${input.value}\n`; trovati = true; }
+            }
+        });
+        if(!trovati) msg += "✅ Tutto OK!";
+        window.location.href = "whatsapp://send?text=" + encodeURIComponent(msg);
+    }
+</script>
+</body>
+</html>
