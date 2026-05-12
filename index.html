@@ -22,7 +22,7 @@
         .search-input { width: 100%; padding: 12px; border-radius: 10px; border: 1px solid var(--accent); font-size: 15px; box-sizing: border-box; background: #fff; }
         #contenitore-lista { display: grid; grid-template-columns: 1fr; gap: 15px; max-width: 1400px; margin: 0 auto; align-items: start; }
         
-        /* Layout per Vista Tutte (Grid a colonne su Desktop) */
+        /* Layout per Viste Tabellari (Grid a colonne su Desktop) */
         .grid-vista-tutte { display: grid; grid-template-columns: 1fr; gap: 20px; grid-column: 1 / -1; }
         @media (min-width: 768px) { .grid-vista-tutte { grid-template-columns: repeat(2, 1fr); } }
         @media (min-width: 1200px) { .grid-vista-tutte { grid-template-columns: repeat(3, 1fr); } }
@@ -89,7 +89,9 @@
         <div id="search-box" style="margin-top: 10px; display: none;">
             <input type="text" id="searchInput" class="search-input" placeholder="🔍 Cerca ingrediente..." oninput="filtraLista()">
         </div>
-        <div id="date-picker-container" style="display: none; margin-top:10px;"><input type="date" id="archiveDate" class="date-input" onchange="generaVistaArchivio()"></div>
+        <div id="date-picker-container" style="display: none; margin-top:10px;">
+            <input type="date" id="archiveDate" class="date-input" onchange="generaVistaArchivio()">
+        </div>
         <button id="btn-azzera" class="btn-reset" onclick="azzeraLista()" style="display:none;">🗑️ AZZERA LISTA ATTUALE</button>
     </div>
 
@@ -273,7 +275,6 @@
         const d_silea = JSON.parse(localStorage.getItem('inventario_dati_SILEA')) || {};
         const d_biban = JSON.parse(localStorage.getItem('inventario_dati_BIBAN')) || {};
 
-        // Raggruppa ingredienti per categoria
         const raggruppati = {};
         ingredienti.forEach(ing => {
             if (ing.cat === "VERDURE CRUDE") return; 
@@ -282,7 +283,6 @@
         });
 
         let h = `<div class="grid-vista-tutte">`;
-        
         for (const cat in raggruppati) {
             h += `<div class="container-cat-tutte">
                 <div class="header-cat-tabella" style="background:${raggruppati[cat].color}">${cat}</div>
@@ -291,18 +291,45 @@
             
             raggruppati[cat].items.forEach(ing => {
                 const soglia = isWeekendDomani ? ing.we : ing.fer;
-                
                 const processaValore = (val) => {
                     const n = estraiNumeroIntelligente(val);
                     if (!isNaN(n) && n < soglia) return `<span style="color:var(--red)">${val}</span>`;
                     return val || "-";
                 };
+                h += `<tr><td class="td-nome">${ing.nome}</td><td>${processaValore(d_casta[ing.nome])}</td><td>${processaValore(d_silea[ing.nome])}</td><td>${processaValore(d_biban[ing.nome])}</td></tr>`;
+            });
+            h += `</tbody></table></div>`;
+        }
+        h += `</div>`;
+        cont.innerHTML = h;
+    }
 
-                const vC = processaValore(d_casta[ing.nome]);
-                const vS = processaValore(d_silea[ing.nome]);
-                const vB = processaValore(d_biban[ing.nome]);
-                
-                h += `<tr><td class="td-nome">${ing.nome}</td><td>${vC}</td><td>${vS}</td><td>${vB}</td></tr>`;
+    function generaVistaArchivio() {
+        const dataScelta = document.getElementById('archiveDate').value;
+        if (!dataScelta) return;
+        const cont = document.getElementById('contenitore-lista');
+        cont.classList.add("vista-tabellare");
+
+        // Simula il recupero dei dati di quel giorno (se presenti nello storage locale sincronizzato)
+        const d_casta = JSON.parse(localStorage.getItem(`inventario_dati_CASTA_${dataScelta}`)) || JSON.parse(localStorage.getItem(`inventario_dati_CASTA`)) || {};
+        const d_silea = JSON.parse(localStorage.getItem(`inventario_dati_SILEA_${dataScelta}`)) || JSON.parse(localStorage.getItem(`inventario_dati_SILEA`)) || {};
+        const d_biban = JSON.parse(localStorage.getItem(`inventario_dati_BIBAN_${dataScelta}`)) || JSON.parse(localStorage.getItem(`inventario_dati_BIBAN`)) || {};
+
+        const raggruppati = {};
+        ingredienti.forEach(ing => {
+            if (ing.cat === "VERDURE CRUDE") return; 
+            if (!raggruppati[ing.cat]) raggruppati[ing.cat] = { color: ing.color, items: [] };
+            raggruppati[ing.cat].items.push(ing);
+        });
+
+        let h = `<div style="grid-column: 1/-1; text-align:center; padding:10px; font-weight:bold; color:var(--primary)">Dati del: ${dataScelta}</div><div class="grid-vista-tutte">`;
+        for (const cat in raggruppati) {
+            h += `<div class="container-cat-tutte">
+                <div class="header-cat-tabella" style="background:${raggruppati[cat].color}">${cat}</div>
+                <table class="tabella-tutte">
+                <thead><tr><th>Ingrediente</th><th>Casta</th><th>Silea</th><th>Biban</th></tr></thead><tbody>`;
+            raggruppati[cat].items.forEach(ing => {
+                h += `<tr><td class="td-nome">${ing.nome}</td><td>${d_casta[ing.nome] || "-"}</td><td>${d_silea[ing.nome] || "-"}</td><td>${d_biban[ing.nome] || "-"}</td></tr>`;
             });
             h += `</tbody></table></div>`;
         }
@@ -315,12 +342,15 @@
         const p = document.getElementById('pizzeria').value;
         cont.innerHTML = "";
         cont.classList.remove("vista-tabellare");
+        
         document.getElementById('btn-azzera').style.display = (p && p !== "TUTTE" && p !== "ARCHIVIO") ? "block" : "none";
         document.getElementById('footer-btns').style.display = (p && p !== "TUTTE" && p !== "ARCHIVIO") ? "flex" : "none";
         document.getElementById('search-box').style.display = (p && p !== "TUTTE" && p !== "ARCHIVIO") ? "block" : "none";
+        document.getElementById('date-picker-container').style.display = (p === "ARCHIVIO") ? "block" : "none";
         
         if (p === "TUTTE") { generaVistaTutte(); return; }
-        if (!p || p === "ARCHIVIO") return;
+        if (p === "ARCHIVIO") { generaVistaArchivio(); return; }
+        if (!p) return;
 
         const s = JSON.parse(localStorage.getItem('inventario_dati_'+p)) || {};
         let currentCat = "";
@@ -362,7 +392,6 @@
                 }
             }
         });
-
         if (vuoti.length > 0) {
             document.getElementById('lista-nomi-vuoti').innerHTML = vuoti.join(", ");
             document.getElementById('overlay').style.display = 'block';
@@ -380,8 +409,12 @@
     async function eseguiSalva(forza = false) {
         const p = document.getElementById('pizzeria').value;
         const d = {};
+        const oggiStr = new Date().toISOString().split('T')[0];
         ingredienti.forEach((ing, i) => { const input = document.getElementById(`sel-${i}`); if(input) d[ing.nome] = input.value; });
+        
         localStorage.setItem('inventario_dati_'+p, JSON.stringify(d));
+        localStorage.setItem(`inventario_dati_${p}_${oggiStr}`, JSON.stringify(d)); // Salvataggio per archivio
+        
         const cloud = {}; for(let i=0; i<localStorage.length; i++) cloud[localStorage.key(i)] = localStorage.getItem(localStorage.key(i));
         await syncCloud(cloud);
         chiudiDialog();
