@@ -198,8 +198,9 @@
 
     function soloNumeri(e) {
         const charCode = (e.which) ? e.which : e.keyCode;
-        // Permette numeri, "/", ",", ".", "+"
-        if (charCode == 47 || charCode == 44 || charCode == 46 || charCode == 43) return true;
+        // Permette numeri (48-57), "/", ",", ".", "+"
+        const allowed = [47, 44, 46, 43];
+        if (allowed.includes(charCode)) return true;
         if (charCode > 31 && (charCode < 48 || charCode > 57)) return false;
         return true;
     }
@@ -208,32 +209,22 @@
         if (!testo) return NaN;
         testo = testo.toString().toLowerCase().trim().replace(',', '.');
         
-        // Se è una frazione secca, applica le tue conversioni personalizzate
+        // Conversioni fisse
         if (testo === "1/4") return 0.2;
         if (testo === "1/3") return 0.3;
         if (testo === "1/2") return 0.5;
         if (testo === "2/3") return 0.7;
         if (testo === "3/4") return 0.7;
 
-        // Gestione calcoli con "+"
+        // Calcoli matematici complessi
         try {
-            if (testo.includes('+')) {
-                const parti = testo.split('+');
-                let totale = 0;
-                parti.forEach(part => {
-                    let p = part.trim();
-                    if (p.includes('/')) {
-                        const f = p.split('/');
-                        totale += parseFloat(f[0]) / parseFloat(f[1]);
-                    } else {
-                        totale += parseFloat(p) || 0;
-                    }
+            if (testo.includes('+') || testo.includes('/')) {
+                // Sostituiamo le frazioni con il loro valore prima di valutare la somma
+                let espressione = testo.replace(/(\d+)\/(\d+)/g, (match, num, den) => {
+                    return (parseFloat(num) / parseFloat(den));
                 });
-                return totale;
-            }
-            if (testo.includes('/')) {
-                const f = testo.split('/');
-                return parseFloat(f[0]) / parseFloat(f[1]);
+                // Eval è sicuro qui perché abbiamo filtrato i caratteri in ingresso
+                return eval(espressione);
             }
             return parseFloat(testo);
         } catch(e) { return NaN; }
@@ -309,10 +300,15 @@
     }
 
     function calcolaCipollaSfusa(i, soglia) {
-        const sfuse = document.getElementById(`sfuse-${i}`).value;
-        const inputCassa = document.getElementById(`sel-${i}`);
-        if(sfuse && !isNaN(sfuse)) { inputCassa.value = (parseFloat(sfuse) / 20).toFixed(2); } 
-        else { inputCassa.value = ""; }
+        const sfuseInput = document.getElementById(`sfuse-${i}`);
+        const cassaInput = document.getElementById(`sel-${i}`);
+        const sfuse = sfuseInput.value;
+        if(sfuse && !isNaN(sfuse)) {
+            const calcolo = (parseFloat(sfuse) / 20).toFixed(2);
+            cassaInput.value = calcolo;
+        } else {
+            cassaInput.value = "";
+        }
         valuta(i, soglia, "cass.Cipolla");
     }
 
@@ -320,27 +316,31 @@
         const input = document.getElementById(`sel-${i}`);
         const box = document.getElementById(`box-${i}`);
         if(!input) return;
-        let valTesto = input.value;
         
-        // Conversioni frazioni secche
-        if (valTesto === "1/4") valTesto = "0.2";
-        else if (valTesto === "1/3") valTesto = "0.3";
-        else if (valTesto === "1/2") valTesto = "0.5";
-        else if (valTesto === "2/3") valTesto = "0.7";
-        else if (valTesto === "3/4") valTesto = "0.7";
+        let valTesto = input.value.trim();
 
-        // Calcolo automatico somme se NON finisce con "+" (aspettiamo che finisca di scrivere)
-        if (valTesto.includes('+') && !valTesto.endsWith('+') && !valTesto.endsWith('/')) {
-            const calcolato = estraiNumeroIntelligente(valTesto);
-            if (!isNaN(calcolato)) valTesto = parseFloat(calcolato.toFixed(2)).toString();
-        }
-
-        input.value = valTesto;
+        // Applichiamo la conversione solo se l'utente ha finito di digitare (blur) o se è una frazione secca
+        const calcolato = estraiNumeroIntelligente(valTesto);
+        
+        // Cambiamo il colore del box in base al valore calcolato
         const facoltativo = ingredienti.find(ing => ing.nome === nomeIngrediente)?.noObbligo;
-        if (input.value.trim() === "") box.className = facoltativo ? "item no-obbligo ing-item" : "item vuoto ing-item";
-        else {
-            const val = estraiNumeroIntelligente(input.value);
-            box.className = (val < soglia) ? "item urgente ing-item" : "item ok ing-item";
+        if (valTesto === "") {
+            box.className = facoltativo ? "item no-obbligo ing-item" : "item vuoto ing-item";
+        } else {
+            box.className = (calcolato < soglia) ? "item urgente ing-item" : "item ok ing-item";
+        }
+    }
+
+    // Funzione per convertire il testo in numero quando si esce dal campo (blur)
+    function finalizzaInput(input, soglia, nomeIngrediente) {
+        const i = input.id.replace('sel-', '');
+        let valTesto = input.value.trim();
+        if (valTesto === "") return;
+
+        const calcolato = estraiNumeroIntelligente(valTesto);
+        if (!isNaN(calcolato)) {
+            input.value = parseFloat(calcolato.toFixed(2));
+            valuta(i, soglia, nomeIngrediente);
         }
     }
 
@@ -372,9 +372,9 @@
                 }
                 const soglia = isWeekendDomani ? ing.we : ing.fer;
                 const vPrev = salvati[ing.nome] || "";
-                let inputHtml = `<input type="text" class="qty-input" id="sel-${i}" placeholder="Qtà" value="${vPrev}" inputmode="decimal" onkeypress="return soloNumeri(event)" oninput="valuta(${i}, ${soglia}, '${ing.nome}')">`;
+                let inputHtml = `<input type="text" class="qty-input" id="sel-${i}" placeholder="Qtà" value="${vPrev}" inputmode="decimal" onkeypress="return soloNumeri(event)" oninput="valuta(${i}, ${soglia}, '${ing.nome}')" onblur="finalizzaInput(this, ${soglia}, '${ing.nome}')">`;
                 if(ing.nome === "cass.Cipolla") {
-                    inputHtml = `<div class="input-wrapper"><span class="mini-label">N. cipolle</span><input type="text" class="qty-input" id="sfuse-${i}" inputmode="numeric" onkeypress="return soloNumeri(event)" oninput="calcolaCipollaSfusa(${i}, ${soglia})"><input type="text" class="qty-input" id="sel-${i}" placeholder="Cassa" value="${vPrev}" inputmode="decimal" onkeypress="return soloNumeri(event)" oninput="valuta(${i}, ${soglia}, '${ing.nome}')"></div>`;
+                    inputHtml = `<div class="input-wrapper"><span class="mini-label">N. cipolle</span><input type="text" class="qty-input" id="sfuse-${i}" inputmode="numeric" onkeypress="return soloNumeri(event)" oninput="calcolaCipollaSfusa(${i}, ${soglia})"><input type="text" class="qty-input" id="sel-${i}" placeholder="Cassa" value="${vPrev}" inputmode="decimal" onkeypress="return soloNumeri(event)" oninput="valuta(${i}, ${soglia}, '${ing.nome}')" onblur="finalizzaInput(this, ${soglia}, '${ing.nome}')"></div>`;
                 }
                 cont.innerHTML += `<div class="item ${ing.noObbligo ? 'no-obbligo' : (vPrev===''?'vuoto':'')} ing-item" id="box-${i}" data-nome="${ing.nome.toLowerCase()}"><div><div class="nome-ingrediente">${ing.nome}</div><div class="soglia-info">${ing.noObbligo ? '' : 'Min: ' + soglia}</div></div><div class="input-container">${inputHtml}</div></div>`;
                 if(vPrev !== "") valuta(i, soglia, ing.nome);
