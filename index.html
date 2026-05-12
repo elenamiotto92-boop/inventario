@@ -62,6 +62,7 @@
             background: #fff;
         }
 
+        /* Layout Liste Pizzerie Singole */
         #contenitore-lista { 
             display: grid; 
             grid-template-columns: 1fr; 
@@ -74,7 +75,25 @@
         @media (min-width: 768px) { #contenitore-lista { grid-template-columns: repeat(2, 1fr); } }
         @media (min-width: 1200px) { #contenitore-lista { grid-template-columns: repeat(3, 1fr); } }
 
-        /* --- CARD STYLE AGGIORNATA PER MOBILE --- */
+        /* Stile Tabelle Sezione Visualizza (Ripristinato) */
+        .cat-group-container { 
+            background: var(--white); 
+            border-radius: 12px; 
+            overflow: hidden; 
+            border: 1px solid var(--accent); 
+            box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+            margin-bottom: 20px;
+            grid-column: 1 / -1; /* Occupa tutta la larghezza in vista tabella */
+        }
+
+        .tabella-globale { width: 100%; font-size: 0.85em; }
+        table { width: 100%; border-collapse: collapse; table-layout: fixed; }
+        th { background: var(--accent); color: var(--primary); padding: 10px 5px; text-align: center; border-bottom: 2px solid var(--primary); }
+        th:first-child { text-align: left; width: 40%; padding-left: 10px; }
+        td { padding: 10px 5px; border-bottom: 1px solid #eee; text-align: center; vertical-align: middle; }
+        td:first-child { text-align: left; font-weight: bold; padding-left: 10px; background: #fafafa; }
+
+        /* Card Style per Inserimento Mobile */
         .item { 
             background: var(--white); 
             padding: 12px 15px; 
@@ -87,41 +106,14 @@
             box-sizing: border-box; 
         }
 
-        .nome-container {
-            flex: 1;
-            padding-right: 10px;
-        }
-
+        .nome-container { flex: 1; padding-right: 10px; }
         .nome-ingrediente { font-weight: 600; color: var(--text); font-size: 15px; line-height: 1.2; }
         .soglia-info { font-size: 11px; color: #795548; font-weight: bold; }
 
-        .input-container {
-            display: flex;
-            align-items: center;
-            justify-content: flex-end;
-        }
-
-        /* --- FIX SPECIFICO PER CIPOLLA (DOPPIA CASELLA) --- */
-        .input-wrapper { 
-            display: flex; 
-            flex-direction: column; 
-            gap: 4px; 
-            align-items: flex-end; /* Allinea a destra per seguire la card */
-        }
-
-        .sfuse-box {
-            display: flex;
-            align-items: center;
-            gap: 5px;
-        }
-
-        .mini-label { 
-            font-size: 10px; 
-            font-weight: 800; 
-            color: var(--primary); 
-            text-transform: uppercase;
-            white-space: nowrap;
-        }
+        .input-container { display: flex; align-items: center; justify-content: flex-end; }
+        .input-wrapper { display: flex; flex-direction: column; gap: 4px; align-items: flex-end; }
+        .sfuse-box { display: flex; align-items: center; gap: 5px; }
+        .mini-label { font-size: 10px; font-weight: 800; color: var(--primary); text-transform: uppercase; white-space: nowrap; }
 
         input.qty-input { 
             width: 80px; 
@@ -162,6 +154,7 @@
 
         .categoria-header { background: var(--primary); color: white; padding: 12px; font-size: 14px; font-weight: 700; text-transform: uppercase; text-align: center; grid-column: 1 / -1; margin-top: 10px; border-radius: 8px; }
         .alert-festivo { background: #ffecb3; color: #5d4037; padding: 8px; border-radius: 8px; font-weight: 700; font-size: 0.85em; margin-top: 10px; border: 1px solid #ffe082; }
+        .archivio-header { background: var(--primary); color: white; padding: 10px; border-radius: 8px; margin-bottom: 15px; font-weight: bold; text-align: center; grid-column: 1 / -1; }
     </style>
 </head>
 <body>
@@ -188,7 +181,6 @@
         <button id="btn-azzera" class="btn-reset" onclick="azzeraLista()">🗑️ AZZERA LISTA ATTUALE</button>
     </div>
 
-    <div id="riepilogo-globale"></div>
     <div id="contenitore-lista"></div>
 
     <div class="footer-controls" id="footer-btns">
@@ -197,7 +189,7 @@
     </div>
 
 <script>
-    // --- LOGICA FESTIVITÀ ---
+    // --- DATI E LOGICA (INVARIATI) ---
     function getPasqua(anno) {
         const a = anno % 19, b = Math.floor(anno / 100), c = anno % 100,
               d = Math.floor(b / 4), e = b % 4, f = Math.floor((b + 8) / 25),
@@ -239,7 +231,6 @@
         avviso.innerHTML = `⚠️ ATTENZIONE: Domani è Pre-Festivo!`;
     }
 
-    // --- DATI ---
     const ingredienti = [
         { cat: "PASTA", nome: "Palline norm", fer: 150, we: 250 },
         { cat: "PASTA", nome: "Palline canapa", fer: 15, we: 30 },
@@ -355,6 +346,7 @@
 
     const listaBarbazza = ["brie", "gorgonzola", "asiago", "acciughe", "tonno (latte)", "salmone", "bresaola", "carciofi", "olive", "capperi", "semola", "carta mani", "pel.salsa", "cart.med", "cart.mezzi", "lievito"];
 
+    // --- FUNZIONI LOGICHE ---
     function soloNumeri(e) {
         const charCode = (e.which) ? e.which : e.keyCode;
         const allowed = [47, 44, 46, 43];
@@ -412,6 +404,7 @@
         const dS = JSON.parse(localStorage.getItem('inventario_dati_SILEA')) || {};
         const dB = JSON.parse(localStorage.getItem('inventario_dati_BIBAN')) || {};
         let currentCat = ""; let html = "";
+        
         ingredienti.forEach((ing) => {
             const soglia = isWeekendDomani ? ing.we : ing.fer;
             const fmt = (v, ingrediente) => {
@@ -420,12 +413,18 @@
                 const num = estraiNumeroIntelligente(v);
                 return (!isNaN(num) && num < soglia) ? `<span style="color:var(--red); font-weight:bold;">${v}</span>` : v;
             };
+
             if(ing.cat !== currentCat) {
                 if(currentCat !== "") html += `</tbody></table></div></div>`;
                 html += `<div class="cat-group-container cat-section"><div class="categoria-header">${ing.cat}</div><div class="tabella-globale"><table><thead><tr><th>INGREDIENTE</th><th>Casta</th><th>Silea</th><th>Biban</th></tr></thead><tbody>`;
                 currentCat = ing.cat;
             }
-            html += `<tr class="ing-item" data-nome="${ing.nome.toLowerCase()}"><td>${ing.nome}</td><td>${fmt(dC[ing.nome],ing)}</td><td>${fmt(dS[ing.nome],ing)}</td><td>${fmt(dB[ing.nome],ing)}</td></tr>`;
+            
+            let valCasta = (ing.cat === "FREEZER") ? "-" : (dC[ing.nome] || "-");
+            let valSilea = (ing.cat === "FREEZER") ? "-" : (dS[ing.nome] || "-");
+            let valBiban = dB[ing.nome] || "-";
+
+            html += `<tr class="ing-item" data-nome="${ing.nome.toLowerCase()}"><td>${ing.nome}</td><td>${fmt(valCasta,ing)}</td><td>${fmt(valSilea,ing)}</td><td>${fmt(valBiban,ing)}</td></tr>`;
         });
         cont.innerHTML = html + "</tbody></table></div></div>";
     }
@@ -446,7 +445,10 @@
                 html += `<div class="cat-group-container cat-section"><div class="categoria-header">${ing.cat}</div><div class="tabella-globale"><table><thead><tr><th>INGREDIENTE</th><th>Casta</th><th>Silea</th><th>Biban</th></tr></thead><tbody>`;
                 currentCat = ing.cat;
             }
-            html += `<tr class="ing-item" data-nome="${ing.nome.toLowerCase()}"><td>${ing.nome}</td><td>${dC?.[ing.nome] || "-"}</td><td>${dS?.[ing.nome] || "-"}</td><td>${dB?.[ing.nome] || "-"}</td></tr>`;
+            let valCasta = (ing.cat === "FREEZER") ? "-" : (dC?.[ing.nome] || "-");
+            let valSilea = (ing.cat === "FREEZER") ? "-" : (dS?.[ing.nome] || "-");
+            let valBiban = dB?.[ing.nome] || "-";
+            html += `<tr class="ing-item" data-nome="${ing.nome.toLowerCase()}"><td>${ing.nome}</td><td>${valCasta}</td><td>${valSilea}</td><td>${valBiban}</td></tr>`;
         });
         cont.innerHTML += html + "</tbody></table></div></div>";
     }
@@ -490,10 +492,8 @@
                 const soglia = isWeekendDomani ? ing.we : ing.fer;
                 const vPrev = salvati[ing.nome] || "";
                 
-                // Card nome e soglia
                 let cardHtml = `<div class="nome-container"><div class="nome-ingrediente">${ing.nome}</div><div class="soglia-info">${ing.noObbligo ? '' : 'Min: ' + soglia}</div></div>`;
                 
-                // Container input
                 let inputHtml = "";
                 if(ing.nome === "cass.Cipolla") {
                     inputHtml = `<div class="input-container"><div class="input-wrapper"><div class="sfuse-box"><span class="mini-label">N. sfuse</span><input type="text" class="qty-input" id="sfuse-${i}" inputmode="numeric" onkeypress="return soloNumeri(event)" oninput="calcolaCipollaSfusa(${i}, ${soglia})"></div><input type="text" class="qty-input" id="sel-${i}" placeholder="Cassa" value="${vPrev}" inputmode="decimal" onkeypress="return soloNumeri(event)" oninput="valuta(${i}, ${soglia}, '${ing.nome}')" onblur="finalizzaInput(this, ${soglia}, '${ing.nome}')"></div></div>`;
