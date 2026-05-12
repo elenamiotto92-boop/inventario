@@ -6,15 +6,15 @@
     <title>Inventario Pizzerie - Premium</title>
     <style>
         :root { 
-            --primary: #6d4c41; /* Marrone scuro */
-            --secondary: #8d6e63; /* Marrone medio */
-            --accent: #d7ccc8; /* Beige chiaro */
-            --background: #f5f5f2; /* Sfondo carta */
+            --primary: #6d4c41; 
+            --secondary: #8d6e63; 
+            --accent: #d7ccc8; 
+            --background: #f5f5f2; 
             --white: #ffffff;
             --text: #3e2723;
             --red: #a30000;
             --green: #2e7d32;
-            --gold: #bf360c; /* Arancio bruciato per soglie */
+            --gold: #bf360c;
 
             /* Colori Categorie Soft */
             --cat-pasta: #d7ccc8; --cat-vaschette: #cfd8dc; --cat-formaggi: #fff9c4;
@@ -34,7 +34,6 @@
             padding-bottom: 180px; 
         }
         
-        /* Header Moderno */
         .header-box { 
             background: var(--white); 
             padding: 20px; 
@@ -48,8 +47,6 @@
             margin-right: auto; 
         }
 
-        #info-giorno b { color: var(--primary); }
-
         select.pizzeria-select, .date-input { 
             width: 100%; 
             padding: 14px; 
@@ -61,11 +58,7 @@
             margin-top: 10px; 
             color: var(--primary); 
             box-sizing: border-box;
-            cursor: pointer;
-            transition: all 0.3s;
         }
-
-        select.pizzeria-select:focus { border-color: var(--primary); outline: none; box-shadow: 0 0 0 3px rgba(109, 76, 65, 0.1); }
 
         .search-input { 
             width: 100%; 
@@ -81,7 +74,7 @@
         #contenitore-lista { 
             display: grid; 
             grid-template-columns: 1fr; 
-            gap: 12px; 
+            gap: 15px; 
             max-width: 1400px; 
             margin: 0 auto; 
             align-items: start; 
@@ -90,22 +83,33 @@
         @media (min-width: 768px) { #contenitore-lista { grid-template-columns: repeat(2, 1fr); } }
         @media (min-width: 1200px) { #contenitore-lista { grid-template-columns: repeat(3, 1fr); } }
 
+        .cat-group-container { 
+            display: flex; 
+            flex-direction: column; 
+            background: var(--white); 
+            border-radius: 12px; 
+            overflow: hidden; 
+            border: 1px solid var(--accent); 
+            box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+        }
+
         .categoria-header { 
             background: var(--primary); 
             color: var(--white); 
             padding: 12px; 
-            border-radius: 10px; 
             font-size: 14px; 
             font-weight: 700; 
-            letter-spacing: 1px;
             text-transform: uppercase; 
             text-align: center; 
-            grid-column: 1 / -1;
-            margin-top: 15px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
         
-        /* Card Artigianali */
+        .tabella-globale { width: 100%; font-size: 0.85em; }
+        table { width: 100%; border-collapse: collapse; table-layout: fixed; }
+        th { background: var(--accent); color: var(--primary); padding: 10px 5px; text-align: center; border-bottom: 1px solid var(--accent); }
+        th:first-child { text-align: left; width: 40%; padding-left: 10px; }
+        td { padding: 10px 5px; border-bottom: 1px solid #eee; text-align: center; vertical-align: middle; }
+        td:first-child { text-align: left; font-weight: bold; padding-left: 10px; background: #fafafa; }
+        
         .item { 
             background: var(--white); 
             padding: 15px; 
@@ -116,18 +120,15 @@
             border-radius: 12px; 
             min-height: 70px; 
             box-sizing: border-box; 
-            transition: transform 0.2s;
         }
 
-        .item:active { transform: scale(0.98); }
-
-        .urgente { background: #fff5f5 !important; border-left: 6px solid var(--red) !important; }
-        .ok { background: #f1f8e9 !important; border-left: 6px solid var(--green) !important; }
-        .vuoto { background: #fffde7 !important; border-left: 6px solid var(--gold) !important; }
-        .no-obbligo { background: var(--white) !important; border-left: 6px solid #e0e0e0 !important; color: #9e9e9e; }
+        .urgente { border-left: 6px solid var(--red) !important; background: #fff5f5 !important; }
+        .ok { border-left: 6px solid var(--green) !important; background: #f1f8e9 !important; }
+        .vuoto { border-left: 6px solid var(--gold) !important; background: #fffde7 !important; }
+        .no-obbligo { border-left: 6px solid #e0e0e0 !important; color: #9e9e9e; }
         
         .nome-ingrediente { font-weight: 600; color: var(--text); font-size: 15px; }
-        .soglia-info { font-size: 11px; color: #795548; font-weight: bold; margin-top: 2px; }
+        .soglia-info { font-size: 11px; color: #795548; font-weight: bold; }
 
         input.qty-input { 
             width: 85px; 
@@ -137,11 +138,8 @@
             font-size: 16px; 
             font-weight: bold;
             text-align: center; 
-            background: #fff;
-            color: var(--primary);
         }
 
-        /* Footer Moderno */
         .footer-controls { 
             position: fixed; bottom: 0; left: 0; right: 0; 
             background: rgba(255, 255, 255, 0.95); 
@@ -157,24 +155,11 @@
             border-radius: 20px 20px 0 0; 
         }
 
-        .btn-wa { background: #25D366; color: white; border: none; padding: 16px; border-radius: 12px; font-size: 16px; font-weight: bold; cursor: pointer; flex: 1.2; box-shadow: 0 4px 10px rgba(37, 211, 102, 0.3); }
-        .btn-save { background: var(--primary); color: white; border: none; padding: 16px; border-radius: 12px; font-size: 16px; font-weight: bold; cursor: pointer; flex: 1; }
+        .btn-wa { background: #25D366; color: white; border: none; padding: 16px; border-radius: 12px; font-size: 16px; font-weight: bold; flex: 1.2; }
+        .btn-save { background: var(--primary); color: white; border: none; padding: 16px; border-radius: 12px; font-size: 16px; font-weight: bold; flex: 1; }
         .btn-reset { background: var(--red); color: white; border: none; padding: 10px; border-radius: 8px; font-size: 12px; font-weight: bold; margin-top: 15px; width: 100%; display: none; }
 
-        /* Tabelle visualizza tutte affiancate */
-        .cat-group-container { background: var(--white); border-radius: 12px; overflow: hidden; border: 1px solid var(--accent); box-shadow: 0 2px 6px rgba(0,0,0,0.05); }
-        .tabella-globale table thead th { background: var(--accent); color: var(--primary); padding: 12px 5px; }
-
-        .alert-festivo { 
-            background: #ffecb3; 
-            color: #5d4037; 
-            padding: 8px; 
-            border-radius: 8px; 
-            font-weight: 700; 
-            font-size: 0.85em; 
-            margin-top: 10px; 
-            border: 1px solid #ffe082;
-        }
+        .alert-festivo { background: #ffecb3; color: #5d4037; padding: 8px; border-radius: 8px; font-weight: 700; font-size: 0.85em; margin-top: 10px; border: 1px solid #ffe082; }
     </style>
 </head>
 <body>
@@ -210,7 +195,7 @@
     </div>
 
 <script>
-    // --- LOGICA FESTIVITÀ (Identica all'ultima richiesta) ---
+    // --- LOGICA FESTIVITÀ ---
     function getPasqua(anno) {
         const a = anno % 19, b = Math.floor(anno / 100), c = anno % 100,
               d = Math.floor(b / 4), e = b % 4, f = Math.floor((b + 8) / 25),
@@ -418,6 +403,59 @@
         }
     }
 
+    function generaVistaTutte() {
+        const cont = document.getElementById('contenitore-lista');
+        cont.innerHTML = "";
+        const dC = JSON.parse(localStorage.getItem('inventario_dati_CASTA')) || {};
+        const dS = JSON.parse(localStorage.getItem('inventario_dati_SILEA')) || {};
+        const dB = JSON.parse(localStorage.getItem('inventario_dati_BIBAN')) || {};
+        let currentCat = ""; let html = "";
+        ingredienti.forEach((ing) => {
+            const soglia = isWeekendDomani ? ing.we : ing.fer;
+            const fmt = (v, ingrediente) => {
+                if (!v || v === "-") return "-";
+                if (ingrediente.noObbligo) return v;
+                const num = estraiNumeroIntelligente(v);
+                return (!isNaN(num) && num < soglia) ? `<span style="color:var(--red); font-weight:bold;">${v}</span>` : v;
+            };
+            if(ing.cat !== currentCat) {
+                if(currentCat !== "") html += `</tbody></table></div></div>`;
+                html += `<div class="cat-group-container"><div class="categoria-header">${ing.cat}</div><div class="tabella-globale"><table><thead><tr><th>INGREDIENTE</th><th>Casta</th><th>Silea</th><th>Biban</th></tr></thead><tbody>`;
+                currentCat = ing.cat;
+            }
+            html += `<tr><td>${ing.nome}</td><td>${fmt(dC[ing.nome],ing)}</td><td>${fmt(dS[ing.nome],ing)}</td><td>${fmt(dB[ing.nome],ing)}</td></tr>`;
+        });
+        cont.innerHTML = html + "</tbody></table></div></div>";
+    }
+
+    function generaVistaArchivio() {
+        const dataScelta = document.getElementById('archiveDate').value;
+        const cont = document.getElementById('contenitore-lista');
+        if (!dataScelta) return;
+        cont.innerHTML = `<div class="archivio-header">📜 Archivio: ${dataScelta}</div>`;
+        const dC = JSON.parse(localStorage.getItem(`archive_CASTA_${dataScelta}`)) || null;
+        const dS = JSON.parse(localStorage.getItem(`archive_SILEA_${dataScelta}`)) || null;
+        const dB = JSON.parse(localStorage.getItem(`archive_BIBAN_${dataScelta}`)) || null;
+        if (!dC && !dS && !dB) { cont.innerHTML += `<div style="grid-column:1/-1;text-align:center;padding:20px;">Nessun dato.</div>`; return; }
+        let currentCat = ""; let html = "";
+        ingredienti.forEach((ing) => {
+            if(ing.cat !== currentCat) {
+                if(currentCat !== "") html += `</tbody></table></div></div>`;
+                html += `<div class="cat-group-container"><div class="categoria-header">${ing.cat}</div><div class="tabella-globale"><table><thead><tr><th>INGREDIENTE</th><th>Casta</th><th>Silea</th><th>Biban</th></tr></thead><tbody>`;
+                currentCat = ing.cat;
+            }
+            html += `<tr><td>${ing.nome}</td><td>${dC?.[ing.nome] || "-"}</td><td>${dS?.[ing.nome] || "-"}</td><td>${dB?.[ing.nome] || "-"}</td></tr>`;
+        });
+        cont.innerHTML += html + "</tbody></table></div></div>";
+    }
+
+    function calcolaCipollaSfusa(i, soglia) {
+        const sfuse = document.getElementById(`sfuse-${i}`).value;
+        const cassa = document.getElementById(`sel-${i}`);
+        if(sfuse && !isNaN(sfuse)) { cassa.value = (parseFloat(sfuse)/20).toFixed(2); } else { cassa.value = ""; }
+        valuta(i, soglia, "cass.Cipolla");
+    }
+
     function creaLista() {
         const cont = document.getElementById('contenitore-lista');
         const pizzo = document.getElementById('pizzeria').value;
@@ -425,19 +463,12 @@
         const searchBox = document.getElementById('search-box');
         const footerBtns = document.getElementById('footer-btns');
         const datePicker = document.getElementById('date-picker-container');
-        const riepilogoDiv = document.getElementById('riepilogo-globale');
         
-        cont.innerHTML = ""; riepilogoDiv.innerHTML = "";
+        cont.innerHTML = "";
         
         if (!pizzo) { btnAzzera.style.display = "none"; searchBox.style.display = "none"; footerBtns.style.display = "none"; datePicker.style.display = "none"; return; }
-        
-        if (pizzo === "ARCHIVIO") { 
-            btnAzzera.style.display = "none"; footerBtns.style.display = "none"; searchBox.style.display = "none"; datePicker.style.display = "block"; generaVistaArchivio(); return; 
-        }
-        
-        if (pizzo === "TUTTE") { 
-            btnAzzera.style.display = "none"; footerBtns.style.display = "none"; searchBox.style.display = "none"; datePicker.style.display = "none"; generaVistaTutte(); return; 
-        }
+        if (pizzo === "ARCHIVIO") { btnAzzera.style.display = "none"; footerBtns.style.display = "none"; searchBox.style.display = "none"; datePicker.style.display = "block"; generaVistaArchivio(); return; }
+        if (pizzo === "TUTTE") { btnAzzera.style.display = "none"; footerBtns.style.display = "none"; searchBox.style.display = "none"; datePicker.style.display = "none"; generaVistaTutte(); return; }
 
         datePicker.style.display = "none"; searchBox.style.display = "block";
         btnAzzera.style.display = "block"; footerBtns.style.display = "flex";
@@ -468,60 +499,6 @@
                 if(vPrev !== "") valuta(i, soglia, ing.nome);
             }
         });
-    }
-
-    // --- ALTRE FUNZIONI (Tutte incluse) ---
-    function generaVistaTutte() {
-        const cont = document.getElementById('contenitore-lista');
-        cont.innerHTML = "";
-        const dC = JSON.parse(localStorage.getItem('inventario_dati_CASTA')) || {};
-        const dS = JSON.parse(localStorage.getItem('inventario_dati_SILEA')) || {};
-        const dB = JSON.parse(localStorage.getItem('inventario_dati_BIBAN')) || {};
-        let currentCat = ""; let html = "";
-        ingredienti.forEach((ing) => {
-            const soglia = isWeekendDomani ? ing.we : ing.fer;
-            const fmt = (v, ingrediente) => {
-                if (!v || v === "-") return "-";
-                if (ingrediente.noObbligo) return v;
-                const num = estraiNumeroIntelligente(v);
-                return (!isNaN(num) && num < soglia) ? `<span style="color:var(--red); font-weight:bold;">${v}</span>` : v;
-            };
-            if(ing.cat !== currentCat) {
-                if(currentCat !== "") html += `</tbody></table></div></div>`;
-                html += `<div class="cat-group-container"><div class="categoria-header">${ing.cat}</div><div class="tabella-globale"><table><thead><tr><th>NOME</th><th>C</th><th>S</th><th>B</th></tr></thead><tbody>`;
-                currentCat = ing.cat;
-            }
-            html += `<tr><td>${ing.nome}</td><td>${fmt(dC[ing.nome],ing)}</td><td>${fmt(dS[ing.nome],ing)}</td><td>${fmt(dB[ing.nome],ing)}</td></tr>`;
-        });
-        cont.innerHTML = html + "</tbody></table></div></div>";
-    }
-
-    function generaVistaArchivio() {
-        const dataScelta = document.getElementById('archiveDate').value;
-        const cont = document.getElementById('contenitore-lista');
-        if (!dataScelta) return;
-        cont.innerHTML = `<div class="archivio-header">📜 Archivio: ${dataScelta}</div>`;
-        const dC = JSON.parse(localStorage.getItem(`archive_CASTA_${dataScelta}`)) || null;
-        const dS = JSON.parse(localStorage.getItem(`archive_SILEA_${dataScelta}`)) || null;
-        const dB = JSON.parse(localStorage.getItem(`archive_BIBAN_${dataScelta}`)) || null;
-        if (!dC && !dS && !dB) { cont.innerHTML += `<div style="grid-column:1/-1;text-align:center;padding:20px;">Nessun dato.</div>`; return; }
-        let currentCat = ""; let html = "";
-        ingredienti.forEach((ing) => {
-            if(ing.cat !== currentCat) {
-                if(currentCat !== "") html += `</tbody></table></div></div>`;
-                html += `<div class="cat-group-container"><div class="categoria-header">${ing.cat}</div><div class="tabella-globale"><table><thead><tr><th>NOME</th><th>C</th><th>S</th><th>B</th></tr></thead><tbody>`;
-                currentCat = ing.cat;
-            }
-            html += `<tr><td>${ing.nome}</td><td>${dC?.[ing.nome] || "-"}</td><td>${dS?.[ing.nome] || "-"}</td><td>${dB?.[ing.nome] || "-"}</td></tr>`;
-        });
-        cont.innerHTML += html + "</tbody></table></div></div>";
-    }
-
-    function calcolaCipollaSfusa(i, soglia) {
-        const sfuse = document.getElementById(`sfuse-${i}`).value;
-        const cassa = document.getElementById(`sel-${i}`);
-        if(sfuse && !isNaN(sfuse)) { cassa.value = (parseFloat(sfuse)/20).toFixed(2); } else { cassa.value = ""; }
-        valuta(i, soglia, "cass.Cipolla");
     }
 
     function filtraLista() {
