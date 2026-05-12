@@ -49,13 +49,6 @@
         #dialog-vuoti { display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; padding: 25px; border-radius: 20px; box-shadow: 0 0 50px rgba(0,0,0,0.5); z-index: 2000; width: 90%; max-width: 400px; text-align: center; }
         #overlay { display: none; position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:1999; }
         .vuoti-list { text-align: left; max-height: 200px; overflow-y: auto; margin: 15px 0; font-size: 0.9em; color: var(--red); border: 1px solid #eee; padding: 10px; }
-
-        .container-cat-tutte { background: white; border-radius: 12px; overflow: hidden; border: 1px solid var(--accent); box-shadow: 0 2px 6px rgba(0,0,0,0.05); }
-        .tabella-tutte { width: 100%; border-collapse: collapse; font-size: 13px; }
-        .tabella-tutte th { background: var(--primary); color: white; padding: 10px 2px; text-align: center; font-size: 11px; }
-        .tabella-tutte td { padding: 8px 4px; border-bottom: 1px solid #eee; text-align: center; font-weight: bold; }
-        .td-nome { text-align: left !important; padding-left: 8px !important; font-weight: normal !important; width: 40%; }
-        .header-cat-tabella { font-weight: bold; padding: 10px; text-align: center; text-transform: uppercase; font-size: 12px; border-bottom: 2px solid var(--primary); }
     </style>
 </head>
 <body>
@@ -239,10 +232,8 @@
     const isWeekendDomani = isFestivo(domani);
 
     function bloccaNonNumerici(e) {
-        const regex = /[0-9,./+]/;
-        if (!regex.test(e.key) && e.key !== "Backspace" && e.key !== "Tab" && e.key !== "Delete" && !e.key.includes("Arrow")) {
-            e.preventDefault();
-        }
+        const allowed = ['0','1','2','3','4','5','6','7','8','9','.',',','/','+','Backspace','Tab','Delete','ArrowLeft','ArrowRight'];
+        if (!allowed.includes(e.key)) { e.preventDefault(); }
     }
 
     function trasformaECalcola(input, soglia, index) {
@@ -367,13 +358,13 @@
             const v = s[ing.nome] || "";
             const isCipolla = ing.nome === "cass.Cipolla";
             
-            // UTILIZZO DI TYPE="TEL" PER FORZARE TASTIERINO NUMERICO SU MOBILE
+            // TASTIERA OTTIMIZZATA: type="text" + inputmode="decimal"
             let inputHtml = isCipolla ? `
                 <div class="input-wrapper-cipolla">
-                    <div class="sfuse-row"><small>Sfuse</small><input type="tel" class="qty-input" id="sfuse-${i}" onkeydown="bloccaNonNumerici(event)" onchange="trasformaECalcola(this, 0, ${i}); document.getElementById('sel-${i}').value = (this.value/20).toFixed(2); valuta(${i}, ${soglia})"></div>
-                    <input type="tel" class="qty-input" id="sel-${i}" placeholder="Qtà" value="${v}" onkeydown="bloccaNonNumerici(event)" onchange="trasformaECalcola(this, ${soglia}, ${i})">
+                    <div class="sfuse-row"><small>Sfuse</small><input type="text" inputmode="decimal" class="qty-input" id="sfuse-${i}" onkeydown="bloccaNonNumerici(event)" onchange="trasformaECalcola(this, 0, ${i}); document.getElementById('sel-${i}').value = (this.value/20).toFixed(2); valuta(${i}, ${soglia})"></div>
+                    <input type="text" inputmode="decimal" class="qty-input" id="sel-${i}" placeholder="Qtà" value="${v}" onkeydown="bloccaNonNumerici(event)" onchange="trasformaECalcola(this, ${soglia}, ${i})">
                 </div>` : `
-                <input type="tel" class="qty-input" id="sel-${i}" placeholder="Qtà" value="${v}" onkeydown="bloccaNonNumerici(event)" onchange="trasformaECalcola(this, ${soglia}, ${i})">`;
+                <input type="text" inputmode="decimal" class="qty-input" id="sel-${i}" placeholder="Qtà" value="${v}" onkeydown="bloccaNonNumerici(event)" onchange="trasformaECalcola(this, ${soglia}, ${i})">`;
 
             cont.innerHTML += `<div class="item ${v===''?'vuoto':''} ing-item" id="box-${i}" data-nome="${ing.nome.toLowerCase()}">
                 <div class="nome-container"><b>${ing.nome}</b><br><small>Min: ${soglia}</small></div>
