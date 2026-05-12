@@ -238,41 +238,25 @@
     const domani = new Date(oraAttuale); domani.setDate(oraAttuale.getDate() + 1);
     const isWeekendDomani = isFestivo(domani);
 
-    // FUNZIONE BLOCCO TASTIERA LETTERE E SIMBOLI NON PERMESSI
     function bloccaNonNumerici(e) {
-        // Permette numeri, punto, virgola, slash, PIU (per somme) e tasti di controllo
         const regex = /[0-9,./+]/;
         if (!regex.test(e.key) && e.key !== "Backspace" && e.key !== "Tab" && e.key !== "Delete" && !e.key.includes("Arrow")) {
             e.preventDefault();
         }
     }
 
-    // FUNZIONE TRASFORMAZIONE FRAZIONI AUTOMATICA E CALCOLO SOMME
     function trasformaECalcola(input, soglia, index) {
         let rawVal = input.value.trim().replace(',', '.');
         if (rawVal === "") return;
-
-        // 1. Gestione Somme e Frazioni complesse (es. 1+1/2) tramite eval
         let calcolato;
         try {
-            // Sostituiamo le frazioni singole se sono l'unico valore inserito per rispettare le tue regole specifiche
             if (rawVal === "1/3") calcolato = 0.3;
             else if (rawVal === "1/2") calcolato = 0.5;
             else if (rawVal === "2/3") calcolato = 0.7;
             else if (rawVal === "1/4") calcolato = 0.25;
-            else {
-                // Altrimenti risolviamo l'espressione matematica (es. 1+2/3)
-                calcolato = eval(rawVal);
-            }
-        } catch (e) {
-            calcolato = NaN;
-        }
-
-        // Arrotondiamo a 2 decimali se necessario
-        if (!isNaN(calcolato)) {
-            input.value = Math.round(calcolato * 100) / 100;
-        }
-        
+            else { calcolato = eval(rawVal); }
+        } catch (e) { calcolato = NaN; }
+        if (!isNaN(calcolato)) { input.value = Math.round(calcolato * 100) / 100; }
         valuta(index, soglia);
     }
 
@@ -292,13 +276,9 @@
                 it.style.display = listaBarbazza.includes(nome) ? "flex" : "none";
             } else if (q === "" || nome.includes(q)) {
                 it.style.display = "flex";
-            } else {
-                it.style.display = "none";
-            }
+            } else { it.style.display = "none"; }
         });
-        catTitles.forEach(title => {
-            title.style.display = (q === "") ? "block" : "none";
-        });
+        catTitles.forEach(title => { title.style.display = (q === "") ? "block" : "none"; });
     }
 
     function generaVistaTutte() {
@@ -354,9 +334,7 @@
                 <div class="header-cat-tabella" style="background:${raggruppati[cat].color}">${cat}</div>
                 <table class="tabella-tutte">
                 <thead><tr><th>Ingrediente</th><th>Casta</th><th>Silea</th><th>Biban</th></tr></thead><tbody>`;
-            raggruppati[cat].items.forEach(ing => {
-                h += `<tr><td class="td-nome">${ing.nome}</td><td>${d_casta[ing.nome] || "-"}</td><td>${d_silea[ing.nome] || "-"}</td><td>${d_biban[ing.nome] || "-"}</td></tr>`;
-            });
+            raggruppati[cat].items.forEach(ing => { h += `<tr><td class="td-nome">${ing.nome}</td><td>${d_casta[ing.nome] || "-"}</td><td>${d_silea[ing.nome] || "-"}</td><td>${d_biban[ing.nome] || "-"}</td></tr>`; });
             h += `</tbody></table></div>`;
         }
         h += `</div>`;
@@ -407,18 +385,14 @@
         ingredienti.forEach((ing, i) => {
             const input = document.getElementById(`sel-${i}`);
             if (input && input.value.trim() === "") {
-                if (!(ing.nome === "Lievito" && p !== "BIBAN") && !(ing.nome === "Pel.Salsa" && p !== "CASTA")) {
-                   vuoti.push(ing.nome);
-                }
+                if (!(ing.nome === "Lievito" && p !== "BIBAN") && !(ing.nome === "Pel.Salsa" && p !== "CASTA")) { vuoti.push(ing.nome); }
             }
         });
         if (vuoti.length > 0) {
             document.getElementById('lista-nomi-vuoti').innerHTML = vuoti.join(", ");
             document.getElementById('overlay').style.display = 'block';
             document.getElementById('dialog-vuoti').style.display = 'block';
-        } else {
-            eseguiSalva();
-        }
+        } else { eseguiSalva(); }
     }
 
     function chiudiDialog() {
@@ -488,7 +462,8 @@
 
     window.onload = async function() {
         const nomiGiorni = ["Domenica", "Lunedì", "Martedì", "Mercoledì", "Giovedì", "Venerdì", "Sabato"];
-        document.getElementById('info-giorno').innerHTML = `Oggi: <b>${nomiGiorni[oraAttuale.getDay()]}</b> | Domani: <b>${nomiGiorni[domani.getDay()]}</b> ${isWeekendDomani?'(FESTIVO)':''}`;
+        const giornoDomani = nomiGiorni[domani.getDay()];
+        document.getElementById('info-giorno').innerHTML = `Stai facendo la lista per <b>${giornoDomani}</b> ${isWeekendDomani?'(FESTIVO)':''}`;
         const uP = localStorage.getItem('ultima_pizzeria');
         if(uP) document.getElementById('pizzeria').value = uP;
         await syncCloud();
