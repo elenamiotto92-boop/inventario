@@ -39,11 +39,8 @@
         .nome-ingrediente { font-weight: 500; color: #333; font-size: 0.9em; }
         .soglia-info { font-size: 0.65em; color: #888; }
         input.qty-input { width: 75px; height: 32px; border-radius: 4px; border: 1px solid #999; font-size: 14px; text-align: center; background: white; }
-        
-        /* Stili per doppia casella cipolla */
         .input-wrapper { display: flex; flex-direction: column; gap: 4px; align-items: flex-end; }
         .mini-label { font-size: 9px; font-weight: bold; color: #555; text-transform: uppercase; }
-
         .footer-controls { position: fixed; bottom: 0; left: 0; right: 0; background: white; padding: 15px 10px 25px 10px; box-shadow: 0 -5px 15px rgba(0,0,0,0.1); z-index: 1000; display: flex; flex-direction: column; gap: 10px; }
         .btn-wa { background: #25D366; color: white; border: none; padding: 15px; border-radius: 12px; font-size: 1.1em; font-weight: bold; cursor: pointer; flex: 1; }
         .btn-save { background: #3498db; color: white; border: none; padding: 15px; border-radius: 12px; font-size: 1.1em; font-weight: bold; cursor: pointer; flex: 1; }
@@ -63,7 +60,7 @@
         </select>
         
         <div id="search-box" class="search-container">
-            <input type="text" id="searchInput" class="search-input" placeholder="🔍 Cerca o digita BARBAZZA..." oninput="filtraLista()">
+            <input type="text" id="searchInput" class="search-input" placeholder="🔍 Cerca..." oninput="filtraLista()">
         </div>
 
         <div id="date-picker-container" style="display: none; margin-top:10px;">
@@ -200,22 +197,44 @@
 
     function soloNumeri(e) {
         const charCode = (e.which) ? e.which : e.keyCode;
-        if (charCode == 47 || charCode == 44 || charCode == 46) return true;
+        // Permette numeri, "/", ",", "." e ora anche "+"
+        if (charCode == 47 || charCode == 44 || charCode == 46 || charCode == 43) return true;
         if (charCode > 31 && (charCode < 48 || charCode > 57)) return false;
         return true;
     }
 
-    function estraiNumeroIntelligente(testo, nomeIngrediente = "") {
+    function estraiNumeroIntelligente(testo) {
         if (!testo) return NaN;
         testo = testo.toString().toLowerCase().trim().replace(',', '.');
+        
+        // Gestione conversioni fisse
         if (testo === "1/4") return 0.2;
         if (testo === "1/3") return 0.3;
         if (testo === "1/2") return 0.5;
         if (testo === "2/3") return 0.7;
-        let valore = NaN;
-        const match = testo.match(/(\d+(\.\d+)?)/);
-        valore = match ? parseFloat(match[0]) : NaN;
-        return valore;
+        if (testo === "3/4") return 0.7;
+
+        // Gestione somme (es: 1+1/2)
+        try {
+            if (testo.includes('+')) {
+                const parti = testo.split('+');
+                let totale = 0;
+                parti.forEach(p => {
+                    if (p.includes('/')) {
+                        const frazione = p.split('/');
+                        totale += parseFloat(frazione[0]) / parseFloat(frazione[1]);
+                    } else {
+                        totale += parseFloat(p) || 0;
+                    }
+                });
+                return totale;
+            }
+            if (testo.includes('/')) {
+                const frazione = testo.split('/');
+                return parseFloat(frazione[0]) / parseFloat(frazione[1]);
+            }
+            return parseFloat(testo);
+        } catch(e) { return NaN; }
     }
 
     const oraAttuale = new Date();
@@ -244,7 +263,7 @@
             const formattaValore = (valore, ingrediente) => {
                 if (!valore || valore === "-") return "-";
                 if (ingrediente.noObbligo) return valore;
-                const num = estraiNumeroIntelligente(valore, ingrediente.nome);
+                const num = estraiNumeroIntelligente(valore);
                 if (!isNaN(num) && num < soglia) return `<span class="sotto-soglia">${valore}</span>`;
                 return valore;
             };
@@ -267,10 +286,10 @@
         const cont = document.getElementById('contenitore-lista');
         if (!dataScelta) return;
         cont.innerHTML = `<div class="archivio-header">📅 Archivio del: <b>${dataScelta}</b></div>`;
-        const datiCasta = JSON.parse(localStorage.getItem(`archive_CASTA_${dataScelta}`)) || null;
-        const datiSilea = JSON.parse(localStorage.getItem(`archive_SILEA_${dataScelta}`)) || null;
-        const datiBiban = JSON.parse(localStorage.getItem(`archive_BIBAN_${dataScelta}`)) || null;
-        if (!datiCasta && !datiSilea && !datiBiban) { cont.innerHTML += `<div style="padding:20px; text-align:center; color:red;">NESSUN DATO TROVATO.</div>`; return; }
+        const dCasta = JSON.parse(localStorage.getItem(`archive_CASTA_${dataScelta}`)) || null;
+        const dSilea = JSON.parse(localStorage.getItem(`archive_SILEA_${dataScelta}`)) || null;
+        const dBiban = JSON.parse(localStorage.getItem(`archive_BIBAN_${dataScelta}`)) || null;
+        if (!dCasta && !dSilea && !dBiban) { cont.innerHTML += `<div style="padding:20px; text-align:center; color:red;">NESSUN DATO TROVATO.</div>`; return; }
         let currentCat = "";
         let html = "";
         ingredienti.forEach((ing) => {
@@ -279,9 +298,9 @@
                 html += `<div class="categoria-header" style="background-color: ${ing.color}">${ing.cat}</div><div class="tabella-globale cat-group"><table><thead><tr><th>NOME</th><th>Casta</th><th>Silea</th><th>Biban</th></tr></thead><tbody>`;
                 currentCat = ing.cat;
             }
-            let vC = (datiCasta && datiCasta[ing.nome]) ? datiCasta[ing.nome] : "-";
-            let vS = (datiSilea && datiSilea[ing.nome]) ? datiSilea[ing.nome] : "-";
-            let vB = (datiBiban && datiBiban[ing.nome]) ? datiBiban[ing.nome] : "-";
+            let vC = (dCasta && dCasta[ing.nome]) ? dCasta[ing.nome] : "-";
+            let vS = (dSilea && dSilea[ing.nome]) ? dSilea[ing.nome] : "-";
+            let vB = (dBiban && dBiban[ing.nome]) ? dBiban[ing.nome] : "-";
             if (ing.cat === "FREEZER") { vC = "-"; vS = "-"; }
             html += `<tr class="ing-item" data-nome="${ing.nome.toLowerCase()}"><td>${ing.nome}</td><td>${vC}</td><td>${vS}</td><td>${vB}</td></tr>`;
         });
@@ -301,10 +320,20 @@
         const box = document.getElementById(`box-${i}`);
         if(!input) return;
         let valTesto = input.value;
+        
+        // Conversioni automatiche immediate
         if (valTesto === "1/4") valTesto = "0.2";
-        if (valTesto === "1/3") valTesto = "0.3";
-        if (valTesto === "1/2") valTesto = "0.5";
-        if (valTesto === "2/3") valTesto = "0.7";
+        else if (valTesto === "1/3") valTesto = "0.3";
+        else if (valTesto === "1/2") valTesto = "0.5";
+        else if (valTesto === "2/3") valTesto = "0.7";
+        else if (valTesto === "3/4") valTesto = "0.7";
+
+        // Calcolo automatico somme se l'input contiene "+"
+        if (valTesto.includes('+') && !valTesto.endsWith('+')) {
+            const calcolato = estraiNumeroIntelligente(valTesto);
+            if (!isNaN(calcolato)) valTesto = calcolato.toString();
+        }
+
         input.value = valTesto;
         const facoltativo = ingredienti.find(ing => ing.nome === nomeIngrediente)?.noObbligo;
         if (input.value.trim() === "") box.className = facoltativo ? "item no-obbligo ing-item" : "item vuoto ing-item";
@@ -371,7 +400,8 @@
         ingredienti.forEach((ing, i) => { const input = document.getElementById(`sel-${i}`); if (input) dati[ing.nome] = input.value; });
         localStorage.setItem('inventario_dati_' + pizzo, JSON.stringify(dati));
         localStorage.setItem(`archive_${pizzo}_${oggiString}`, JSON.stringify(dati));
-        alert("✅ Salvato!");
+        localStorage.setItem('ultima_pizzeria', pizzo);
+        alert("✅ Dati salvati!");
     }
 
     function generaTabellaRiepilogoBiban() {
