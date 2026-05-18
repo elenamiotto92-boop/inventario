@@ -184,8 +184,12 @@
     <div class="header-box">
         <div id="sync-status">Sincronizzazione in corso...</div>
         <div id="info-giorno"></div>
+        
+        <!-- ETICHETTA SPOSTATA FUORI DAL MENU A TENDINA -->
+        <div style="font-size: 13px; font-weight: bold; color: var(--text-muted); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px;">Seleziona punto vendita</div>
+        
         <select id="pizzeria" class="pizzeria-select" onchange="cambiaPizzeria()">
-            <option value="">SELEZIONA PUNTO VENDITA</option>
+            <option value="" style="display:none;"></option>
             <option value="CASTA">CASTA</option>
             <option value="SILEA">SILEA</option>
             <option value="BIBAN">BIBAN</option>
@@ -477,12 +481,15 @@
             const v = s[ing.nome] || "";
             const isCipolla = ing.nome === "cass.Cipolla";
             
+            // AGGIUNTA: Se è VASCHETTE inserisco limite maxlength 1 e permetto solo numeri da 0 a 8
+            const limitAttr = ing.cat === "VASCHETTE" ? ' maxlength="1" oninput="this.value = this.value.replace(/[^0-8]/g, \'\');"' : '';
+            
             let inputHtml = isCipolla ? `
                 <div style="display:flex; flex-direction:column; align-items:flex-end; gap:4px">
                     <div style="display:flex; align-items:center; gap:5px; font-size:10px; color:var(--secondary)">Sfuse <input type="text" inputmode="decimal" class="qty-input" style="height:32px; width:55px" id="sfuse-${i}" onkeydown="bloccaNonNumerici(event)" onchange="trasformaECalcola(this, 0, ${i}); document.getElementById('sel-${i}').value = (this.value/20).toFixed(2); valuta(${i}, ${soglia})"></div>
                     <input type="text" inputmode="decimal" class="qty-input" id="sel-${i}" placeholder="Qtà" value="${v}" onkeydown="bloccaNonNumerici(event)" onchange="trasformaECalcola(this, ${soglia}, ${i})">
                 </div>` : `
-                <input type="text" inputmode="decimal" class="qty-input" id="sel-${i}" placeholder="0" value="${v}" onkeydown="bloccaNonNumerici(event)" onchange="trasformaECalcola(this, ${soglia}, ${i})">`;
+                <input type="text" inputmode="decimal" class="qty-input" id="sel-${i}" placeholder="0" value="${v}" onkeydown="bloccaNonNumerici(event)" onchange="trasformaECalcola(this, ${soglia}, ${i})"${limitAttr}>`;
 
             cont.innerHTML += `
                 <div class="item ${v===''?'vuoto':''} ing-item" id="box-${i}" data-nome="${ing.nome.toLowerCase()}">
