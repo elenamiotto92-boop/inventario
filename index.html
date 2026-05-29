@@ -159,31 +159,38 @@
         #overlay { display: none; position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(62, 39, 35, 0.5); z-index:1999; }
         .vuoti-list { margin: 15px 0; font-size: 13px; color: var(--red-alert); background: #fff5f5; padding: 12px; border-radius: 8px; max-height: 120px; overflow-y: auto; border: 1px solid #ffcdd2; }
 
-        .container-cat-tutte { background: white; border-radius: 10px; border: 1px solid var(--border); margin-bottom: 15px; overflow: hidden; }
+        /* NUOVO SISTEMA A COLONNE PER ELIMINARE GLI SPAZI BIANCHI */
+        .grid-vista-tutte {
+            column-count: 1; /* 1 colonna sui telefoni piccoli */
+            column-gap: 15px;
+            width: 100%;
+        }
+        @media (min-width: 768px) {
+            .grid-vista-tutte { column-count: 2; }
+        }
+        @media (min-width: 1100px) {
+            .grid-vista-tutte { column-count: 3; }
+        }
+
+        .container-cat-tutte {
+            background: white;
+            border-radius: 10px;
+            border: 1px solid var(--border);
+            margin-bottom: 15px;
+            overflow: hidden;
+            display: inline-block; /* FONDAMENTALE: fa incastrare i blocchi uno sotto l'altro senza buchi */
+            width: 100%;
+            box-sizing: border-box;
+            break-inside: avoid; /* Evita che una tabella si tagli a metà tra due colonne */
+            page-break-inside: avoid;
+        }
+
         .header-cat-tabella { padding: 10px; font-size: 13px; font-weight: bold; background: #efebe9; color: var(--primary); text-align: center; border-bottom: 1px solid var(--border); }
         .tabella-tutte { width: 100%; border-collapse: collapse; font-size: 12px; }
         .tabella-tutte th { padding: 8px; background: #fafafa; color: var(--secondary); border-bottom: 1px solid var(--border); }
         .tabella-tutte td { padding: 10px 8px; border-bottom: 1px solid var(--border); text-align: center; }
         .td-nome { text-align: left !important; font-weight: bold; width: 40%; padding-left: 10px !important; }
 
-        /* Nuova soluzione robusta per non allungare i riquadri bianchi (Flexbox) */
-        .grid-vista-tutte {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 15px;
-            align-items: flex-start;
-            justify-content: center; /* Centra le categorie se non riempiono una riga */
-        }
-        .container-cat-tutte {
-            width: 100%;
-            max-width: 100%;
-        }
-        @media (min-width: 768px) {
-            .container-cat-tutte { width: calc(50% - 7.5px); }
-        }
-        @media (min-width: 1100px) {
-            .container-cat-tutte { width: calc(33.33% - 10px); }
-        } 
     </style>
 </head>
 <body>
@@ -309,7 +316,7 @@
         { cat: "CONDIMENTI", color: "var(--cat-condimenti)", nome: "Aceto balsamico", fer: 1, we: 1 },
         { cat: "CONDIMENTI", color: "var(--cat-condimenti)", nome: "Origano", fer: 1, we: 1 },
         { cat: "CONDIMENTI", color: "var(--cat-condimenti)", nome: "Sale", fer: 1, we: 1 },
-        { cat: "CONDIMENTI", color: "var(--cat-condimenti)", nome: "Olio EVO", fer: 0.5, we: 1 },
+        { cat: "CONDIMENTI", color: "var(--cat-condimenti)", nome: "Olio EVO", fer: 2, we: 1 },
         { cat: "CONDIMENTI", color: "var(--cat-condimenti)", nome: "Olio Aglio", fer: 1, we: 1 },
         { cat: "CONDIMENTI", color: "var(--cat-condimenti)", nome: "Olio Piccante", fer: 1, we: 1 },
         { cat: "CONDIMENTI", color: "var(--cat-condimenti)", nome: "Olio Fritte", fer: 1, we: 1 },
@@ -490,9 +497,12 @@
         
         const originalWidth = area.style.width;
         const originalMargin = area.style.margin;
+        const originalColumns = area.style.columnCount;
         
+        // Forziamo sempre 3 colonne per lo screenshot, e una larghezza fissa per non schiacciarlo
         area.style.width = "1200px";
         area.style.margin = "0 auto";
+        area.style.columnCount = "3";
 
         setTimeout(() => {
             html2canvas(area, { 
@@ -501,8 +511,10 @@
                 useCORS: true,
                 windowWidth: 1200 
             }).then(canvas => {
+                // Ripristiniamo subito
                 area.style.width = originalWidth;
                 area.style.margin = originalMargin;
+                area.style.columnCount = originalColumns;
 
                 const imgData = canvas.toDataURL('image/png');
                 document.getElementById('img-risultato').src = imgData;
@@ -515,6 +527,7 @@
                 alert("Errore durante la creazione dell'immagine. Riprova.");
                 area.style.width = originalWidth;
                 area.style.margin = originalMargin;
+                area.style.columnCount = originalColumns;
                 btn.innerHTML = originalText;
                 btn.disabled = false;
             });
