@@ -490,7 +490,7 @@
         ingredienti.forEach((ing, i) => {
             if (ing.nome === "Lievito" && p !== "BIBAN") return;
             if (ing.nome === "Pel.Salsa" && p !== "CASTA") return;
-            if (ing.nome === "Pelati Salsa" && p === "SILEA") return; // <-- NUOVA RIGA AGGIUNTA
+            if (ing.nome === "Pelati Salsa" && p === "SILEA") return; // 
             if (ing.cat === "VERDURE CRUDE" && (p !== "CASTA" || oraAttuale.getDay() !== 0)) return;
             
             // Nuove condizioni combinate per Silea e Casta
