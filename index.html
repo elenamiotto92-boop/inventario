@@ -266,7 +266,7 @@
         { cat: "FRESCO", color: "var(--cat-fresco)", nome: "Cipolla", fer: 1, we: 2 },
         { cat: "FRESCO", color: "var(--cat-fresco)", nome: "Rucola", fer: 1, we: 2 },
         { cat: "FRESCO", color: "var(--cat-fresco)", nome: "cass. Datterino", fer: 0.5, we: 1 },
-        { cat: "FRESCO", color: "var(--cat-fresco)", nome: "cass. Datt. Giallo", fer: 0.25, we: 0.5 },
+        { cat: "FRESCO", color: "var(--cat-fresco)", nome: "Datt. Giallo vaschette", fer: 0.25, we: 0.5 },
         { cat: "FRESCO", color: "var(--cat-fresco)", nome: "cass.Cipolla", fer: 0.25, we: 0.25 },
         { cat: "FRESCO", color: "var(--cat-fresco)", nome: "Basilico", fer: 1, we: 2 },
         { cat: "FRESCO", color: "var(--cat-fresco)", nome: "Menta", fer: 1, we: 1 },
@@ -307,6 +307,17 @@
         { cat: "DETERSIVI", color: "var(--cat-detersivi)", nome: "Stracci", fer: 1, we: 1 },
         { cat: "DETERSIVI", color: "var(--cat-detersivi)", nome: "Spugne", fer: 1, we: 1 },
         { cat: "DETERSIVI", color: "var(--cat-detersivi)", nome: "Spugne ferro", fer: 1, we: 1 },
+        { cat: "BIBITE", color: "var(--cat-bibite)", nome: "Coca Cola", fer: 1, we: 2 },
+        { cat: "BIBITE", color: "var(--cat-bibite)", nome: "Coca Cola zero", fer: 1, we: 2 },
+        { cat: "BIBITE", color: "var(--cat-bibite)", nome: "Fanta", fer: 1, we: 2 },
+        { cat: "BIBITE", color: "var(--cat-bibite)", nome: "Ichnusa non filtrata", fer: 1, we: 2 },
+        { cat: "BIBITE", color: "var(--cat-bibite)", nome: "Pedavena", fer: 1, we: 2 },
+        { cat: "BIBITE", color: "var(--cat-bibite)", nome: "Helles", fer: 1, we: 2 },
+        { cat: "BIBITE", color: "var(--cat-bibite)", nome: "Fred", fer: 1, we: 2 },
+        { cat: "BIBITE", color: "var(--cat-bibite)", nome: "Bianca", fer: 1, we: 2 },
+        { cat: "BIBITE", color: "var(--cat-bibite)", nome: "Ipa", fer: 1, we: 2 },
+        { cat: "BIBITE", color: "var(--cat-bibite)", nome: "Acqua naturale", fer: 1, we: 2 },
+        { cat: "BIBITE", color: "var(--cat-bibite)", nome: "Acqua frizzante", fer: 1, we: 2 },
         { cat: "VARIO", color: "var(--cat-vario)", nome: "Rot. comande", fer: 5, we: 10 },
         { cat: "VARIO", color: "var(--cat-vario)", nome: "Rotoli pos", fer: 2, we: 5 },
         { cat: "VARIO", color: "var(--cat-vario)", nome: "Rotoli scontrini", fer: 2, we: 5 },
@@ -315,6 +326,8 @@
         { cat: "VARIO", color: "var(--cat-vario)", nome: "Sacc. plas picc", fer: 1, we: 1 },
         { cat: "VARIO", color: "var(--cat-vario)", nome: "Sacchi umido", fer: 1, we: 2 },
         { cat: "VARIO", color: "var(--cat-vario)", nome: "Sacc. umi. picc", fer: 1, we: 1 },
+        { cat: "VARIO", color: "var(--cat-vario)", nome: "Borsette", fer: 1, we: 2 },
+        { cat: "VARIO", color: "var(--cat-vario)", nome: "Gel mani", fer: 1, we: 1 },
         { cat: "VERDURE CRUDE", color: "var(--cat-crude)", nome: "Melanzane crude", fer: 0, we: 0, noObbligo: true },
         { cat: "VERDURE CRUDE", color: "var(--cat-crude)", nome: "Zucchine crude", fer: 0, we: 0, noObbligo: true },
         { cat: "VERDURE CRUDE", color: "var(--cat-crude)", nome: "Peperoni crudi", fer: 0, we: 0, noObbligo: true },
@@ -478,7 +491,11 @@
             if (ing.nome === "Lievito" && p !== "BIBAN") return;
             if (ing.nome === "Pel.Salsa" && p !== "CASTA") return;
             if (ing.cat === "VERDURE CRUDE" && (p !== "CASTA" || oraAttuale.getDay() !== 0)) return;
-            if ((ing.nome === "Ghiaccio" || ing.nome === "Canapa Bio") && p === "CASTA") return;
+            
+            // Nuove condizioni combinate per Silea e Casta
+            if ((ing.nome === "Ghiaccio" || ing.nome === "Canapa Bio") && (p === "CASTA" || p === "SILEA")) return;
+            if ((ing.nome === "Olio Fritte" || ing.nome === "Patate Fritte" || ing.nome === "Patate al Forno") && p === "SILEA") return;
+
             if (ing.cat !== currentCat) {
                 cont.innerHTML += `<div class="categoria-header cat-title">${ing.cat}</div>`;
                 currentCat = ing.cat;
@@ -511,7 +528,13 @@
         ingredienti.forEach((ing, i) => {
             const input = document.getElementById(`sel-${i}`);
             if (input && input.value.trim() === "") {
-                if (!(ing.nome === "Lievito" && p !== "BIBAN") && !(ing.nome === "Pel.Salsa" && p !== "CASTA") && !((ing.nome === "Ghiaccio" || ing.nome === "Canapa Bio") && p === "CASTA") && !ing.noObbligo) { vuoti.push(ing.nome); }
+                if (!(ing.nome === "Lievito" && p !== "BIBAN") && 
+                    !(ing.nome === "Pel.Salsa" && p !== "CASTA") && 
+                    !((ing.nome === "Ghiaccio" || ing.nome === "Canapa Bio") && (p === "CASTA" || p === "SILEA")) && 
+                    !((ing.nome === "Olio Fritte" || ing.nome === "Patate Fritte" || ing.nome === "Patate al Forno") && p === "SILEA") && 
+                    !ing.noObbligo) { 
+                        vuoti.push(ing.nome); 
+                }
             }
         });
         if (vuoti.length > 0) {
