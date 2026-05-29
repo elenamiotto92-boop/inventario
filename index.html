@@ -168,6 +168,8 @@
 
         .grid-vista-tutte { display: grid; grid-template-columns: 1fr; gap: 15px; }
         @media (min-width: 768px) { .grid-vista-tutte { grid-template-columns: repeat(2, 1fr); } }
+        /* Nuova regola per forzare le 3 colonne nello screenshot */
+        @media (min-width: 1100px) { .grid-vista-tutte { grid-template-columns: repeat(3, 1fr); } } 
     </style>
 </head>
 <body>
@@ -281,7 +283,7 @@
         { cat: "CONDIMENTI", color: "var(--cat-condimenti)", nome: "Aceto balsamico", fer: 1, we: 1 },
         { cat: "CONDIMENTI", color: "var(--cat-condimenti)", nome: "Origano", fer: 1, we: 1 },
         { cat: "CONDIMENTI", color: "var(--cat-condimenti)", nome: "Sale", fer: 1, we: 1 },
-        { cat: "CONDIMENTI", color: "var(--cat-condimenti)", nome: "Olio EVO", fer: 2, we: 1 },
+        { cat: "CONDIMENTI", color: "var(--cat-condimenti)", nome: "Olio EVO", fer: 0.5, we: 1 },
         { cat: "CONDIMENTI", color: "var(--cat-condimenti)", nome: "Olio Aglio", fer: 1, we: 1 },
         { cat: "CONDIMENTI", color: "var(--cat-condimenti)", nome: "Olio Piccante", fer: 1, we: 1 },
         { cat: "CONDIMENTI", color: "var(--cat-condimenti)", nome: "Olio Fritte", fer: 1, we: 1 },
@@ -429,11 +431,9 @@
             raggruppati[ing.cat].items.push(ing);
         });
         
-        // --- NUOVO BOTTONE E DIV PER LO SCREENSHOT AGGIUNTI QUI ---
         let h = `
             <button onclick="scaricaScreenshot(this)" style="background:var(--primary); color:white; width:100%; margin-bottom:15px; padding:12px; border-radius:10px; font-weight:bold; border:none; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">📸 SALVA/CONDIVIDI COME IMMAGINE</button>
-            <div id="area-da-fotografare" style="background:var(--bg-body); padding:10px; border-radius:10px;" class="grid-vista-tutte">`;
-        // ----------------------------------------------------------
+            <div id="area-da-fotografare" style="background:var(--bg-body); padding:15px; border-radius:10px;" class="grid-vista-tutte">`;
 
         for (const cat in raggruppati) {
             h += `<div class="container-cat-tutte">
@@ -455,37 +455,49 @@
         cont.innerHTML = h;
     }
 
-    // --- NUOVA FUNZIONE PER CREARE E CONDIVIDERE L'IMMAGINE ---
+    // Nuova funzione per forzare alta qualità e formattazione PC nello screenshot
     function scaricaScreenshot(btn) {
         const originalText = btn.innerHTML;
-        btn.innerHTML = "⏳ Generazione in corso (attendi pochi secondi)...";
+        btn.innerHTML = "⏳ Generazione in alta qualità (attendi)...";
         btn.disabled = true;
 
         const area = document.getElementById('area-da-fotografare');
         
+        // Salviamo lo stile attuale
+        const originalWidth = area.style.width;
+        const originalMargin = area.style.margin;
+        
+        // Forziamo la visualizzazione a 1200px (così si divide in 3 colonne invece di 1)
+        area.style.width = "1200px";
+        area.style.margin = "0 auto";
+
         html2canvas(area, { 
-            scale: 2, 
+            scale: 2, // Moltiplica la risoluzione per renderla nitida
             backgroundColor: "#ffffff",
-            useCORS: true
+            useCORS: true,
+            windowWidth: 1200 // Assicura che html2canvas legga la larghezza giusta
         }).then(canvas => {
+            // Ripristiniamo subito lo schermo del telefono alla normalità
+            area.style.width = originalWidth;
+            area.style.margin = originalMargin;
+
             canvas.toBlob(function(blob) {
                 const file = new File([blob], 'Report_Rimanenze.png', { type: 'image/png' });
                 
-                // Se il browser supporta la condivisione nativa (es. Safari su iOS o Chrome su Android)
                 if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
                     navigator.share({
                         files: [file],
                         title: 'Report Rimanenze',
-                        text: 'Ecco il report di tutte le pizzerie.'
+                        text: 'Ecco il report aggiornato di tutte le pizzerie.'
                     }).then(() => {
                         btn.innerHTML = originalText;
                         btn.disabled = false;
                     }).catch(err => {
+                        console.error(err);
                         btn.innerHTML = originalText;
                         btn.disabled = false;
                     });
                 } else {
-                    // Se siamo su PC o il browser non supporta la condivisione, scarica l'immagine
                     const link = document.createElement('a');
                     link.download = 'Report_Rimanenze_' + new Date().toISOString().split('T')[0] + '.png';
                     link.href = URL.createObjectURL(blob);
@@ -496,11 +508,11 @@
             }, 'image/png');
         }).catch(err => {
             alert("Errore durante la creazione dell'immagine.");
+            area.style.width = originalWidth;
             btn.innerHTML = originalText;
             btn.disabled = false;
         });
     }
-    // -----------------------------------------------------------
 
     function generaVistaArchivio() {
         const dataScelta = document.getElementById('archiveDate').value;
