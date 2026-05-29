@@ -278,7 +278,7 @@
         { cat: "CONDIMENTI", color: "var(--cat-condimenti)", nome: "Aceto balsamico", fer: 1, we: 1 },
         { cat: "CONDIMENTI", color: "var(--cat-condimenti)", nome: "Origano", fer: 1, we: 1 },
         { cat: "CONDIMENTI", color: "var(--cat-condimenti)", nome: "Sale", fer: 1, we: 1 },
-        { cat: "CONDIMENTI", color: "var(--cat-condimenti)", nome: "Olio EVO", fer: 0.5, we: 0.5 },
+        { cat: "CONDIMENTI", color: "var(--cat-condimenti)", nome: "Olio EVO", fer: 2, we: 1 },
         { cat: "CONDIMENTI", color: "var(--cat-condimenti)", nome: "Olio Aglio", fer: 1, we: 1 },
         { cat: "CONDIMENTI", color: "var(--cat-condimenti)", nome: "Olio Piccante", fer: 1, we: 1 },
         { cat: "CONDIMENTI", color: "var(--cat-condimenti)", nome: "Olio Fritte", fer: 1, we: 1 },
@@ -490,14 +490,9 @@
         ingredienti.forEach((ing, i) => {
             if (ing.nome === "Lievito" && p !== "BIBAN") return;
             if (ing.nome === "Pel.Salsa" && p !== "CASTA") return;
-            if (ing.nome === "Pelati Salsa" && p === "SILEA") return; // 
+            if (ing.nome === "Pelati Salsa" && p === "SILEA") return;
             if (ing.cat === "VERDURE CRUDE" && (p !== "CASTA" || oraAttuale.getDay() !== 0)) return;
             
-            // Nuove condizioni combinate per Silea e Casta
-            if ((ing.nome === "Ghiaccio" || ing.nome === "Canapa Bio") && (p === "CASTA" || p === "SILEA")) return;
-            if ((ing.nome === "Olio Fritte" || ing.nome === "Patate Fritte" || ing.nome === "Patate al Forno") && p === "SILEA") return;
-            
-            // Nuove condizioni combinate per Silea e Casta
             if ((ing.nome === "Ghiaccio" || ing.nome === "Canapa Bio") && (p === "CASTA" || p === "SILEA")) return;
             if ((ing.nome === "Olio Fritte" || ing.nome === "Patate Fritte" || ing.nome === "Patate al Forno") && p === "SILEA") return;
 
@@ -532,18 +527,14 @@
         const vuoti = [];
         ingredienti.forEach((ing, i) => {
             const input = document.getElementById(`sel-${i}`);
-           if (input && input.value.trim() === "") {
+            if (input && input.value.trim() === "") {
                 if (!(ing.nome === "Lievito" && p !== "BIBAN") && 
                     !(ing.nome === "Pel.Salsa" && p !== "CASTA") && 
                     !(ing.nome === "Pelati Salsa" && p === "SILEA") && 
                     !((ing.nome === "Ghiaccio" || ing.nome === "Canapa Bio") && (p === "CASTA" || p === "SILEA")) && 
-                    !((ing.nome === "Olio Fritte" || ing.nome === "Patate Fritte" || ing.nome === "Patate al Forno") && p === "SILEA") && // 
+                    !((ing.nome === "Olio Fritte" || ing.nome === "Patate Fritte" || ing.nome === "Patate al Forno") && p === "SILEA") && 
                     !ing.noObbligo) { 
                         vuoti.push(ing.nome); 
-                }
-            }
-                }
-            }
                 }
             }
         });
