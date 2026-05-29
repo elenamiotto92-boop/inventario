@@ -168,11 +168,22 @@
 
         .grid-vista-tutte { display: grid; grid-template-columns: 1fr; gap: 15px; }
         @media (min-width: 768px) { .grid-vista-tutte { grid-template-columns: repeat(2, 1fr); } }
-        /* Nuova regola per forzare le 3 colonne nello screenshot */
         @media (min-width: 1100px) { .grid-vista-tutte { grid-template-columns: repeat(3, 1fr); } } 
     </style>
 </head>
 <body>
+
+    <div id="modal-screenshot" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.95); z-index:9999; flex-direction:column; align-items:center; justify-content:center; padding:20px; box-sizing:border-box;">
+        <p style="color:white; font-size:16px; font-weight:bold; text-align:center; margin-bottom:15px; line-height:1.5;">
+            ✅ Immagine Pronta!<br><br>
+            <span style="color:var(--warn); font-size:14px;">Tieni premuto a lungo sull'immagine qui sotto per condividerla su WhatsApp o salvarla in Galleria.</span>
+        </p>
+        <div style="overflow:auto; max-height:65vh; width:100%; max-width:600px; border:2px solid var(--border); border-radius:10px; background:white;">
+            <img id="img-risultato" style="width:100%; display:block;" />
+        </div>
+        <button onclick="document.getElementById('modal-screenshot').style.display='none'" style="margin-top:20px; background:var(--red-alert); color:white; width:100%; max-width:300px; padding:15px; border-radius:10px; font-weight:bold; border:none; text-transform:uppercase;">Chiudi</button>
+    </div>
+
     <header><h1>ORDINI e RIMANENZE</h1></header>
 
     <div id="overlay"></div>
@@ -432,7 +443,7 @@
         });
         
         let h = `
-            <button onclick="scaricaScreenshot(this)" style="background:var(--primary); color:white; width:100%; margin-bottom:15px; padding:12px; border-radius:10px; font-weight:bold; border:none; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">📸 SALVA/CONDIVIDI COME IMMAGINE</button>
+            <button onclick="scaricaScreenshot(this)" style="background:var(--primary); color:white; width:100%; margin-bottom:15px; padding:12px; border-radius:10px; font-weight:bold; border:none; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">📸 SALVA COME IMMAGINE</button>
             <div id="area-da-fotografare" style="background:var(--bg-body); padding:15px; border-radius:10px;" class="grid-vista-tutte">`;
 
         for (const cat in raggruppati) {
@@ -455,10 +466,10 @@
         cont.innerHTML = h;
     }
 
-    // Nuova funzione per forzare alta qualità e formattazione PC nello screenshot
+    // Nuova funzione blindata per mostrare l'immagine a schermo sui telefoni
     function scaricaScreenshot(btn) {
         const originalText = btn.innerHTML;
-        btn.innerHTML = "⏳ Generazione in alta qualità (attendi)...";
+        btn.innerHTML = "⏳ Generazione in corso (attendi)...";
         btn.disabled = true;
 
         const area = document.getElementById('area-da-fotografare');
@@ -467,51 +478,38 @@
         const originalWidth = area.style.width;
         const originalMargin = area.style.margin;
         
-        // Forziamo la visualizzazione a 1200px (così si divide in 3 colonne invece di 1)
+        // Forziamo la visualizzazione in 3 colonne
         area.style.width = "1200px";
         area.style.margin = "0 auto";
 
-        html2canvas(area, { 
-            scale: 2, // Moltiplica la risoluzione per renderla nitida
-            backgroundColor: "#ffffff",
-            useCORS: true,
-            windowWidth: 1200 // Assicura che html2canvas legga la larghezza giusta
-        }).then(canvas => {
-            // Ripristiniamo subito lo schermo del telefono alla normalità
-            area.style.width = originalWidth;
-            area.style.margin = originalMargin;
+        // Il setTimeout serve per far "digerire" al telefono il cambio di larghezza prima di fotografare
+        setTimeout(() => {
+            html2canvas(area, { 
+                scale: 1, // Scala 1 evita i crash di memoria sui telefoni (1200px è già nitido)
+                backgroundColor: "#ffffff",
+                useCORS: true,
+                windowWidth: 1200 
+            }).then(canvas => {
+                // Ripristiniamo subito lo schermo alla normalità
+                area.style.width = originalWidth;
+                area.style.margin = originalMargin;
 
-            canvas.toBlob(function(blob) {
-                const file = new File([blob], 'Report_Rimanenze.png', { type: 'image/png' });
-                
-                if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
-                    navigator.share({
-                        files: [file],
-                        title: 'Report Rimanenze',
-                        text: 'Ecco il report aggiornato di tutte le pizzerie.'
-                    }).then(() => {
-                        btn.innerHTML = originalText;
-                        btn.disabled = false;
-                    }).catch(err => {
-                        console.error(err);
-                        btn.innerHTML = originalText;
-                        btn.disabled = false;
-                    });
-                } else {
-                    const link = document.createElement('a');
-                    link.download = 'Report_Rimanenze_' + new Date().toISOString().split('T')[0] + '.png';
-                    link.href = URL.createObjectURL(blob);
-                    link.click();
-                    btn.innerHTML = originalText;
-                    btn.disabled = false;
-                }
-            }, 'image/png');
-        }).catch(err => {
-            alert("Errore durante la creazione dell'immagine.");
-            area.style.width = originalWidth;
-            btn.innerHTML = originalText;
-            btn.disabled = false;
-        });
+                // Mostriamo l'immagine creata nel pop-up nero
+                const imgData = canvas.toDataURL('image/png');
+                document.getElementById('img-risultato').src = imgData;
+                document.getElementById('modal-screenshot').style.display = 'flex';
+
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+
+            }).catch(err => {
+                alert("Errore durante la creazione dell'immagine. Riprova.");
+                area.style.width = originalWidth;
+                area.style.margin = originalMargin;
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+            });
+        }, 150); // Attesa di 150 millisecondi
     }
 
     function generaVistaArchivio() {
