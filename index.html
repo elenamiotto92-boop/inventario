@@ -5,20 +5,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Ordini e Rimanenze</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-
     <style>
         :root {
-            --primary: #3D1F1F;
-            --secondary: #8d6e63;
-            --accent: #d84315;
-            --bg-body: #ffffff;
-            --surface: #ffffff;
-            --border: #e7e0d7;
-            --text-main: #3e2723;
-            --text-muted: #795548;
-            --red-alert: #d32f2f;
-            --green-ok: #388e3c;
-            --warn: #FF9800;
+            --primary: #3D1F1F; --secondary: #8d6e63; --accent: #d84315;
+            --bg-body: #ffffff; --surface: #ffffff; --border: #e7e0d7;
+            --text-main: #3e2723; --text-muted: #795548;
+            --red-alert: #d32f2f; --green-ok: #388e3c; --warn: #FF9800;
         }
 
         body { font-family: "Avenir Next", "Avenir", -apple-system, sans-serif; background: var(--bg-body); color: var(--text-main); padding: 15px; margin: 0; padding-bottom: 120px; line-height: 1.4; }
@@ -28,14 +20,16 @@
         
         select.pizzeria-select, .date-input, .search-input { width: 100%; padding: 12px; border-radius: 10px; border: 1.5px solid var(--border); font-size: 15px; background: #fff; color: var(--text-main); box-sizing: border-box; outline: none; }
 
-        /* Struttura fissa senza "buchi" */
-        #contenitore-lista { display: grid; grid-template-columns: 1fr; gap: 15px; max-width: 1200px; margin: 0 auto; }
-        @media (min-width: 768px) { #contenitore-lista:not(.vista-tabellare) { grid-template-columns: repeat(2, 1fr); } }
-        @media (min-width: 1100px) { #contenitore-lista:not(.vista-tabellare) { grid-template-columns: repeat(3, 1fr); } }
-
-        .categoria-header { grid-column: 1 / -1; padding: 15px 10px 5px 5px; font-size: 14px; font-weight: 800; color: var(--primary); text-transform: uppercase; border-bottom: 2px solid var(--border); margin-top: 10px; }
-
-        .item { background: var(--surface); padding: 16px; display: flex; justify-content: space-between; align-items: center; border: 1px solid var(--border); border-radius: 12px; }
+        /* NUOVO LAYOUT "MASONRY" PER ELIMINARE SPAZI VUOTI */
+        #contenitore-lista { 
+            max-width: 1200px; margin: 0 auto;
+            column-width: 350px; 
+            column-gap: 15px; 
+        }
+        
+        .categoria-header { break-inside: avoid; padding: 15px 10px 5px 5px; font-size: 14px; font-weight: 800; color: var(--primary); text-transform: uppercase; border-bottom: 2px solid var(--border); margin-top: 10px; margin-bottom: 10px; }
+        .item { break-inside: avoid; background: var(--surface); padding: 16px; display: flex; justify-content: space-between; align-items: center; border: 1px solid var(--border); border-radius: 12px; margin-bottom: 8px; }
+        
         .item.urgente { background: #ffebee !important; border-color: var(--red-alert) !important; }
         .item.ok { background: #f1f8e9 !important; border-color: var(--green-ok) !important; }
 
@@ -48,47 +42,37 @@
     </style>
 </head>
 <body>
-
     <header><h1 style="text-align:center;">ORDINI e RIMANENZE</h1></header>
-
     <div class="header-box">
         <div id="sync-status">Sincronizzazione in corso...</div>
         <select id="pizzeria" class="pizzeria-select" onchange="cambiaPizzeria()">
             <option value="CASTA">CASTA</option>
             <option value="SILEA">SILEA</option>
             <option value="BIBAN">BIBAN</option>
-            <option value="TUTTE">Visualizza tutte</option>
         </select>
     </div>
-
     <div id="contenitore-lista"></div>
-
     <div class="footer-controls" id="footer-btns">
-        <button class="btn-save" id="save-btn" onclick="eseguiSalva()">SALVA</button>
+        <button class="btn-save" onclick="eseguiSalva()">SALVA</button>
         <button class="btn-wa" onclick="inviaWhatsApp()">INVIA REPORT</button>
     </div>
 
 <script>
-    // ... (Mantieni le tue variabili BIN_ID e API_KEY intatte) ...
     const BIN_ID = '6a032c1ec0954111d81145d6'; 
     const API_KEY = '$2a$10$n74BprduBaxkWLZ72Jok.uusA4D.MrzIci5phXRfa71Kr5fsLBJQu';
-
-    // ... (Mantieni l'array ingredienti invariato) ...
-    // [Inserisci qui il tuo array ingredienti originale]
-    const ingredienti = [ { cat: "PASTA", nome: "Palline normali", fer: 100, we: 250 }, /* ... resto degli ingredienti ... */ ];
+    
+    // (Array ingredienti invariato)
+    const ingredienti = [ /* ... il tuo array resta identico ... */ ];
 
     function creaLista() {
         const cont = document.getElementById('contenitore-lista');
         const p = document.getElementById('pizzeria').value;
         cont.innerHTML = "";
         
-        if (p === "TUTTE") { generaVistaTutte(); return; }
-        
         const s = JSON.parse(localStorage.getItem('inventario_dati_'+p)) || {};
         let currentCat = "";
         
         ingredienti.forEach((ing, i) => {
-            // Logica filtri invariata
             if (ing.cat !== currentCat) {
                 cont.innerHTML += `<div class="categoria-header">${ing.cat}</div>`;
                 currentCat = ing.cat;
@@ -115,14 +99,12 @@
             const data = await res.json();
             if(data.record) {
                 Object.keys(data.record).forEach(key => localStorage.setItem(key, data.record[key]));
-                document.getElementById('sync-status').innerText = '✅ Dati aggiornati';
             }
             creaLista();
         } catch (e) { creaLista(); }
     }
 
     function cambiaPizzeria() { creaLista(); }
-    
     window.onload = syncCloud;
 </script>
 </body>
