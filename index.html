@@ -166,10 +166,24 @@
         .tabella-tutte td { padding: 10px 8px; border-bottom: 1px solid var(--border); text-align: center; }
         .td-nome { text-align: left !important; font-weight: bold; width: 40%; padding-left: 10px !important; }
 
-        /* Aggiunto align-items: start per non allungare i riquadri bianchi */
-        .grid-vista-tutte { display: grid; grid-template-columns: 1fr; gap: 15px; align-items: start; }
-        @media (min-width: 768px) { .grid-vista-tutte { grid-template-columns: repeat(2, 1fr); } }
-        @media (min-width: 1100px) { .grid-vista-tutte { grid-template-columns: repeat(3, 1fr); } } 
+        /* Nuova soluzione robusta per non allungare i riquadri bianchi (Flexbox) */
+        .grid-vista-tutte {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            align-items: flex-start;
+            justify-content: center; /* Centra le categorie se non riempiono una riga */
+        }
+        .container-cat-tutte {
+            width: 100%;
+            max-width: 100%;
+        }
+        @media (min-width: 768px) {
+            .container-cat-tutte { width: calc(50% - 7.5px); }
+        }
+        @media (min-width: 1100px) {
+            .container-cat-tutte { width: calc(33.33% - 10px); }
+        } 
     </style>
 </head>
 <body>
@@ -311,11 +325,11 @@
         { cat: "MONETE", color: "var(--cat-monete)", nome: "Rotoli 2 €", fer: 1, we: 1 },
         { cat: "MONETE", color: "var(--cat-monete)", nome: "Banc. 5 €", fer: 150, we: 150 },
         { cat: "MONETE", color: "var(--cat-monete)", nome: "Banc. 10 €", fer: 150, we: 150 },
-        { cat: "IMBALLAGGI", color: "var(--cat-imballaggi)", nome: "Pellicola", fer: 1, we: 1 },
-        { cat: "IMBALLAGGI", color: "var(--cat-imballaggi)", nome: "Carta mani", fer: 2, we: 2 },
-        { cat: "IMBALLAGGI", color: "var(--cat-imballaggi)", nome: "Cart.med", fer: 1, we: 2 },
-        { cat: "IMBALLAGGI", color: "var(--cat-imballaggi)", nome: "Cart.mezzi", fer: 1, we: 1 },
-        { cat: "IMBALLAGGI", color: "var(--cat-imballaggi)", nome: "Cart.pers.", fer: 0, we: 0 },
+        { cat: "IMBALLAGGI", color: "var(--cat-impasti)", nome: "Pellicola", fer: 1, we: 1 },
+        { cat: "IMBALLAGGI", color: "var(--cat-impasti)", nome: "Carta mani", fer: 2, we: 2 },
+        { cat: "IMBALLAGGI", color: "var(--cat-impasti)", nome: "Cart.med", fer: 1, we: 2 },
+        { cat: "IMBALLAGGI", color: "var(--cat-impasti)", nome: "Cart.mezzi", fer: 1, we: 1 },
+        { cat: "IMBALLAGGI", color: "var(--cat-impasti)", nome: "Cart.pers.", fer: 0, we: 0 },
         { cat: "DETERSIVI", color: "var(--cat-detersivi)", nome: "Detergente", fer: 1, we: 1 },
         { cat: "DETERSIVI", color: "var(--cat-detersivi)", nome: "Napisan", fer: 1, we: 1 },
         { cat: "DETERSIVI", color: "var(--cat-detersivi)", nome: "Det. piatti", fer: 1, we: 1 },
