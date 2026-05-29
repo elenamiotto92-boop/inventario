@@ -166,7 +166,8 @@
         .tabella-tutte td { padding: 10px 8px; border-bottom: 1px solid var(--border); text-align: center; }
         .td-nome { text-align: left !important; font-weight: bold; width: 40%; padding-left: 10px !important; }
 
-        .grid-vista-tutte { display: grid; grid-template-columns: 1fr; gap: 15px; }
+        /* Aggiunto align-items: start per non allungare i riquadri bianchi */
+        .grid-vista-tutte { display: grid; grid-template-columns: 1fr; gap: 15px; align-items: start; }
         @media (min-width: 768px) { .grid-vista-tutte { grid-template-columns: repeat(2, 1fr); } }
         @media (min-width: 1100px) { .grid-vista-tutte { grid-template-columns: repeat(3, 1fr); } } 
     </style>
@@ -466,7 +467,6 @@
         cont.innerHTML = h;
     }
 
-    // Nuova funzione blindata per mostrare l'immagine a schermo sui telefoni
     function scaricaScreenshot(btn) {
         const originalText = btn.innerHTML;
         btn.innerHTML = "⏳ Generazione in corso (attendi)...";
@@ -474,27 +474,22 @@
 
         const area = document.getElementById('area-da-fotografare');
         
-        // Salviamo lo stile attuale
         const originalWidth = area.style.width;
         const originalMargin = area.style.margin;
         
-        // Forziamo la visualizzazione in 3 colonne
         area.style.width = "1200px";
         area.style.margin = "0 auto";
 
-        // Il setTimeout serve per far "digerire" al telefono il cambio di larghezza prima di fotografare
         setTimeout(() => {
             html2canvas(area, { 
-                scale: 1, // Scala 1 evita i crash di memoria sui telefoni (1200px è già nitido)
+                scale: 1, 
                 backgroundColor: "#ffffff",
                 useCORS: true,
                 windowWidth: 1200 
             }).then(canvas => {
-                // Ripristiniamo subito lo schermo alla normalità
                 area.style.width = originalWidth;
                 area.style.margin = originalMargin;
 
-                // Mostriamo l'immagine creata nel pop-up nero
                 const imgData = canvas.toDataURL('image/png');
                 document.getElementById('img-risultato').src = imgData;
                 document.getElementById('modal-screenshot').style.display = 'flex';
@@ -509,7 +504,7 @@
                 btn.innerHTML = originalText;
                 btn.disabled = false;
             });
-        }, 150); // Attesa di 150 millisecondi
+        }, 150); 
     }
 
     function generaVistaArchivio() {
