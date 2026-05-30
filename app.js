@@ -111,45 +111,48 @@ function scaricaScreenshot(btn) {
     btn.disabled = true;
 
     const area = document.getElementById('area-da-fotografare');
-    
-    const originalWidth = area.style.width;
-    const originalMargin = area.style.margin;
-    
-    // Attiva la forzatura per le 3 colonne sul telefono
-    area.classList.add('forza-stampa');
-    
-    area.style.width = "1200px";
-    area.style.margin = "0 auto";
 
-    // Diamo al telefono un po' più di tempo (300ms) per riorganizzare i blocchi
-    setTimeout(() => {
-        html2canvas(area, { 
-            scale: 1.5, // Leggermente aumentato per renderlo più nitido
-            backgroundColor: "#ffffff",
-            useCORS: true,
-            windowWidth: 1200 
-        }).then(canvas => {
-            // Finito lo screenshot, togliamo la forzatura
-            area.classList.remove('forza-stampa');
-            area.style.width = originalWidth;
-            area.style.margin = originalMargin;
+    html2canvas(area, { 
+        scale: 1.5, 
+        backgroundColor: "#ffffff",
+        useCORS: true,
+        windowWidth: 1200, // Diciamo al programma di simulare uno schermo PC
+        onclone: function(clonedDoc) {
+            // Lavoriamo sul "clone fantasma" invisibile!
+            const areaClone = clonedDoc.getElementById('area-da-fotografare');
+            
+            // Forziamo brutalmente il layout a 3 colonne con dimensioni fisse in pixel
+            areaClone.style.display = "flex";
+            areaClone.style.flexWrap = "wrap";
+            areaClone.style.width = "1200px";
+            areaClone.style.gap = "15px";
+            areaClone.style.padding = "20px";
+            areaClone.style.alignItems = "flex-start";
+            areaClone.style.justifyContent = "center";
+            areaClone.style.background = "#ffffff";
+            
+            // Diciamo a ogni tabella di essere larga esattamente 370 pixel
+            const categorie = areaClone.querySelectorAll('.container-cat-tutte');
+            categorie.forEach(cat => {
+                cat.style.width = "370px";
+                cat.style.maxWidth = "370px";
+                cat.style.display = "block";
+                cat.style.margin = "0";
+                cat.style.flexShrink = "0";
+            });
+        }
+    }).then(canvas => {
+        const imgData = canvas.toDataURL('image/png');
+        document.getElementById('img-risultato').src = imgData;
+        document.getElementById('modal-screenshot').style.display = 'flex';
 
-            const imgData = canvas.toDataURL('image/png');
-            document.getElementById('img-risultato').src = imgData;
-            document.getElementById('modal-screenshot').style.display = 'flex';
-
-            btn.innerHTML = originalText;
-            btn.disabled = false;
-
-        }).catch(err => {
-            area.classList.remove('forza-stampa');
-            alert("Errore durante la creazione dell'immagine. Riprova.");
-            area.style.width = originalWidth;
-            area.style.margin = originalMargin;
-            btn.innerHTML = originalText;
-            btn.disabled = false;
-        });
-    }, 300); 
+        btn.innerHTML = originalText;
+        btn.disabled = false;
+    }).catch(err => {
+        alert("Errore durante la creazione dell'immagine. Riprova.");
+        btn.innerHTML = originalText;
+        btn.disabled = false;
+    });
 }
 function generaVistaArchivio() {
     const dataScelta = document.getElementById('archiveDate').value;
