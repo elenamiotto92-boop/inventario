@@ -178,7 +178,10 @@ function creaLista() {
     cont.innerHTML = "";
     cont.classList.remove("vista-tabellare");
     document.getElementById('btn-azzera').style.display = (p && p !== "TUTTE" && p !== "ARCHIVIO") ? "block" : "none";
-    document.getElementById('footer-btns').style.display = (p && p !== "TUTTE" && p !== "ARCHIVIO") ? "flex" : "none";
+    document.getElementById('footer-btns').style.display = (p && p !== "ARCHIVIO") ? "flex" : "none";
+    document.getElementById('save-btn').style.display = (p === "TUTTE") ? "none" : "block";
+    document.getElementById('search-box').style.display = (p && p !== "TUTTE" && p !== "ARCHIVIO") ? "block" : "none";
+    document.getElementById('date-picker-container').style.display = (p === "ARCHIVIO") ? "block" : "none";
     document.getElementById('search-box').style.display = (p && p !== "TUTTE" && p !== "ARCHIVIO") ? "block" : "none";
     document.getElementById('date-picker-container').style.display = (p === "ARCHIVIO") ? "block" : "none";
     if (p === "TUTTE") { generaVistaTutte(); return; }
@@ -346,15 +349,70 @@ function azzeraLista() { if(confirm("Cancellare i dati inseriti per questo punto
 
 function inviaWhatsApp() {
     const p = document.getElementById('pizzeria').value;
-    let msg = `INV. ${p}\n\n`;
-    ingredienti.forEach((ing, i) => {
-        const input = document.getElementById(`sel-${i}`);
-        if (input && input.value !== "") {
-            const v = estraiNumeroIntelligente(input.value);
-            const s = isWeekendDomani ? ing.we : ing.fer;
-            if(v < s) msg += `* ${ing.nome}: ${input.value}\n`;
-        }
-    });
+    let msg = "";
+    
+    if (p === "TUTTE") {
+        msg += `🚨 *REPORT GLOBALE MANCANZE* 🚨\n\n`;
+        const puntiVendita = ["CASTA", "SILEA", "BIBAN"];
+        
+        puntiVendita.forEach(pv => {
+            const storedData = localStorage.getItem('inventario_dati_' + pv);
+            if (storedData) {
+                const d = JSON.parse(storedData);
+                let msgPv = `*--- PUNTO VENDITA: ${pv} ---*\n`;
+                let haMancanze = false;
+                
+                ingredienti.forEach((ing) => {
+                    if (ing.nome === "Lievito" && pv !== "BIBAN") return;
+                    if (ing.nome === "Pel.Salsa" && pv !== "CASTA") return;
+                    if (ing.nome === "Pelati Salsa" && pv === "SILEA") return;
+                    if (ing.cat === "VERDURE CRUDE" && (pv !== "CASTA" || oraAttuale.getDay() !== 0)) return;
+                    if ((ing.nome === "Ghiaccio" || ing.nome === "Canapa Bio") && (pv === "CASTA" || pv === "SILEA")) return;
+                    if ((ing.nome === "Olio Fritte" || ing.nome === "Patate Fritte" || ing.nome === "Patate al Forno") && (pv === "SILEA" || pv === "BIBAN")) return;
+                    
+                    const val = d[ing.nome];
+                    if (val !== undefined && val !== "") {
+                        const v = estraiNumeroIntelligente(val);
+                        const s = isWeekendDomani ? ing.we : ing.fer;
+                        if (!isNaN(v) && v < s) {
+                            msgPv += `• ${ing.nome}: ${val} (Min: ${s})\n`;
+                            haMancanze = true;
+                        }
+                    }
+                });
+                
+                if (haMancanze) {
+                    msg += msgPv + "\n";
+                }
+            }
+        });
+    } else {
+        // Singolo punto vendita (legge direttamente i campi inseriti a schermo)
+        msg += `🚨 *MANCANZE PUNTO VENDITA: ${p}* 🚨\n\n`;
+        ingredienti.forEach((ing, i) => {
+            if (ing.nome === "Lievito" && p !== "BIBAN") return;
+            if (ing.nome === "Pel.Salsa" && p !== "CASTA") return;
+            if (ing.nome === "Pelati Salsa" && p === "SILEA") return;
+            if (ing.cat === "VERDURE CRUDE" && (p !== "CASTA" || oraAttuale.getDay() !== 0)) return;
+            if ((ing.nome === "Ghiaccio" || ing.nome === "Canapa Bio") && (p === "CASTA" || p === "SILEA")) return;
+            if ((ing.nome === "Olio Fritte" || ing.nome === "Patate Fritte" || ing.nome === "Patate al Forno") && (p === "SILEA" || p === "BIBAN")) return;
+
+            const input = document.getElementById(`sel-${i}`);
+            if (input && input.value !== "") {
+                const v = estraiNumeroIntelligente(input.value);
+                const s = isWeekendDomani ? ing.we : ing.fer;
+                if (!isNaN(v) && v < s) {
+                    msg += `• ${ing.nome}: ${input.value} (Min: ${s})\n`;
+                }
+            }
+        });
+    }
+    
+    // Se non ci sono mancanze, invia un messaggio di conferma generico
+    if (msg.trim() === "" || msg.trim() === "🚨 *REPORT GLOBALE MANCANZE* 🚨" || msg.trim() === `🚨 *MANCANZE PUNTO VENDITA: ${p}* 🚨`) {
+        msg = `✅ Inventario controllato per ${p === "TUTTE" ? "tutti i punti vendita" : p}: nessuna mancanza rilevata!`;
+    }
+    
     window.location.href = "whatsapp://send?text=" + encodeURIComponent(msg);
 }
 
