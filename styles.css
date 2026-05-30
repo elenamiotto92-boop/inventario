@@ -176,17 +176,37 @@ button:active { transform: scale(0.98); }
 
 /* Forza la divisione pulita a 3 colonne su schermi grandi e nello screenshot */
 @media (min-width: 768px) {
-    .grid-vista-tutte {
-        grid-template-columns: repeat(3, 1fr);
-    }
+   /* Layout infallibile per html2canvas */
+.grid-vista-tutte {
+    display: block;
+    text-align: center;
+    font-size: 0; /* Rimuove lo spazio invisibile tra i blocchi */
 }
 
 .container-cat-tutte {
-    background: #ffffff !important; /* Forza il bianco totale */
-    border: 1px solid #e7e0d7 !important; /* Forza il bordo visibile */
+    display: inline-block;
+    vertical-align: top;
+    background: #ffffff !important;
+    border: 1px solid #e7e0d7 !important;
     border-radius: 10px;
+    margin: 5px;
+    width: 100%;
+    max-width: 100%;
+    font-size: 14px; /* Ripristina la dimensione del testo */
+    box-sizing: border-box;
+    text-align: left;
     overflow: hidden;
-    margin-bottom: 0px;
-    display: block;
-    height: auto; /* Impedisce alle tabelle corte di allungarsi verso il basso */
+}
+
+/* Su computer normali */
+@media (min-width: 768px) {
+    .container-cat-tutte {
+        width: calc(33.33% - 15px);
+    }
+}
+
+/* LA MAGIA: Forza le 3 colonne quando il JS scatta la foto */
+.forza-stampa .container-cat-tutte {
+    width: calc(33.33% - 15px) !important;
+    margin: 5px !important;
 }
