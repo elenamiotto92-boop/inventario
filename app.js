@@ -392,6 +392,8 @@ function inviaWhatsApp() {
                 let haMancanze = false;
                 
                 ingredienti.forEach((ing) => {
+                  const giorno = new Date().getDay();
+    if ((giorno === 5 || giorno === 6) && (ing.cat === "PASTA" || ing.cat === "VASCHETTE")) return;
                     if (ing.nome === "Lievito" && pv !== "BIBAN") return;
                     if (ing.nome === "Pel.Salsa" && pv !== "CASTA") return;
                     if (ing.nome === "Pelati Salsa" && pv === "SILEA") return;
