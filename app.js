@@ -1,9 +1,3 @@
-const BIN_ID = '6a032c1ec0954111d81145d6'; 
-const API_KEY = '$2a$10$n74BprduBaxkWLZ72Jok.uusA4D.MrzIci5phXRfa71Kr5fsLBJQu';
-
-// L'array "ingredienti" si trova nel file data.js. 
-// Assicurati che nell'HTML <script src="data.js"></script> sia inserito PRIMA di <script src="app.js"></script>
-
 const listaBarbazza = ["brie", "gorgonzola", "asiago", "acciughe", "tonno (latte)", "salmone", "bresaola", "carciofi", "olive", "capperi", "semola", "carta mani", "pelati salsa", "cart.med", "cart.mezzi", "lievito"];
 const listaMetro = ["ricotta", "no lattosio", "parmigiano 24m", "speck", "mortadella", "prosciutto crudo", "noci", "rot. comande", "rotoli pos", "rotoli scontrini", "spazzolaforno", "pellicola"];
 const listaMetroBiban = ["patate fritte", "patate al forno", "olio evo"];
