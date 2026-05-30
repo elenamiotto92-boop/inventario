@@ -115,16 +115,22 @@ function scaricaScreenshot(btn) {
     const originalWidth = area.style.width;
     const originalMargin = area.style.margin;
     
+    // Attiva la forzatura per le 3 colonne sul telefono
+    area.classList.add('forza-stampa');
+    
     area.style.width = "1200px";
     area.style.margin = "0 auto";
 
+    // Diamo al telefono un po' più di tempo (300ms) per riorganizzare i blocchi
     setTimeout(() => {
         html2canvas(area, { 
-            scale: 1, 
+            scale: 1.5, // Leggermente aumentato per renderlo più nitido
             backgroundColor: "#ffffff",
             useCORS: true,
             windowWidth: 1200 
         }).then(canvas => {
+            // Finito lo screenshot, togliamo la forzatura
+            area.classList.remove('forza-stampa');
             area.style.width = originalWidth;
             area.style.margin = originalMargin;
 
@@ -136,15 +142,15 @@ function scaricaScreenshot(btn) {
             btn.disabled = false;
 
         }).catch(err => {
+            area.classList.remove('forza-stampa');
             alert("Errore durante la creazione dell'immagine. Riprova.");
             area.style.width = originalWidth;
             area.style.margin = originalMargin;
             btn.innerHTML = originalText;
             btn.disabled = false;
         });
-    }, 150); 
+    }, 300); 
 }
-
 function generaVistaArchivio() {
     const dataScelta = document.getElementById('archiveDate').value;
     if (!dataScelta) return;
