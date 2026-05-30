@@ -126,37 +126,40 @@ function scaricaScreenshot(btn) {
 
     const area = document.getElementById('area-da-fotografare');
 
-    html2canvas(area, { 
-        scale: 1.5, 
-        backgroundColor: "#ffffff",
-        useCORS: true,
-        windowWidth: 1200,
-        onclone: function(clonedDoc) {
-            const areaClone = clonedDoc.getElementById('area-da-fotografare');
-            // Blocchiamo le 3 colonne nel clone per la foto perfetta
-            areaClone.style.flexWrap = "nowrap";
-            areaClone.style.width = "1200px";
-            
-            const colonne = areaClone.querySelectorAll('.colonna-fisica');
-            colonne.forEach(col => {
-                col.style.width = "380px";
-                col.style.flex = "none";
-            });
-        }
-    }).then(canvas => {
-        const imgData = canvas.toDataURL('image/png');
-        document.getElementById('img-risultato').src = imgData;
-        document.getElementById('modal-screenshot').style.display = 'flex';
-
-        btn.innerHTML = originalText;
-        btn.disabled = false;
-    }).catch(err => {
-        alert("Errore durante la creazione dell'immagine. Riprova.");
-        btn.innerHTML = originalText;
-        btn.disabled = false;
-    });
+    // Mettiamo un momento di attesa per permettere al telefono di "focalizzare"
+    setTimeout(() => {
+        html2canvas(area, { 
+            scale: 1, // Ridotto per essere più leggero per la RAM del telefono
+            backgroundColor: "#ffffff",
+            useCORS: true,
+            windowWidth: 1200,
+            onclone: function(clonedDoc) {
+                const areaClone = clonedDoc.getElementById('area-da-fotografare');
+                // Forziamo il contenitore principale a essere un blocco unico e rigido
+                areaClone.style.display = "flex";
+                areaClone.style.flexWrap = "wrap";
+                areaClone.style.width = "1200px";
+                areaClone.style.gap = "10px";
+                
+                const colonne = areaClone.querySelectorAll('.colonna-fisica');
+                colonne.forEach(col => {
+                    col.style.width = "380px";
+                    col.style.flex = "0 0 380px"; // Forza la larghezza esatta
+                });
+            }
+        }).then(canvas => {
+            const imgData = canvas.toDataURL('image/png');
+            document.getElementById('img-risultato').src = imgData;
+            document.getElementById('modal-screenshot').style.display = 'flex';
+            btn.innerHTML = originalText;
+            btn.disabled = false;
+        }).catch(err => {
+            alert("Errore sul telefono. Riprova con una lista leggermente più corta.");
+            btn.innerHTML = originalText;
+            btn.disabled = false;
+        });
+    }, 500); // 500 millisecondi di pausa per far "respirare" il telefono
 }
-
 function generaVistaArchivio() {
     const dataScelta = document.getElementById('archiveDate').value;
     if (!dataScelta) return;
