@@ -166,23 +166,27 @@ button:active { transform: scale(0.98); }
 
 /* Su schermi medi (tablet) passa a 2 colonne */
 @media (min-width: 768px) {
-    .grid-vista-tutte { column-count: 2; }
+/* Griglia fissa e compatta nativa - Perfetta per html2canvas */
+.grid-vista-tutte {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 15px;
+    align-items: start; /* Spinge i blocchi verso l'alto evitando buchi */
 }
 
-/* Su schermi grandi o quando fa lo screenshot (1200px) passa a 3 colonne */
-@media (min-width: 1100px) {
-    .grid-vista-tutte { column-count: 3; }
+/* Forza la divisione pulita a 3 colonne su schermi grandi e nello screenshot */
+@media (min-width: 768px) {
+    .grid-vista-tutte {
+        grid-template-columns: repeat(3, 1fr);
+    }
 }
 
 .container-cat-tutte {
-    width: 100%;
-    break-inside: avoid; /* Evita che una categoria venga tagliata a metà colonna */
-    page-break-inside: avoid;
-    -webkit-column-break-inside: avoid;
-    margin-bottom: 15px;
-    display: inline-block; /* FONDAMENTALE: incastra i blocchi verso l'alto */
-    background: white;
+    background: #ffffff !important; /* Forza il bianco totale */
+    border: 1px solid #e7e0d7 !important; /* Forza il bordo visibile */
     border-radius: 10px;
-    border: 1px solid var(--border);
     overflow: hidden;
+    margin-bottom: 0px;
+    display: block;
+    height: auto; /* Impedisce alle tabelle corte di allungarsi verso il basso */
 }
