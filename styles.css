@@ -156,57 +156,24 @@ button:active { transform: scale(0.98); }
 .tabella-tutte td { padding: 10px 8px; border-bottom: 1px solid var(--border); text-align: center; }
 .td-nome { text-align: left !important; font-weight: bold; width: 40%; padding-left: 10px !important; }
 
-/* Nuova soluzione robusta per non allungare i riquadri bianchi (Flexbox) */
-/* Layout a colonne (Effetto Tetris/Pinterest) per rimuovere gli spazi bianchi */
-.grid-vista-tutte {
-    display: block;
-    column-count: 1;
-    column-gap: 15px;
-}
-
-/* Su schermi medi (tablet) passa a 2 colonne */
-@media (min-width: 768px) {
-/* Griglia fissa e compatta nativa - Perfetta per html2canvas */
+/* Layout pulito per lo schermo */
 .grid-vista-tutte {
     display: grid;
     grid-template-columns: 1fr;
     gap: 15px;
-    align-items: start; /* Spinge i blocchi verso l'alto evitando buchi */
+    align-items: start;
 }
 
-/* Forza la divisione pulita a 3 colonne su schermi grandi e nello screenshot */
 @media (min-width: 768px) {
-   /* Layout infallibile per html2canvas */
-.grid-vista-tutte {
-    display: block;
-    text-align: center;
-    font-size: 0; /* Rimuove lo spazio invisibile tra i blocchi */
-}
-
-.container-cat-tutte {
-    display: inline-block;
-    vertical-align: top;
-    background: #ffffff !important;
-    border: 1px solid #e7e0d7 !important;
-    border-radius: 10px;
-    margin: 5px;
-    width: 100%;
-    max-width: 100%;
-    font-size: 14px; /* Ripristina la dimensione del testo */
-    box-sizing: border-box;
-    text-align: left;
-    overflow: hidden;
-}
-
-/* Su computer normali */
-@media (min-width: 768px) {
-    .container-cat-tutte {
-        width: calc(33.33% - 15px);
+    .grid-vista-tutte {
+        grid-template-columns: repeat(3, 1fr);
     }
 }
 
-/* LA MAGIA: Forza le 3 colonne quando il JS scatta la foto */
-.forza-stampa .container-cat-tutte {
-    width: calc(33.33% - 15px) !important;
-    margin: 5px !important;
+.container-cat-tutte {
+    background: #ffffff !important;
+    border: 1px solid #e7e0d7 !important;
+    border-radius: 10px;
+    overflow: hidden;
+    height: auto;
 }
