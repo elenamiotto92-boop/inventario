@@ -74,6 +74,7 @@ function generaVistaTutte() {
     const d_casta = JSON.parse(localStorage.getItem('inventario_dati_CASTA')) || {};
     const d_silea = JSON.parse(localStorage.getItem('inventario_dati_SILEA')) || {};
     const d_biban = JSON.parse(localStorage.getItem('inventario_dati_BIBAN')) || {};
+
     const raggruppati = {};
     ingredienti.forEach(ing => {
         if (ing.cat === "VERDURE CRUDE") return; 
@@ -83,10 +84,14 @@ function generaVistaTutte() {
     
     let h = `
         <button onclick="scaricaScreenshot(this)" style="background:var(--primary); color:white; width:100%; margin-bottom:15px; padding:12px; border-radius:10px; font-weight:bold; border:none; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">📸 SALVA COME IMMAGINE</button>
-        <div id="area-da-fotografare" style="background:var(--bg-body); padding:15px; border-radius:10px;" class="grid-vista-tutte">`;
+        <div id="area-da-fotografare" style="background:var(--bg-body); padding:15px; border-radius:10px; display:flex; flex-wrap:wrap; gap:15px; align-items:flex-start;">`;
+
+    // Creiamo 3 colonne fisiche separate
+    const colonneHTML = ["", "", ""];
+    let indexColonna = 0;
 
     for (const cat in raggruppati) {
-        h += `<div class="container-cat-tutte">
+        let catHTML = `<div class="container-cat-tutte" style="background:#ffffff !important; border:1px solid #e7e0d7 !important; border-radius:10px; overflow:hidden; margin-bottom:15px; width:100%;">
             <div class="header-cat-tabella">${cat}</div>
             <table class="tabella-tutte">
             <thead><tr><th>Articolo</th><th>Casta</th><th>Silea</th><th>Biban</th></tr></thead><tbody>`;
@@ -97,10 +102,19 @@ function generaVistaTutte() {
                 if (!isNaN(n) && n < soglia) return `<span style="color:var(--red-alert); font-weight:bold">${val}</span>`;
                 return val || "-";
             };
-            h += `<tr><td class="td-nome">${ing.nome}</td><td>${processaValore(d_casta[ing.nome])}</td><td>${processaValore(d_silea[ing.nome])}</td><td>${processaValore(d_biban[ing.nome])}</td></tr>`;
+            catHTML += `<tr><td class="td-nome">${ing.nome}</td><td>${processaValore(d_casta[ing.nome])}</td><td>${processaValore(d_silea[ing.nome])}</td><td>${processaValore(d_biban[ing.nome])}</td></tr>`;
         });
-        h += `</tbody></table></div>`;
+        catHTML += `</tbody></table></div>`;
+
+        // Distribuiamo le categorie a giro nelle 3 colonne
+        colonneHTML[indexColonna] += catHTML;
+        indexColonna = (indexColonna + 1) % 3;
     }
+
+    h += `<div class="colonna-fisica" style="flex:1; min-width:300px; display:flex; flex-direction:column;">${colonneHTML[0]}</div>`;
+    h += `<div class="colonna-fisica" style="flex:1; min-width:300px; display:flex; flex-direction:column;">${colonneHTML[1]}</div>`;
+    h += `<div class="colonna-fisica" style="flex:1; min-width:300px; display:flex; flex-direction:column;">${colonneHTML[2]}</div>`;
+
     h += `</div>`;
     cont.innerHTML = h;
 }
@@ -116,29 +130,17 @@ function scaricaScreenshot(btn) {
         scale: 1.5, 
         backgroundColor: "#ffffff",
         useCORS: true,
-        windowWidth: 1200, // Diciamo al programma di simulare uno schermo PC
+        windowWidth: 1200,
         onclone: function(clonedDoc) {
-            // Lavoriamo sul "clone fantasma" invisibile!
             const areaClone = clonedDoc.getElementById('area-da-fotografare');
-            
-            // Forziamo brutalmente il layout a 3 colonne con dimensioni fisse in pixel
-            areaClone.style.display = "flex";
-            areaClone.style.flexWrap = "wrap";
+            // Blocchiamo le 3 colonne nel clone per la foto perfetta
+            areaClone.style.flexWrap = "nowrap";
             areaClone.style.width = "1200px";
-            areaClone.style.gap = "15px";
-            areaClone.style.padding = "20px";
-            areaClone.style.alignItems = "flex-start";
-            areaClone.style.justifyContent = "center";
-            areaClone.style.background = "#ffffff";
             
-            // Diciamo a ogni tabella di essere larga esattamente 370 pixel
-            const categorie = areaClone.querySelectorAll('.container-cat-tutte');
-            categorie.forEach(cat => {
-                cat.style.width = "370px";
-                cat.style.maxWidth = "370px";
-                cat.style.display = "block";
-                cat.style.margin = "0";
-                cat.style.flexShrink = "0";
+            const colonne = areaClone.querySelectorAll('.colonna-fisica');
+            colonne.forEach(col => {
+                col.style.width = "380px";
+                col.style.flex = "none";
             });
         }
     }).then(canvas => {
@@ -154,6 +156,7 @@ function scaricaScreenshot(btn) {
         btn.disabled = false;
     });
 }
+
 function generaVistaArchivio() {
     const dataScelta = document.getElementById('archiveDate').value;
     if (!dataScelta) return;
@@ -163,24 +166,38 @@ function generaVistaArchivio() {
     const d_silea = JSON.parse(localStorage.getItem(`inventario_dati_SILEA_${dataScelta}`)) || JSON.parse(localStorage.getItem(`inventario_dati_SILEA`)) || {};
     const d_biban = JSON.parse(localStorage.getItem(`inventario_dati_BIBAN_${dataScelta}`)) || JSON.parse(localStorage.getItem(`inventario_dati_BIBAN`)) || {};
     const raggruppati = {};
+    
     ingredienti.forEach(ing => {
         if (ing.cat === "VERDURE CRUDE") return; 
         if (!raggruppati[ing.cat]) raggruppati[ing.cat] = { color: ing.color, items: [] };
         raggruppati[ing.cat].items.push(ing);
     });
-    let h = `<div style="grid-column: 1/-1; text-align:center; padding:15px; font-weight:bold; color:var(--primary)">Archivio: ${dataScelta}</div><div class="grid-vista-tutte">`;
+    
+    let h = `<div style="grid-column: 1/-1; text-align:center; padding:15px; font-weight:bold; color:var(--primary)">Archivio: ${dataScelta}</div>
+             <div id="area-da-fotografare" style="background:var(--bg-body); padding:15px; border-radius:10px; display:flex; flex-wrap:wrap; gap:15px; align-items:flex-start;">`;
+    
+    const colonneHTML = ["", "", ""];
+    let indexColonna = 0;
+
     for (const cat in raggruppati) {
-        h += `<div class="container-cat-tutte">
+        let catHTML = `<div class="container-cat-tutte" style="background:#ffffff !important; border:1px solid #e7e0d7 !important; border-radius:10px; overflow:hidden; margin-bottom:15px; width:100%;">
             <div class="header-cat-tabella">${cat}</div>
             <table class="tabella-tutte">
             <thead><tr><th>Articolo</th><th>Casta</th><th>Silea</th><th>Biban</th></tr></thead><tbody>`;
         raggruppati[cat].items.forEach(ing => { h += `<tr><td class="td-nome">${ing.nome}</td><td>${d_casta[ing.nome] || "-"}</td><td>${d_silea[ing.nome] || "-"}</td><td>${d_biban[ing.nome] || "-"}</td></tr>`; });
-        h += `</tbody></table></div>`;
+        catHTML += `</tbody></table></div>`;
+        
+        colonneHTML[indexColonna] += catHTML;
+        indexColonna = (indexColonna + 1) % 3;
     }
+
+    h += `<div class="colonna-fisica" style="flex:1; min-width:300px; display:flex; flex-direction:column;">${colonneHTML[0]}</div>`;
+    h += `<div class="colonna-fisica" style="flex:1; min-width:300px; display:flex; flex-direction:column;">${colonneHTML[1]}</div>`;
+    h += `<div class="colonna-fisica" style="flex:1; min-width:300px; display:flex; flex-direction:column;">${colonneHTML[2]}</div>`;
+
     h += `</div>`;
     cont.innerHTML = h;
 }
-
 function creaLista() {
     const cont = document.getElementById('contenitore-lista');
     const p = document.getElementById('pizzeria').value;
