@@ -52,7 +52,7 @@ const ingredienti = [
     { cat: "SCAFFALERIA", color: "var(--cat-scaffaleria)", nome: "Capperi", fer: 1, we: 1 },
     { cat: "SCAFFALERIA", color: "var(--cat-scaffaleria)", nome: "Mais", fer: 1, we: 1 },
     { cat: "SCAFFALERIA", color: "var(--cat-scaffaleria)", nome: "Miele", fer: 1, we: 1 },
-    { cat: "SCAFFALERIA", color: "var(--cat-scaffaleria)", nome: "Pelati Salsa", fer: 1, we: 3 },
+    { cat: "SCAFFALERIA", color: "var(--cat-scaffaleria)", nome: "Pelati Salsa", fer: 1, we: 2 },
     { cat: "FRESCO", color: "var(--cat-fresco)", nome: "Datterino", fer: 1, we: 2 },
     { cat: "FRESCO", color: "var(--cat-fresco)", nome: "Datt giallo", fer: 0.3, we: 0.3 },
     { cat: "FRESCO", color: "var(--cat-fresco)", nome: "Cipolla", fer: 1, we: 1 },
