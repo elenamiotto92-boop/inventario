@@ -352,14 +352,14 @@ function inviaWhatsApp() {
     let msg = "";
     
     if (p === "TUTTE") {
-        msg += `🚨 *REPORT GLOBALE MANCANZE* 🚨\n\n`;
+        msg += `*REPORT MANCANZE*\n\n`;
         const puntiVendita = ["CASTA", "SILEA", "BIBAN"];
         
         puntiVendita.forEach(pv => {
             const storedData = localStorage.getItem('inventario_dati_' + pv);
             if (storedData) {
                 const d = JSON.parse(storedData);
-                let msgPv = `*--- PUNTO VENDITA: ${pv} ---*\n`;
+                let msgPv = `*${pv}*\n`;
                 let haMancanze = false;
                 
                 ingredienti.forEach((ing) => {
@@ -375,7 +375,7 @@ function inviaWhatsApp() {
                         const v = estraiNumeroIntelligente(val);
                         const s = isWeekendDomani ? ing.we : ing.fer;
                         if (!isNaN(v) && v < s) {
-                            msgPv += `• ${ing.nome}: ${val} (Min: ${s})\n`;
+                            msgPv += `• ${ing.nome}: ${val}\n`;
                             haMancanze = true;
                         }
                     }
@@ -387,8 +387,8 @@ function inviaWhatsApp() {
             }
         });
     } else {
-        // Singolo punto vendita (legge direttamente i campi inseriti a schermo)
-        msg += `🚨 *MANCANZE PUNTO VENDITA: ${p}* 🚨\n\n`;
+        // Singolo punto vendita
+        msg += `*MANCANZE ${p}*\n\n`;
         ingredienti.forEach((ing, i) => {
             if (ing.nome === "Lievito" && p !== "BIBAN") return;
             if (ing.nome === "Pel.Salsa" && p !== "CASTA") return;
@@ -402,20 +402,18 @@ function inviaWhatsApp() {
                 const v = estraiNumeroIntelligente(input.value);
                 const s = isWeekendDomani ? ing.we : ing.fer;
                 if (!isNaN(v) && v < s) {
-                    msg += `• ${ing.nome}: ${input.value} (Min: ${s})\n`;
+                    msg += `• ${ing.nome}: ${input.value}\n`;
                 }
             }
         });
     }
     
-    // Se non ci sono mancanze, invia un messaggio di conferma generico
-    if (msg.trim() === "" || msg.trim() === "🚨 *REPORT GLOBALE MANCANZE* 🚨" || msg.trim() === `🚨 *MANCANZE PUNTO VENDITA: ${p}* 🚨`) {
-        msg = `✅ Inventario controllato per ${p === "TUTTE" ? "tutti i punti vendita" : p}: nessuna mancanza rilevata!`;
+    if (msg.trim() === "" || msg.trim() === "*REPORT MANCANZE*" || msg.trim() === `*MANCANZE ${p}*`) {
+        msg = `✅ Tutto OK per ${p === "TUTTE" ? "tutte" : p}`;
     }
     
     window.location.href = "whatsapp://send?text=" + encodeURIComponent(msg);
 }
-
 window.onload = async function() {
     const nomiGiorni = ["Domenica", "Lunedì", "Martedì", "Mercoledì", "Giovedì", "Venerdì", "Sabato"];
     const giornoDomani = nomiGiorni[domani.getDay()];
