@@ -192,7 +192,7 @@ function creaLista() {
         if (ing.nome === "Pelati Salsa" && p === "SILEA") return;
         if (ing.cat === "VERDURE CRUDE" && (p !== "CASTA" || oraAttuale.getDay() !== 0)) return;
         
-        if ((ing.nome === "Ghiaccio" || ing.nome === "Canapa Bio") && (p === "CASTA" || p === "SILEA")) return;
+       if ((ing.nome === "Ghiaccio" || ing.nome === "Canapa Bio") && (p === "CASTA" || p === "SILEA")) return;
         if ((ing.nome === "Olio Fritte" || ing.nome === "Patate Fritte" || ing.nome === "Patate al Forno") && (p === "SILEA" || p === "BIBAN")) return;
         if (ing.cat !== currentCat) {
             cont.innerHTML += `<div class="categoria-header cat-title">${ing.cat}</div>`;
