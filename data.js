@@ -1,6 +1,9 @@
-// data.js
 const BIN_ID = '6a032c1ec0954111d81145d6'; 
 const API_KEY = '$2a$10$n74BprduBaxkWLZ72Jok.uusA4D.MrzIci5phXRfa71Kr5fsLBJQu';
+
+const listaBarbazza = ["brie", "gorgonzola", "asiago", "acciughe", "tonno (latte)", "salmone", "bresaola", "carciofi", "olive", "capperi", "semola", "carta mani", "pelati salsa", "cart.med", "cart.mezzi", "lievito"];
+const listaMetro = ["ricotta", "no lattosio", "parmigiano 24m", "speck", "mortadella", "prosciutto crudo", "noci", "rot. comande", "rotoli pos", "rotoli scontrini", "spazzolaforno", "pellicola"];
+const listaMetroBiban = ["patate fritte", "patate al forno", "olio evo"];
 
 const ingredienti = [
     { cat: "PASTA", color: "var(--cat-pasta)", nome: "Palline normali", fer: 100, we: 250 },
@@ -127,7 +130,3 @@ const ingredienti = [
     { cat: "VERDURE CRUDE", color: "var(--cat-crude)", nome: "Basilico crudo", fer: 0, we: 0, noObbligo: true },
     { cat: "VERDURE CRUDE", color: "var(--cat-crude)", nome: "Funghi crudi", fer: 0, we: 0, noObbligo: true }
 ];
-
-const listaBarbazza = ["brie", "gorgonzola", "asiago", "acciughe", "tonno (latte)", "salmone", "bresaola", "carciofi", "olive", "capperi", "semola", "carta mani", "pelati salsa", "cart.med", "cart.mezzi", "lievito"];
-const listaMetro = ["ricotta", "no lattosio", "parmigiano 24m", "speck", "mortadella", "prosciutto crudo", "noci", "rot. comande", "rotoli pos", "rotoli scontrini", "spazzolaforno", "pellicola"];
-const listaMetroBiban = ["patate fritte", "patate al forno", "olio evo"];
