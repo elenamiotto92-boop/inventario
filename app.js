@@ -1,6 +1,5 @@
-const listaBarbazza = ["brie", "gorgonzola", "asiago", "acciughe", "tonno (latte)", "salmone", "bresaola", "carciofi", "olive", "capperi", "semola", "carta mani", "pelati salsa", "cart.med", "cart.mezzi", "lievito"];
-const listaMetro = ["ricotta", "no lattosio", "parmigiano 24m", "speck", "mortadella", "prosciutto crudo", "noci", "rot. comande", "rotoli pos", "rotoli scontrini", "spazzolaforno", "pellicola"];
-const listaMetroBiban = ["patate fritte", "patate al forno", "olio evo"];
+function getPasqua(anno) {
+    const a = anno % 19, b = Math.floor(anno / 100)...
 
 function getPasqua(anno) {
     const a = anno % 19, b = Math.floor(anno / 100), c = anno % 100, d = Math.floor(b / 4), e = b % 4, f = Math.floor((b + 8) / 25), g = Math.floor((b - f + 1) / 3), h = (19 * a + b - d - g + 15) % 30, i = Math.floor(c / 4), k = c % 4, l = (32 + 2 * e + 2 * i - h - k) % 7, m = Math.floor((a + 11 * h + 22 * l) / 451), n = h + l - 7 * m + 114;
